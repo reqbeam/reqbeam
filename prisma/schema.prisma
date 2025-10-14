@@ -1,0 +1,115 @@
+// This is your Prisma schema file
+// Learn more: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  password  String
+  name      String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  collections  Collection[]
+  requests     Request[]
+  environments Environment[]
+  tabs         Tab[] // ✅ Added this line (fixes your error)
+
+  @@map("users")
+}
+
+model Collection {
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  userId      String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  user     User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  requests Request[]
+
+  @@map("collections")
+}
+
+model Request {
+  id           String   @id @default(cuid())
+  name         String
+  method       String // GET, POST, PUT, DELETE, PATCH, etc.
+  url          String
+  headers      Json? // Store headers as JSON
+  body         String? // Request body
+  bodyType     String? // json, form-data, x-www-form-urlencoded
+  collectionId String?
+  userId       String
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  // Relations
+  user       User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  collection Collection?      @relation(fields: [collectionId], references: [id], onDelete: SetNull)
+  histories  RequestHistory[]
+
+  @@map("requests")
+}
+
+model RequestHistory {
+  id         String   @id @default(cuid())
+  requestId  String
+  statusCode Int?
+  response   String? // Response body
+  headers    Json? // Response headers
+  duration   Int? // Response time in ms
+  size       Int? // Response size in bytes
+  error      String? // Error message if any
+  createdAt  DateTime @default(now())
+
+  // Relations
+  request Request @relation(fields: [requestId], references: [id], onDelete: Cascade)
+
+  @@map("request_histories")
+}
+
+model Environment {
+  id        String   @id @default(cuid())
+  name      String
+  variables Json // Store environment variables as JSON
+  userId    String
+  isActive  Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("environments")
+}
+
+model Tab {
+  id        String   @id @default(cuid())
+  name      String
+  method    String
+  url       String
+  headers   Json?
+  body      String?
+  bodyType  String?
+  userId    String
+  isActive  Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("tabs")
+}
