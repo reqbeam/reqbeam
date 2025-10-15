@@ -5,6 +5,7 @@ import Sidebar from './Sidebar'
 import RequestBuilder from './RequestBuilder'
 import ResponseViewer from './ResponseViewer'
 import { useRequestStore } from '@/store/requestStore'
+import { Plus } from 'lucide-react'
 
 export default function Dashboard() {
   const { data: session } = useSession()
@@ -23,30 +24,33 @@ export default function Dashboard() {
   }
 
   return (
-    <div className="h-screen flex bg-gray-100">
-      {/* Sidebar */}
-      <Sidebar onNewRequest={handleNewRequest} />
+    <div className="h-screen flex flex-col md:flex-row bg-[#1e1e1e]">
+      {/* Sidebar - Hidden on mobile, visible on md+ */}
+      <div className="hidden md:block">
+        <Sidebar onNewRequest={handleNewRequest} />
+      </div>
 
       {/* Main Content */}
       <div className="flex-1 flex flex-col min-h-0">
         {/* Header */}
-        <header className="bg-white border-b border-gray-200 px-4 py-3 flex items-center justify-between">
-          <div className="flex items-center space-x-3">
-            <h1 className="text-lg font-semibold text-gray-900">Postman Clone</h1>
+        <header className="bg-[#252525] border-b border-[#3c3c3c] px-3 sm:px-6 py-3 flex items-center justify-between">
+          <div className="flex items-center gap-2 sm:gap-4">
+            <h1 className="text-base sm:text-lg font-semibold text-white">API NEXUS</h1>
             <button
               onClick={handleNewRequest}
-              className="px-3 py-1 text-sm bg-primary-600 text-white rounded-md hover:bg-primary-700"
+              className="px-3 sm:px-4 py-1.5 text-xs sm:text-sm bg-transparent border border-gray-600 text-gray-300 rounded hover:bg-gray-700 flex items-center gap-1 sm:gap-2"
             >
-              New Request
+              <Plus className="w-3 h-3 sm:w-4 sm:h-4" />
+              <span className="hidden sm:inline">New</span>
             </button>
           </div>
-          <div className="flex items-center space-x-3">
+          <div className="flex items-center gap-2 sm:gap-3">
             {session?.user?.email && (
-              <span className="text-sm text-gray-600">{session.user.email}</span>
+              <span className="hidden sm:inline text-sm text-gray-400 truncate max-w-[150px]">{session.user.email}</span>
             )}
             <button
               onClick={() => signOut()}
-              className="px-3 py-1 text-sm bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300"
+              className="px-2 sm:px-3 py-1.5 text-xs sm:text-sm bg-transparent border border-gray-600 text-gray-300 rounded hover:bg-gray-700"
             >
               Sign out
             </button>
@@ -55,25 +59,32 @@ export default function Dashboard() {
 
         {/* Tabs */}
         {tabs.length > 0 && (
-          <div className="bg-white border-b border-gray-200 px-4 py-2">
-            <div className="flex space-x-2 overflow-x-auto">
+          <div className="bg-[#252525] border-b border-[#3c3c3c] px-2 sm:px-4 flex items-center">
+            <div className="flex space-x-1 overflow-x-auto scrollbar-hide">
               {tabs.map((tab) => (
                 <div
                   key={tab.id}
-                  className={`flex items-center px-3 py-1 rounded-t-lg cursor-pointer ${
+                  className={`flex items-center px-2 sm:px-4 py-2 cursor-pointer border-b-2 whitespace-nowrap ${
                     activeTab === tab.id
-                      ? 'bg-white border-t border-l border-r border-gray-200 text-primary-600'
-                      : 'bg-gray-100 hover:bg-gray-200 text-gray-600'
+                      ? 'border-orange-500 text-white bg-[#2a2a2a]'
+                      : 'border-transparent text-gray-400 hover:text-gray-200 hover:bg-[#2a2a2a]'
                   }`}
                   onClick={() => handleTabClick(tab.id)}
                 >
-                  <span className="text-sm font-medium">{tab.name}</span>
+                  <span className={`text-[10px] sm:text-xs font-medium mr-1 sm:mr-2 px-1 sm:px-1.5 py-0.5 rounded ${
+                    tab.method === 'GET' ? 'bg-green-600 text-white' :
+                    tab.method === 'POST' ? 'bg-yellow-600 text-white' :
+                    tab.method === 'PUT' ? 'bg-blue-600 text-white' :
+                    tab.method === 'DELETE' ? 'bg-red-600 text-white' :
+                    'bg-gray-600 text-white'
+                  }`}>{tab.method}</span>
+                  <span className="text-xs sm:text-sm truncate max-w-[100px] sm:max-w-none">{tab.name}</span>
                   <button
                     onClick={(e) => {
                       e.stopPropagation()
                       handleCloseTab(tab.id)
                     }}
-                    className="ml-2 text-gray-400 hover:text-gray-600"
+                    className="ml-2 sm:ml-3 text-gray-500 hover:text-gray-200 text-lg"
                   >
                     ×
                   </button>
@@ -84,14 +95,14 @@ export default function Dashboard() {
         )}
 
         {/* Main Content Area */}
-        <div className="flex-1 flex min-h-0">
+        <div className="flex-1 flex flex-col lg:flex-row min-h-0">
           {/* Request Builder */}
-          <div className="flex-1 flex flex-col min-h-0 min-w-0">
+          <div className="flex-1 flex flex-col min-h-0 min-w-0 lg:border-r border-[#3c3c3c]">
             <RequestBuilder />
           </div>
 
           {/* Response Viewer */}
-          <div className="w-full md:w-1/2 border-l border-gray-200 min-w-0 min-h-0 overflow-hidden">
+          <div className="w-full lg:w-1/2 border-t lg:border-t-0 lg:border-l border-[#3c3c3c] min-w-0 min-h-0 overflow-hidden">
             <ResponseViewer />
           </div>
         </div>

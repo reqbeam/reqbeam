@@ -12,10 +12,10 @@ export default function ResponseViewer() {
 
   if (isLoading) {
     return (
-      <div className="h-full flex items-center justify-center bg-gray-50">
+      <div className="h-full flex items-center justify-center bg-[#252525]">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Sending request...</p>
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#ff6c37] mx-auto mb-4"></div>
+          <p className="text-gray-400">Sending request...</p>
         </div>
       </div>
     )
@@ -23,10 +23,10 @@ export default function ResponseViewer() {
 
   if (!response) {
     return (
-      <div className="h-full flex items-center justify-center bg-gray-50">
+      <div className="h-full flex items-center justify-center bg-[#252525]">
         <div className="text-center">
-          <FileText className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-          <h3 className="text-lg font-medium text-gray-900 mb-2">
+          <FileText className="w-12 h-12 text-gray-600 mx-auto mb-4" />
+          <h3 className="text-lg font-medium text-gray-300 mb-2">
             No Response
           </h3>
           <p className="text-gray-500">
@@ -69,42 +69,42 @@ export default function ResponseViewer() {
   }
 
   return (
-    <div className="h-full min-h-0 flex flex-col bg-white">
+    <div className="h-full min-h-0 flex flex-col bg-[#252525]">
       {/* Response Header */}
-      <div className="border-b border-gray-200 p-4 shrink-0">
+      <div className="border-b border-[#3c3c3c] p-4 shrink-0">
         <div className="flex items-center justify-between mb-3">
           <div className="flex items-center space-x-3">
-            {getStatusIcon()}
-            <span className={`text-lg font-semibold ${getStatusColor()}`}>
+            <span className="text-xs font-medium text-gray-400">STATUS</span>
+            <span className={`text-base font-semibold ${getStatusColor()}`}>
               {response.status ? `${response.status} ${response.statusText}` : 'Error'}
             </span>
           </div>
-          <div className="flex items-center space-x-4 text-sm text-gray-500">
-            {response.duration && (
-              <div className="flex items-center space-x-1">
-                <Clock className="w-4 h-4" />
-                <span>{response.duration}ms</span>
-              </div>
-            )}
-            {response.size && (
-              <div className="flex items-center space-x-1">
-                <FileText className="w-4 h-4" />
-                <span>{response.size} bytes</span>
-              </div>
-            )}
+          <div className="flex items-center space-x-4 text-sm text-gray-400">
+            <div className="flex items-center space-x-1">
+              <span className="text-xs">TIME</span>
+              {response.duration && (
+                <span className="font-medium">{response.duration}ms</span>
+              )}
+            </div>
+            <div className="flex items-center space-x-1">
+              <span className="text-xs">SIZE</span>
+              {response.size && (
+                <span className="font-medium">{response.size}B</span>
+              )}
+            </div>
           </div>
         </div>
 
         {/* Response Tabs */}
-        <div className="flex space-x-4">
+        <div className="flex space-x-6">
           {['body', 'headers', 'cookies'].map((tab) => (
             <button
               key={tab}
               onClick={() => setActiveTab(tab as any)}
-              className={`px-3 py-1 text-sm font-medium rounded-md capitalize ${
+              className={`px-2 py-2 text-sm font-medium capitalize border-b-2 ${
                 activeTab === tab
-                  ? 'bg-primary-100 text-primary-700'
-                  : 'text-gray-500 hover:text-gray-700'
+                  ? 'border-orange-500 text-white'
+                  : 'border-transparent text-gray-400 hover:text-white'
               }`}
             >
               {tab}
@@ -119,12 +119,12 @@ export default function ResponseViewer() {
           <div className="h-full min-h-0 overflow-auto overflow-x-auto">
             {response.error ? (
               <div className="p-4">
-                <div className="bg-red-50 border border-red-200 rounded-md p-4">
+                <div className="bg-red-900/20 border border-red-900/40 rounded-md p-4">
                   <div className="flex items-center space-x-2">
                     <XCircle className="w-5 h-5 text-red-500" />
-                    <span className="text-red-700 font-medium">Error</span>
+                    <span className="text-red-400 font-medium">Error</span>
                   </div>
-                  <p className="text-red-600 mt-2">{response.error}</p>
+                  <p className="text-red-400 mt-2">{response.error}</p>
                 </div>
               </div>
             ) : (
@@ -157,9 +157,9 @@ export default function ResponseViewer() {
           <div className="p-4 overflow-auto overflow-x-auto">
             <div className="space-y-2">
               {Object.entries(response.headers).map(([key, value]) => (
-                <div key={key} className="flex py-2 border-b border-gray-100">
-                  <div className="w-1/3 font-medium text-gray-700 pr-2 overflow-hidden text-ellipsis whitespace-nowrap">{key}</div>
-                  <div className="w-2/3 text-gray-600 font-mono text-sm overflow-auto overflow-x-auto whitespace-pre">{value}</div>
+                <div key={key} className="flex py-2 border-b border-[#3c3c3c]">
+                  <div className="w-1/3 font-medium text-gray-300 pr-2 overflow-hidden text-ellipsis whitespace-nowrap">{key}</div>
+                  <div className="w-2/3 text-gray-400 font-mono text-sm overflow-auto overflow-x-auto whitespace-pre">{value}</div>
                 </div>
               ))}
             </div>

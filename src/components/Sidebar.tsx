@@ -24,89 +24,71 @@ export default function Sidebar({ onNewRequest }: SidebarProps) {
   }
 
   return (
-    <div className="w-64 bg-gray-800 text-white flex flex-col">
+    <div className="w-64 bg-[#1e1e1e] border-r border-[#3c3c3c] text-gray-300 flex flex-col">
       {/* Header */}
-      <div className="p-4 border-b border-gray-700">
+      <div className="p-4 border-b border-[#3c3c3c]">
         <div className="mb-3">
-          <h2 className="text-lg font-semibold text-white">API Tester</h2>
-          <p className="text-xs text-gray-400">Postman Clone</p>
+          <h2 className="text-sm font-semibold text-gray-400 uppercase tracking-wider">COLLECTIONS</h2>
+          <p className="text-xs text-gray-500 mt-1">+ New Collection</p>
         </div>
-        <button
-          onClick={onNewRequest}
-          className="w-full bg-primary-600 hover:bg-primary-700 text-white px-4 py-2 rounded-md flex items-center justify-center space-x-2 transition-colors shadow-sm"
-        >
-          <Plus className="w-4 h-4" />
-          <span>New Request</span>
-        </button>
       </div>
 
       {/* Navigation */}
       <div className="flex-1 overflow-y-auto">
         {/* Collections */}
-        <div className="border-b border-gray-700">
+        <div className="border-b border-[#3c3c3c]">
           <button
             onClick={() => toggleSection('collections')}
-            className="w-full px-4 py-3 text-left flex items-center justify-between hover:bg-gray-700 transition-colors group"
+            className="w-full px-4 py-3 text-left flex items-center justify-between hover:bg-[#2a2a2a] transition-colors group"
           >
             <div className="flex items-center space-x-2">
-              <Folder className="w-4 h-4 text-gray-300 group-hover:text-white" />
-              <span className="font-medium">Collections</span>
+              <ChevronRight className={`w-4 h-4 text-gray-500 transition-transform ${expandedSections.collections ? 'rotate-90' : ''}`} />
+              <Folder className="w-4 h-4 text-gray-500 group-hover:text-gray-300" />
+              <span className="text-sm font-medium text-gray-400">Collections</span>
             </div>
-            {expandedSections.collections ? (
-              <ChevronDown className="w-4 h-4 text-gray-400" />
-            ) : (
-              <ChevronRight className="w-4 h-4 text-gray-400" />
-            )}
           </button>
           {expandedSections.collections && (
-            <div className="px-2 pb-2">
+            <div className="px-4 pb-2">
               <Collections />
+              <div className="text-sm text-gray-500 py-4 text-center">
+                <p>No collections yet</p>
+              </div>
             </div>
           )}
         </div>
 
         {/* History */}
-        <div className="border-b border-gray-700">
+        <div className="border-b border-[#3c3c3c]">
           <button
             onClick={() => toggleSection('history')}
-            className="w-full px-4 py-3 text-left flex items-center justify-between hover:bg-gray-700 transition-colors group"
+            className="w-full px-4 py-3 text-left flex items-center justify-between hover:bg-[#2a2a2a] transition-colors group"
           >
             <div className="flex items-center space-x-2">
-              <History className="w-4 h-4 text-gray-300 group-hover:text-white" />
-              <span className="font-medium">History</span>
+              <ChevronRight className={`w-4 h-4 text-gray-500 transition-transform ${expandedSections.history ? 'rotate-90' : ''}`} />
+              <History className="w-4 h-4 text-gray-500 group-hover:text-gray-300" />
+              <span className="text-sm font-medium text-gray-400">History</span>
             </div>
-            {expandedSections.history ? (
-              <ChevronDown className="w-4 h-4 text-gray-400" />
-            ) : (
-              <ChevronRight className="w-4 h-4 text-gray-400" />
-            )}
           </button>
           {expandedSections.history && (
             <div className="px-4 pb-2">
-              <div className="text-sm text-gray-400 py-4 text-center">
-                <History className="w-8 h-8 mx-auto mb-2 opacity-50" />
+              <div className="text-sm text-gray-500 py-4 text-center">
                 <p>No recent requests</p>
-                <p className="text-xs mt-1">Your request history will appear here</p>
               </div>
             </div>
           )}
         </div>
 
         {/* Environments */}
-        <div className="border-b border-gray-700">
+        <div className="border-b border-[#3c3c3c]">
           <button
             onClick={() => toggleSection('environments')}
-            className="w-full px-4 py-3 text-left flex items-center justify-between hover:bg-gray-700 transition-colors group"
+            className="w-full px-4 py-3 text-left flex items-center justify-between hover:bg-[#2a2a2a] transition-colors group"
           >
             <div className="flex items-center space-x-2">
-              <Settings className="w-4 h-4 text-gray-300 group-hover:text-white" />
-              <span className="font-medium">Environments</span>
+              <ChevronRight className={`w-4 h-4 text-gray-500 transition-transform ${expandedSections.environments ? 'rotate-90' : ''}`} />
+              <Settings className="w-4 h-4 text-gray-500 group-hover:text-gray-300" />
+              <span className="text-sm font-medium text-gray-400">Environments</span>
             </div>
-            {expandedSections.environments ? (
-              <ChevronDown className="w-4 h-4 text-gray-400" />
-            ) : (
-              <ChevronRight className="w-4 h-4 text-gray-400" />
-            )}
           </button>
           {expandedSections.environments && (
             <div className="px-2 pb-2">

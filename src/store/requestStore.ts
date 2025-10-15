@@ -1,10 +1,17 @@
 import { create } from 'zustand'
 
+export interface QueryParam {
+  key: string
+  value: string
+  enabled: boolean
+}
+
 export interface RequestTab {
   id: string
   name: string
   method: string
   url: string
+  params: QueryParam[]
   headers: Record<string, string>
   body: string
   bodyType: 'json' | 'form-data' | 'x-www-form-urlencoded'
@@ -56,6 +63,7 @@ export const useRequestStore = create<RequestStore>((set, get) => ({
       name: 'New Request',
       method: 'GET',
       url: '',
+      params: [],
       headers: {},
       body: '',
       bodyType: 'json',
@@ -105,6 +113,7 @@ export const useRequestStore = create<RequestStore>((set, get) => ({
           name: 'New Request',
           method: 'GET',
           url: '',
+          params: [],
           headers: {},
           body: '',
           bodyType: 'json',
