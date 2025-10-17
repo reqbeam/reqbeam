@@ -31,7 +31,7 @@ export default function Dashboard() {
       </div>
 
       {/* Main Content */}
-      <div className="flex-1 flex flex-col min-h-0">
+      <div className="flex-1 flex flex-col min-h-0 min-w-0">
         {/* Header */}
         <header className="bg-[#252525] border-b border-[#3c3c3c] px-3 sm:px-6 py-3 flex items-center justify-between">
           <div className="flex items-center gap-2 sm:gap-4">
@@ -59,12 +59,12 @@ export default function Dashboard() {
 
         {/* Tabs */}
         {tabs.length > 0 && (
-          <div className="bg-[#252525] border-b border-[#3c3c3c] px-2 sm:px-4 flex items-center">
-            <div className="flex space-x-1 overflow-x-auto scrollbar-hide">
+          <div className="bg-[#252525] border-b border-[#3c3c3c] flex items-center min-w-0 w-full">
+            <div className="flex space-x-1 overflow-x-auto overflow-y-hidden px-2 sm:px-4 w-full" style={{ scrollbarWidth: 'thin', scrollbarColor: '#666 transparent' }}>
               {tabs.map((tab) => (
                 <div
                   key={tab.id}
-                  className={`flex items-center px-2 sm:px-4 py-2 cursor-pointer border-b-2 whitespace-nowrap ${
+                  className={`flex items-center px-2 sm:px-4 py-2 cursor-pointer border-b-2 whitespace-nowrap flex-shrink-0 ${
                     activeTab === tab.id
                       ? 'border-orange-500 text-white bg-[#2a2a2a]'
                       : 'border-transparent text-gray-400 hover:text-gray-200 hover:bg-[#2a2a2a]'
@@ -78,7 +78,7 @@ export default function Dashboard() {
                     tab.method === 'DELETE' ? 'bg-red-600 text-white' :
                     'bg-gray-600 text-white'
                   }`}>{tab.method}</span>
-                  <span className="text-xs sm:text-sm truncate max-w-[100px] sm:max-w-none">{tab.name}</span>
+                  <span className="text-xs sm:text-sm">{tab.name}</span>
                   <button
                     onClick={(e) => {
                       e.stopPropagation()
