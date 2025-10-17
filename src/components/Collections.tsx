@@ -284,7 +284,7 @@ export default function Collections({ searchQuery = '' }: CollectionsProps) {
   return (
     <div className="h-full flex flex-col">
       {/* Header with Create Button */}
-      <div className="p-3 border-b border-[#3c3c3c]">
+      <div className="p-3 border-b border-[#3c3c3c] flex-shrink-0">
         <button
           onClick={() => setShowCreateForm(true)}
           className="w-full flex items-center justify-center space-x-2 px-3 py-2 bg-orange-600 text-white rounded hover:bg-orange-700 text-sm font-medium transition-colors"
@@ -296,7 +296,7 @@ export default function Collections({ searchQuery = '' }: CollectionsProps) {
 
       {/* Create Collection Form */}
       {showCreateForm && (
-        <div className="p-3 bg-[#2a2a2b] border-b border-[#3c3c3c]">
+        <div className="p-3 bg-[#2a2a2b] border-b border-[#3c3c3c] flex-shrink-0">
           <form onSubmit={createCollection} className="space-y-2">
             <input
               type="text"

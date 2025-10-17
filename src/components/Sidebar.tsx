@@ -14,9 +14,9 @@ export default function Sidebar({ onNewRequest }: SidebarProps) {
   const [searchQuery, setSearchQuery] = useState('')
 
   return (
-    <div className="w-72 bg-[#252526] border-r border-[#3c3c3c] text-gray-300 flex flex-col">
+    <div className="w-72 h-screen bg-[#252526] border-r border-[#3c3c3c] text-gray-300 flex flex-col">
       {/* Header with Tabs */}
-      <div className="border-b border-[#3c3c3c]">
+      <div className="border-b border-[#3c3c3c] flex-shrink-0">
         <div className="flex items-center">
           <button
             onClick={() => setActiveTab('collections')}
