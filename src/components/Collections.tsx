@@ -1,7 +1,7 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-import { Plus, Folder, MoreVertical, Edit, Trash2, Play, Loader2, ChevronDown, ChevronRight } from 'lucide-react'
+import { useState, useEffect, useRef } from 'react'
+import { Plus, Folder, MoreVertical, Edit, Trash2, Play, Loader2, ChevronDown, ChevronRight, FileText, X, Check } from 'lucide-react'
 import { useRequestStore } from '@/store/requestStore'
 
 interface Collection {
@@ -22,13 +22,25 @@ interface Request {
   bodyType?: string
 }
 
-export default function Collections() {
+interface CollectionsProps {
+  searchQuery?: string
+}
+
+export default function Collections({ searchQuery = '' }: CollectionsProps) {
   const [collections, setCollections] = useState<Collection[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [showCreateForm, setShowCreateForm] = useState(false)
   const [newCollectionName, setNewCollectionName] = useState('')
   const [newCollectionDescription, setNewCollectionDescription] = useState('')
   const [expandedCollections, setExpandedCollections] = useState<Set<string>>(new Set())
+  const [editingCollectionId, setEditingCollectionId] = useState<string | null>(null)
+  const [editingRequestId, setEditingRequestId] = useState<string | null>(null)
+  const [editingName, setEditingName] = useState('')
+  const [contextMenu, setContextMenu] = useState<{ x: number; y: number; type: 'collection' | 'request'; id: string; collectionId?: string } | null>(null)
+  const [showAddRequestForm, setShowAddRequestForm] = useState<string | null>(null)
+  const [newRequestName, setNewRequestName] = useState('')
+  const [newRequestMethod, setNewRequestMethod] = useState('GET')
+  const editInputRef = useRef<HTMLInputElement>(null)
   const { createTab, updateTab, loadRequestIntoActiveTab } = useRequestStore()
 
   useEffect(() => {
@@ -123,70 +135,200 @@ export default function Collections() {
     })
   }
 
+  const startEditingCollection = (collection: Collection) => {
+    setEditingCollectionId(collection.id)
+    setEditingName(collection.name)
+    setTimeout(() => editInputRef.current?.focus(), 0)
+  }
+
+  const startEditingRequest = (request: Request) => {
+    setEditingRequestId(request.id)
+    setEditingName(request.name)
+    setTimeout(() => editInputRef.current?.focus(), 0)
+  }
+
+  const saveCollectionName = async (collectionId: string) => {
+    if (!editingName.trim()) {
+      setEditingCollectionId(null)
+      return
+    }
+
+    try {
+      const response = await fetch(`/api/collections/${collectionId}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ name: editingName }),
+      })
+
+      if (response.ok) {
+        setEditingCollectionId(null)
+        fetchCollections()
+      }
+    } catch (error) {
+      console.error('Error renaming collection:', error)
+    }
+  }
+
+  const saveRequestName = async (requestId: string) => {
+    if (!editingName.trim()) {
+      setEditingRequestId(null)
+      return
+    }
+
+    try {
+      const response = await fetch(`/api/requests/${requestId}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ name: editingName }),
+      })
+
+      if (response.ok) {
+        setEditingRequestId(null)
+        fetchCollections()
+      }
+    } catch (error) {
+      console.error('Error renaming request:', error)
+    }
+  }
+
+  const deleteRequest = async (requestId: string) => {
+    if (!confirm('Are you sure you want to delete this request?')) return
+
+    try {
+      const response = await fetch(`/api/requests/${requestId}`, {
+        method: 'DELETE',
+      })
+
+      if (response.ok) {
+        fetchCollections()
+      }
+    } catch (error) {
+      console.error('Error deleting request:', error)
+    }
+  }
+
+  const addRequestToCollection = async (collectionId: string) => {
+    if (!newRequestName.trim()) return
+
+    try {
+      const response = await fetch('/api/requests', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          name: newRequestName,
+          method: newRequestMethod,
+          url: 'https://api.example.com',
+          collectionId,
+        }),
+      })
+
+      if (response.ok) {
+        setNewRequestName('')
+        setNewRequestMethod('GET')
+        setShowAddRequestForm(null)
+        fetchCollections()
+      }
+    } catch (error) {
+      console.error('Error adding request:', error)
+    }
+  }
+
+  const handleContextMenu = (e: React.MouseEvent, type: 'collection' | 'request', id: string, collectionId?: string) => {
+    e.preventDefault()
+    e.stopPropagation()
+    setContextMenu({ x: e.clientX, y: e.clientY, type, id, collectionId })
+  }
+
+  useEffect(() => {
+    const handleClickOutside = () => setContextMenu(null)
+    if (contextMenu) {
+      document.addEventListener('click', handleClickOutside)
+      return () => document.removeEventListener('click', handleClickOutside)
+    }
+  }, [contextMenu])
+
+  useEffect(() => {
+    if (editingCollectionId || editingRequestId) {
+      editInputRef.current?.focus()
+      editInputRef.current?.select()
+    }
+  }, [editingCollectionId, editingRequestId])
+
+  // Filter collections based on search query
+  const filteredCollections = collections.filter(collection => {
+    if (!searchQuery) return true
+    const query = searchQuery.toLowerCase()
+    const matchesCollection = collection.name.toLowerCase().includes(query)
+    const matchesRequest = collection.requests.some(req => 
+      req.name.toLowerCase().includes(query) || 
+      req.url.toLowerCase().includes(query)
+    )
+    return matchesCollection || matchesRequest
+  })
+
   if (isLoading) {
     return (
-      <div className="p-4">
-        <div className="flex items-center justify-center py-8">
-          <Loader2 className="w-6 h-6 animate-spin text-gray-400" />
-          <span className="ml-2 text-gray-500">Loading collections...</span>
-        </div>
+      <div className="flex items-center justify-center py-8">
+        <Loader2 className="w-6 h-6 animate-spin text-gray-400" />
+        <span className="ml-2 text-gray-500">Loading...</span>
       </div>
     )
   }
 
   return (
-    <div className="p-4">
-      <div className="flex items-center justify-between mb-4">
-        <h3 className="text-lg font-semibold text-gray-900">Collections</h3>
+    <div className="h-full flex flex-col">
+      {/* Header with Create Button */}
+      <div className="p-3 border-b border-[#3c3c3c]">
         <button
           onClick={() => setShowCreateForm(true)}
-          className="flex items-center space-x-1 px-3 py-1 bg-primary-600 text-white rounded-md hover:bg-primary-700 text-sm"
+          className="w-full flex items-center justify-center space-x-2 px-3 py-2 bg-orange-600 text-white rounded hover:bg-orange-700 text-sm font-medium transition-colors"
         >
           <Plus className="w-4 h-4" />
-          <span>New</span>
+          <span>New Collection</span>
         </button>
       </div>
 
       {/* Create Collection Form */}
       {showCreateForm && (
-        <div className="mb-4 p-4 bg-gray-50 rounded-lg">
-          <form onSubmit={createCollection} className="space-y-3">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Collection Name
-              </label>
-              <input
-                type="text"
-                value={newCollectionName}
-                onChange={(e) => setNewCollectionName(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500"
-                placeholder="My API Collection"
-                required
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Description (Optional)
-              </label>
-              <textarea
-                value={newCollectionDescription}
-                onChange={(e) => setNewCollectionDescription(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500"
-                placeholder="Collection description..."
-                rows={2}
-              />
-            </div>
+        <div className="p-3 bg-[#2a2a2b] border-b border-[#3c3c3c]">
+          <form onSubmit={createCollection} className="space-y-2">
+            <input
+              type="text"
+              value={newCollectionName}
+              onChange={(e) => setNewCollectionName(e.target.value)}
+              className="w-full px-3 py-2 bg-[#3c3c3c] text-gray-300 text-sm rounded border border-[#555] focus:outline-none focus:border-orange-500"
+              placeholder="Collection Name"
+              required
+              autoFocus
+            />
+            <input
+              type="text"
+              value={newCollectionDescription}
+              onChange={(e) => setNewCollectionDescription(e.target.value)}
+              className="w-full px-3 py-2 bg-[#3c3c3c] text-gray-300 text-sm rounded border border-[#555] focus:outline-none focus:border-orange-500"
+              placeholder="Description (optional)"
+            />
             <div className="flex space-x-2">
               <button
                 type="submit"
-                className="px-4 py-2 bg-primary-600 text-white rounded-md hover:bg-primary-700 text-sm"
+                className="flex-1 px-3 py-1.5 bg-orange-600 text-white rounded hover:bg-orange-700 text-xs font-medium"
               >
                 Create
               </button>
               <button
                 type="button"
-                onClick={() => setShowCreateForm(false)}
-                className="px-4 py-2 bg-gray-300 text-gray-700 rounded-md hover:bg-gray-400 text-sm"
+                onClick={() => {
+                  setShowCreateForm(false)
+                  setNewCollectionName('')
+                  setNewCollectionDescription('')
+                }}
+                className="flex-1 px-3 py-1.5 bg-[#3c3c3c] text-gray-300 rounded hover:bg-[#555] text-xs font-medium"
               >
                 Cancel
               </button>
@@ -196,109 +338,253 @@ export default function Collections() {
       )}
 
       {/* Collections List */}
-      <div className="space-y-2">
-        {collections.length === 0 ? (
-          <div className="text-center py-8 text-gray-500">
-            <Folder className="w-12 h-12 mx-auto mb-4 text-gray-400" />
-            <p>No collections yet</p>
-            <p className="text-sm">Create your first collection to get started</p>
+      <div className="flex-1 overflow-y-auto">
+        {filteredCollections.length === 0 ? (
+          <div className="text-center py-12 px-4">
+            <Folder className="w-16 h-16 mx-auto mb-4 text-gray-600" />
+            <p className="text-gray-400 text-sm mb-1">No collections yet</p>
+            <p className="text-gray-600 text-xs">Create your first collection to organize requests</p>
           </div>
         ) : (
-          collections.map((collection) => (
-            <div
-              key={collection.id}
-              className="border border-gray-200 rounded-lg mb-2"
-            >
-              <div 
-                className="p-3 hover:bg-gray-50 cursor-pointer"
-                onClick={() => toggleCollection(collection.id)}
-              >
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center space-x-2">
+          <div className="py-1">
+            {filteredCollections.map((collection) => (
+              <div key={collection.id} className="mb-1">
+                {/* Collection Header */}
+                <div
+                  className="flex items-center justify-between px-3 py-2 hover:bg-[#2a2a2b] cursor-pointer group"
+                  onClick={() => toggleCollection(collection.id)}
+                  onContextMenu={(e) => handleContextMenu(e, 'collection', collection.id)}
+                >
+                  <div className="flex items-center space-x-2 flex-1 min-w-0">
                     {expandedCollections.has(collection.id) ? (
-                      <ChevronDown className="w-4 h-4 text-gray-500" />
+                      <ChevronDown className="w-3.5 h-3.5 text-gray-500 flex-shrink-0" />
                     ) : (
-                      <ChevronRight className="w-4 h-4 text-gray-500" />
+                      <ChevronRight className="w-3.5 h-3.5 text-gray-500 flex-shrink-0" />
                     )}
-                    <Folder className="w-4 h-4 text-gray-500" />
-                    <div>
-                      <h4 className="font-medium text-gray-900">{collection.name}</h4>
-                      {collection.description && (
-                        <p className="text-sm text-gray-500">{collection.description}</p>
-                      )}
-                      <p className="text-xs text-gray-400">
-                        {collection.requests.length} requests
-                      </p>
-                    </div>
-                  </div>
-                  <div className="flex items-center space-x-1">
-                    {collection.requests.length > 0 && (
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation()
-                          runRequest(collection.requests[0])
+                    <Folder className="w-4 h-4 text-orange-500 flex-shrink-0" />
+                    {editingCollectionId === collection.id ? (
+                      <input
+                        ref={editInputRef}
+                        type="text"
+                        value={editingName}
+                        onChange={(e) => setEditingName(e.target.value)}
+                        onBlur={() => saveCollectionName(collection.id)}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter') saveCollectionName(collection.id)
+                          if (e.key === 'Escape') setEditingCollectionId(null)
                         }}
-                        className="p-1 text-gray-400 hover:text-gray-600"
-                        title="Run first request"
-                      >
-                        <Play className="w-4 h-4" />
-                      </button>
+                        onClick={(e) => e.stopPropagation()}
+                        className="flex-1 px-2 py-1 bg-[#3c3c3c] text-gray-300 text-sm rounded border border-orange-500 focus:outline-none"
+                      />
+                    ) : (
+                      <span className="text-sm text-gray-300 truncate">{collection.name}</span>
                     )}
+                  </div>
+                  <div className="flex items-center space-x-1 opacity-0 group-hover:opacity-100">
                     <button
                       onClick={(e) => {
                         e.stopPropagation()
-                        deleteCollection(collection.id)
+                        setShowAddRequestForm(collection.id)
                       }}
-                      className="p-1 text-gray-400 hover:text-red-600"
-                      title="Delete collection"
+                      className="p-1 text-gray-500 hover:text-orange-500"
+                      title="Add request"
                     >
-                      <Trash2 className="w-4 h-4" />
+                      <Plus className="w-3.5 h-3.5" />
+                    </button>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        handleContextMenu(e, 'collection', collection.id)
+                      }}
+                      className="p-1 text-gray-500 hover:text-gray-300"
+                      title="More options"
+                    >
+                      <MoreVertical className="w-3.5 h-3.5" />
                     </button>
                   </div>
                 </div>
-              </div>
 
-              {/* Requests in Collection */}
-              {expandedCollections.has(collection.id) && collection.requests.length > 0 && (
-                <div className="border-t border-gray-200 bg-gray-50">
-                  <div className="p-2 space-y-1">
-                    {collection.requests.map((request) => (
-                      <div
-                        key={request.id}
-                        className="flex items-center justify-between py-2 px-3 hover:bg-white rounded cursor-pointer group"
-                        onClick={() => runRequest(request)}
+                {/* Add Request Form */}
+                {showAddRequestForm === collection.id && (
+                  <div className="ml-6 px-3 py-2 bg-[#2a2a2b]">
+                    <div className="space-y-2">
+                      <input
+                        type="text"
+                        value={newRequestName}
+                        onChange={(e) => setNewRequestName(e.target.value)}
+                        className="w-full px-2 py-1.5 bg-[#3c3c3c] text-gray-300 text-sm rounded border border-[#555] focus:outline-none focus:border-orange-500"
+                        placeholder="Request Name"
+                        autoFocus
+                      />
+                      <select
+                        value={newRequestMethod}
+                        onChange={(e) => setNewRequestMethod(e.target.value)}
+                        className="w-full px-2 py-1.5 bg-[#3c3c3c] text-gray-300 text-sm rounded border border-[#555] focus:outline-none focus:border-orange-500"
                       >
-                        <div className="flex items-center space-x-2">
-                          <span className={`text-xs px-2 py-1 rounded font-mono ${
-                            request.method === 'GET' ? 'bg-green-100 text-green-700' :
-                            request.method === 'POST' ? 'bg-blue-100 text-blue-700' :
-                            request.method === 'PUT' ? 'bg-yellow-100 text-yellow-700' :
-                            request.method === 'DELETE' ? 'bg-red-100 text-red-700' :
-                            'bg-gray-100 text-gray-700'
-                          }`}>
-                            {request.method}
-                          </span>
-                          <span className="text-sm text-gray-700 group-hover:text-gray-900">{request.name}</span>
-                        </div>
+                        <option value="GET">GET</option>
+                        <option value="POST">POST</option>
+                        <option value="PUT">PUT</option>
+                        <option value="DELETE">DELETE</option>
+                        <option value="PATCH">PATCH</option>
+                      </select>
+                      <div className="flex space-x-2">
                         <button
-                          onClick={(e) => {
-                            e.stopPropagation()
-                            runRequest(request)
-                          }}
-                          className="p-1 text-gray-400 hover:text-primary-600 opacity-0 group-hover:opacity-100 transition-opacity"
-                          title="Run request"
+                          onClick={() => addRequestToCollection(collection.id)}
+                          className="flex-1 px-3 py-1.5 bg-orange-600 text-white rounded hover:bg-orange-700 text-xs font-medium"
                         >
-                          <Play className="w-3 h-3" />
+                          Add
+                        </button>
+                        <button
+                          onClick={() => {
+                            setShowAddRequestForm(null)
+                            setNewRequestName('')
+                            setNewRequestMethod('GET')
+                          }}
+                          className="flex-1 px-3 py-1.5 bg-[#3c3c3c] text-gray-300 rounded hover:bg-[#555] text-xs font-medium"
+                        >
+                          Cancel
                         </button>
                       </div>
-                    ))}
+                    </div>
                   </div>
-                </div>
-              )}
-            </div>
-          ))
+                )}
+
+                {/* Requests List */}
+                {expandedCollections.has(collection.id) && (
+                  <div className="ml-6">
+                    {collection.requests.length === 0 ? (
+                      <div className="px-3 py-2 text-xs text-gray-600">
+                        No requests
+                      </div>
+                    ) : (
+                      collection.requests.map((request) => (
+                        <div
+                          key={request.id}
+                          className="flex items-center justify-between px-3 py-2 hover:bg-[#2a2a2b] cursor-pointer group"
+                          onClick={() => runRequest(request)}
+                          onContextMenu={(e) => handleContextMenu(e, 'request', request.id, collection.id)}
+                        >
+                          <div className="flex items-center space-x-2 flex-1 min-w-0">
+                            <FileText className="w-3.5 h-3.5 text-gray-500 flex-shrink-0" />
+                            <span className={`text-xs px-1.5 py-0.5 rounded font-mono flex-shrink-0 ${
+                              request.method === 'GET' ? 'bg-green-600/20 text-green-400' :
+                              request.method === 'POST' ? 'bg-blue-600/20 text-blue-400' :
+                              request.method === 'PUT' ? 'bg-yellow-600/20 text-yellow-400' :
+                              request.method === 'DELETE' ? 'bg-red-600/20 text-red-400' :
+                              request.method === 'PATCH' ? 'bg-purple-600/20 text-purple-400' :
+                              'bg-gray-600/20 text-gray-400'
+                            }`}>
+                              {request.method}
+                            </span>
+                            {editingRequestId === request.id ? (
+                              <input
+                                ref={editInputRef}
+                                type="text"
+                                value={editingName}
+                                onChange={(e) => setEditingName(e.target.value)}
+                                onBlur={() => saveRequestName(request.id)}
+                                onKeyDown={(e) => {
+                                  if (e.key === 'Enter') saveRequestName(request.id)
+                                  if (e.key === 'Escape') setEditingRequestId(null)
+                                }}
+                                onClick={(e) => e.stopPropagation()}
+                                className="flex-1 px-2 py-1 bg-[#3c3c3c] text-gray-300 text-sm rounded border border-orange-500 focus:outline-none"
+                              />
+                            ) : (
+                              <span className="text-sm text-gray-400 truncate">{request.name}</span>
+                            )}
+                          </div>
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation()
+                              handleContextMenu(e, 'request', request.id, collection.id)
+                            }}
+                            className="p-1 text-gray-500 hover:text-gray-300 opacity-0 group-hover:opacity-100"
+                          >
+                            <MoreVertical className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+                      ))
+                    )}
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
         )}
       </div>
+
+      {/* Context Menu */}
+      {contextMenu && (
+        <div
+          className="fixed bg-[#2a2a2b] border border-[#555] rounded shadow-lg py-1 z-50 min-w-[160px]"
+          style={{ left: contextMenu.x, top: contextMenu.y }}
+          onClick={(e) => e.stopPropagation()}
+        >
+          {contextMenu.type === 'collection' ? (
+            <>
+              <button
+                onClick={() => {
+                  const collection = collections.find(c => c.id === contextMenu.id)
+                  if (collection) startEditingCollection(collection)
+                  setContextMenu(null)
+                }}
+                className="w-full px-3 py-2 text-left text-sm text-gray-300 hover:bg-[#3c3c3c] flex items-center space-x-2"
+              >
+                <Edit className="w-3.5 h-3.5" />
+                <span>Rename</span>
+              </button>
+              <button
+                onClick={() => {
+                  setShowAddRequestForm(contextMenu.id)
+                  setContextMenu(null)
+                }}
+                className="w-full px-3 py-2 text-left text-sm text-gray-300 hover:bg-[#3c3c3c] flex items-center space-x-2"
+              >
+                <Plus className="w-3.5 h-3.5" />
+                <span>Add Request</span>
+              </button>
+              <div className="border-t border-[#555] my-1"></div>
+              <button
+                onClick={() => {
+                  deleteCollection(contextMenu.id)
+                  setContextMenu(null)
+                }}
+                className="w-full px-3 py-2 text-left text-sm text-red-400 hover:bg-[#3c3c3c] flex items-center space-x-2"
+              >
+                <Trash2 className="w-3.5 h-3.5" />
+                <span>Delete</span>
+              </button>
+            </>
+          ) : (
+            <>
+              <button
+                onClick={() => {
+                  const collection = collections.find(c => c.id === contextMenu.collectionId)
+                  const request = collection?.requests.find(r => r.id === contextMenu.id)
+                  if (request) startEditingRequest(request)
+                  setContextMenu(null)
+                }}
+                className="w-full px-3 py-2 text-left text-sm text-gray-300 hover:bg-[#3c3c3c] flex items-center space-x-2"
+              >
+                <Edit className="w-3.5 h-3.5" />
+                <span>Rename</span>
+              </button>
+              <div className="border-t border-[#555] my-1"></div>
+              <button
+                onClick={() => {
+                  deleteRequest(contextMenu.id)
+                  setContextMenu(null)
+                }}
+                className="w-full px-3 py-2 text-left text-sm text-red-400 hover:bg-[#3c3c3c] flex items-center space-x-2"
+              >
+                <Trash2 className="w-3.5 h-3.5" />
+                <span>Delete</span>
+              </button>
+            </>
+          )}
+        </div>
+      )}
     </div>
   )
 }

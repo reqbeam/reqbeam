@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { Plus, Folder, History, Settings, ChevronRight, ChevronDown } from 'lucide-react'
+import { History, Settings, Search } from 'lucide-react'
 import Collections from './Collections'
 import Environments from './Environments'
 
@@ -10,92 +10,84 @@ interface SidebarProps {
 }
 
 export default function Sidebar({ onNewRequest }: SidebarProps) {
-  const [expandedSections, setExpandedSections] = useState({
-    collections: true,
-    history: true,
-    environments: false,
-  })
-
-  const toggleSection = (section: keyof typeof expandedSections) => {
-    setExpandedSections(prev => ({
-      ...prev,
-      [section]: !prev[section]
-    }))
-  }
+  const [activeTab, setActiveTab] = useState<'collections' | 'history' | 'environments'>('collections')
+  const [searchQuery, setSearchQuery] = useState('')
 
   return (
-    <div className="w-64 bg-[#1e1e1e] border-r border-[#3c3c3c] text-gray-300 flex flex-col">
-      {/* Header */}
-      <div className="p-4 border-b border-[#3c3c3c]">
-        <div className="mb-3">
-          <h2 className="text-sm font-semibold text-gray-400 uppercase tracking-wider">COLLECTIONS</h2>
-          <p className="text-xs text-gray-500 mt-1">+ New Collection</p>
+    <div className="w-72 bg-[#252526] border-r border-[#3c3c3c] text-gray-300 flex flex-col">
+      {/* Header with Tabs */}
+      <div className="border-b border-[#3c3c3c]">
+        <div className="flex items-center">
+          <button
+            onClick={() => setActiveTab('collections')}
+            className={`flex-1 px-4 py-3 text-sm font-medium transition-colors border-b-2 ${
+              activeTab === 'collections'
+                ? 'text-orange-500 border-orange-500 bg-[#2a2a2b]'
+                : 'text-gray-400 border-transparent hover:text-gray-300 hover:bg-[#2a2a2b]'
+            }`}
+          >
+            Collections
+          </button>
+          <button
+            onClick={() => setActiveTab('history')}
+            className={`flex-1 px-4 py-3 text-sm font-medium transition-colors border-b-2 ${
+              activeTab === 'history'
+                ? 'text-orange-500 border-orange-500 bg-[#2a2a2b]'
+                : 'text-gray-400 border-transparent hover:text-gray-300 hover:bg-[#2a2a2b]'
+            }`}
+          >
+            <History className="w-4 h-4 mx-auto" />
+          </button>
+          <button
+            onClick={() => setActiveTab('environments')}
+            className={`flex-1 px-4 py-3 text-sm font-medium transition-colors border-b-2 ${
+              activeTab === 'environments'
+                ? 'text-orange-500 border-orange-500 bg-[#2a2a2b]'
+                : 'text-gray-400 border-transparent hover:text-gray-300 hover:bg-[#2a2a2b]'
+            }`}
+          >
+            <Settings className="w-4 h-4 mx-auto" />
+          </button>
         </div>
+
+        {/* Search Bar */}
+        {activeTab === 'collections' && (
+          <div className="p-3 border-b border-[#3c3c3c]">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-500" />
+              <input
+                type="text"
+                placeholder="Search collections..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full pl-9 pr-3 py-2 bg-[#3c3c3c] text-gray-300 text-sm rounded border border-[#555] focus:outline-none focus:border-orange-500 placeholder-gray-500"
+              />
+            </div>
+          </div>
+        )}
       </div>
 
-      {/* Navigation */}
+      {/* Content Area */}
       <div className="flex-1 overflow-y-auto">
-        {/* Collections */}
-        <div className="border-b border-[#3c3c3c]">
-          <button
-            onClick={() => toggleSection('collections')}
-            className="w-full px-4 py-3 text-left flex items-center justify-between hover:bg-[#2a2a2a] transition-colors group"
-          >
-            <div className="flex items-center space-x-2">
-              <ChevronRight className={`w-4 h-4 text-gray-500 transition-transform ${expandedSections.collections ? 'rotate-90' : ''}`} />
-              <Folder className="w-4 h-4 text-gray-500 group-hover:text-gray-300" />
-              <span className="text-sm font-medium text-gray-400">Collections</span>
+        {activeTab === 'collections' && (
+          <Collections searchQuery={searchQuery} />
+        )}
+        
+        {activeTab === 'history' && (
+          <div className="p-4">
+            <div className="text-sm text-gray-500 py-8 text-center">
+              <History className="w-12 h-12 mx-auto mb-4 text-gray-600" />
+              <p>No recent requests</p>
+              <p className="text-xs mt-2 text-gray-600">Your request history will appear here</p>
             </div>
-          </button>
-          {expandedSections.collections && (
-            <div className="px-4 pb-2">
-              <Collections />
-              <div className="text-sm text-gray-500 py-4 text-center">
-                <p>No collections yet</p>
-              </div>
-            </div>
-          )}
-        </div>
+          </div>
+        )}
 
-        {/* History */}
-        <div className="border-b border-[#3c3c3c]">
-          <button
-            onClick={() => toggleSection('history')}
-            className="w-full px-4 py-3 text-left flex items-center justify-between hover:bg-[#2a2a2a] transition-colors group"
-          >
-            <div className="flex items-center space-x-2">
-              <ChevronRight className={`w-4 h-4 text-gray-500 transition-transform ${expandedSections.history ? 'rotate-90' : ''}`} />
-              <History className="w-4 h-4 text-gray-500 group-hover:text-gray-300" />
-              <span className="text-sm font-medium text-gray-400">History</span>
-            </div>
-          </button>
-          {expandedSections.history && (
-            <div className="px-4 pb-2">
-              <div className="text-sm text-gray-500 py-4 text-center">
-                <p>No recent requests</p>
-              </div>
-            </div>
-          )}
-        </div>
-
-        {/* Environments */}
-        <div className="border-b border-[#3c3c3c]">
-          <button
-            onClick={() => toggleSection('environments')}
-            className="w-full px-4 py-3 text-left flex items-center justify-between hover:bg-[#2a2a2a] transition-colors group"
-          >
-            <div className="flex items-center space-x-2">
-              <ChevronRight className={`w-4 h-4 text-gray-500 transition-transform ${expandedSections.environments ? 'rotate-90' : ''}`} />
-              <Settings className="w-4 h-4 text-gray-500 group-hover:text-gray-300" />
-              <span className="text-sm font-medium text-gray-400">Environments</span>
-            </div>
-          </button>
-          {expandedSections.environments && (
-            <div className="px-2 pb-2">
-              <Environments />
-            </div>
-          )}
-        </div>
+        {activeTab === 'environments' && (
+          <div className="p-3">
+            <Environments />
+          </div>
+        )}
       </div>
     </div>
   )
