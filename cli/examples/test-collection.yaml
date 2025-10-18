@@ -1,0 +1,32 @@
+name: API Test Collection (YAML)
+description: Example collection in YAML format
+requests:
+  - name: Get Users
+    method: GET
+    url: https://jsonplaceholder.typicode.com/users
+    expect:
+      status: 200
+      contains: email
+      responseTime: 2000
+
+  - name: Create Post
+    method: POST
+    url: https://jsonplaceholder.typicode.com/posts
+    headers:
+      Content-Type: application/json
+    body:
+      title: Test Post from YAML
+      body: This is a test post
+      userId: 1
+    expect:
+      statusRange: [200, 201]
+      contains: Test Post
+
+  - name: Get Single Post
+    method: GET
+    url: https://jsonplaceholder.typicode.com/posts/1
+    expect:
+      status: 200
+      jsonPath:
+        userId: 1
+

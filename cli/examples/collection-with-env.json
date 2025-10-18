@@ -1,0 +1,27 @@
+{
+  "name": "Collection with Environment Variables",
+  "description": "Example showing how to use environment variables in requests",
+  "requests": [
+    {
+      "name": "Get User with Env",
+      "method": "GET",
+      "url": "{{BASE_URL}}/users/{{USER_ID}}",
+      "headers": {
+        "Authorization": "Bearer {{API_KEY}}"
+      },
+      "expect": {
+        "status": 200,
+        "contains": "email"
+      }
+    },
+    {
+      "name": "Get Posts with Env",
+      "method": "GET",
+      "url": "{{BASE_URL}}/posts?userId={{USER_ID}}",
+      "expect": {
+        "status": 200
+      }
+    }
+  ]
+}
+
