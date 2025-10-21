@@ -5,6 +5,7 @@ import { loadEnvironment } from '../utils/environment.js';
 import { makeRequest } from '../utils/request.js';
 import { formatError, formatSuccess, formatTestResultsTable } from '../utils/formatter.js';
 import { generateHtmlReport } from '../utils/report.js';
+import { logHistory, createHistoryEntry } from '../utils/history.js';
 
 export async function runCommand(
   collectionPath: string,
@@ -38,6 +39,14 @@ export async function runCommand(
         const response = await makeRequest(request, env);
         const responseTime = (response as any).responseTime || 0;
 
+        // Log to history (async, don't wait)
+        logHistory(createHistoryEntry(
+          request.method,
+          request.url,
+          response.status,
+          responseTime
+        ));
+
         results.push({
           name: request.name,
           method: request.method,
@@ -62,6 +71,15 @@ export async function runCommand(
         );
 
       } catch (error: any) {
+        // Log error to history
+        logHistory(createHistoryEntry(
+          request.method,
+          request.url,
+          undefined,
+          0,
+          error.message
+        ));
+
         results.push({
           name: request.name,
           method: request.method,

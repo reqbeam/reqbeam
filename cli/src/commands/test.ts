@@ -6,6 +6,7 @@ import { makeRequest } from '../utils/request.js';
 import { runAssertions } from '../utils/assertions.js';
 import { formatError, formatSuccess, formatTestResultsTable } from '../utils/formatter.js';
 import { generateHtmlReport } from '../utils/report.js';
+import { logHistory, createHistoryEntry } from '../utils/history.js';
 
 export async function testCommand(
   collectionPath: string,
@@ -38,6 +39,14 @@ export async function testCommand(
       try {
         const response = await makeRequest(request, env);
         const responseTime = (response as any).responseTime || 0;
+
+        // Log to history (async, don't wait)
+        logHistory(createHistoryEntry(
+          request.method,
+          request.url,
+          response.status,
+          responseTime
+        ));
 
         // Run assertions if they exist
         let assertions: AssertionResult[] = [];
@@ -88,6 +97,15 @@ export async function testCommand(
         }
 
       } catch (error: any) {
+        // Log error to history
+        logHistory(createHistoryEntry(
+          request.method,
+          request.url,
+          undefined,
+          0,
+          error.message
+        ));
+
         results.push({
           name: request.name,
           method: request.method,

@@ -1,6 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { prisma } from '@/lib/prisma'
 
 export async function POST(request: NextRequest) {
+  const startTime = Date.now()
+  let statusCode: number | undefined
+  let errorMessage: string | undefined
+
   try {
     const { method, url, headers, body, bodyType } = await request.json()
 
@@ -47,6 +52,8 @@ export async function POST(request: NextRequest) {
       body: requestBody,
     })
 
+    statusCode = response.status
+
     // Get response data
     const responseText = await response.text()
     let responseData
@@ -63,6 +70,19 @@ export async function POST(request: NextRequest) {
       responseHeaders[key] = value
     })
 
+    const duration = Date.now() - startTime
+
+    // Log to history (async, don't wait)
+    prisma.apiHistory.create({
+      data: {
+        method: method.toUpperCase(),
+        url,
+        statusCode,
+        source: 'WEB',
+        duration,
+      },
+    }).catch((err) => console.error('Failed to log history:', err))
+
     return NextResponse.json({
       status: response.status,
       statusText: response.statusText,
@@ -71,8 +91,23 @@ export async function POST(request: NextRequest) {
     })
   } catch (error) {
     console.error('Request error:', error)
+    errorMessage = error instanceof Error ? error.message : 'Unknown error'
+    const duration = Date.now() - startTime
+
+    // Log error to history (async, don't wait)
+    prisma.apiHistory.create({
+      data: {
+        method: 'GET', // Default if we don't have the method
+        url: 'unknown',
+        statusCode,
+        source: 'WEB',
+        duration,
+        error: errorMessage,
+      },
+    }).catch((err) => console.error('Failed to log history:', err))
+
     return NextResponse.json(
-      { error: error instanceof Error ? error.message : 'Unknown error' },
+      { error: errorMessage },
       { status: 500 }
     )
   }

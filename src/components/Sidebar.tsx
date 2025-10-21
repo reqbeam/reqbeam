@@ -1,9 +1,10 @@
 'use client'
 
 import { useState } from 'react'
-import { History, Settings, Search } from 'lucide-react'
+import { History as HistoryIcon, Settings, Search } from 'lucide-react'
 import Collections from './Collections'
 import Environments from './Environments'
+import History from './History'
 
 interface SidebarProps {
   onNewRequest: () => void
@@ -36,7 +37,7 @@ export default function Sidebar({ onNewRequest }: SidebarProps) {
                 : 'text-gray-400 border-transparent hover:text-gray-300 hover:bg-[#2a2a2b]'
             }`}
           >
-            <History className="w-4 h-4 mx-auto" />
+            <HistoryIcon className="w-4 h-4 mx-auto" />
           </button>
           <button
             onClick={() => setActiveTab('environments')}
@@ -74,13 +75,7 @@ export default function Sidebar({ onNewRequest }: SidebarProps) {
         )}
         
         {activeTab === 'history' && (
-          <div className="p-4">
-            <div className="text-sm text-gray-500 py-8 text-center">
-              <History className="w-12 h-12 mx-auto mb-4 text-gray-600" />
-              <p>No recent requests</p>
-              <p className="text-xs mt-2 text-gray-600">Your request history will appear here</p>
-            </div>
-          </div>
+          <History />
         )}
 
         {activeTab === 'environments' && (

@@ -113,3 +113,18 @@ model Tab {
 
   @@map("tabs")
 }
+
+model ApiHistory {
+  id         String   @id @default(cuid())
+  method     String   // GET, POST, PUT, DELETE, etc.
+  url        String
+  statusCode Int?     // HTTP status code
+  source     String   // "CLI" or "WEB"
+  duration   Int?     // Response time in ms
+  error      String?  // Error message if request failed
+  createdAt  DateTime @default(now())
+
+  @@map("api_history")
+  @@index([createdAt])
+  @@index([source])
+}
