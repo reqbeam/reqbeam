@@ -1,4 +1,4 @@
-# 🚀 Postman Clone - API Testing Tool
+# 🚀 Postmind - API Testing Tool
 
 A modern, full-featured API testing tool built with **Next.js 15**, **TypeScript**, **Prisma**, and **Tailwind CSS**. This application provides a beautiful, developer-friendly interface similar to Postman, Hoppscotch, and Insomnia.
 
@@ -314,6 +314,22 @@ I have successfully built a comprehensive TypeScript-based CLI tool called **Pos
    - `postmind run collection <name> -e <env>` - Use specific environment
    - `postmind run history-list` - List execution history
    - `postmind run history <id>` - Replay from history
+
+6. **Testing & Automation** ✅
+   - `postmind test run` - Run tests for all requests or specific request
+   - `postmind test run --request <name>` - Run tests for specific request
+   - `postmind test generate` - Auto-generate test skeleton files
+   - `postmind test schedule <cron>` - Schedule periodic test runs
+   - `postmind test schedule-list` - List scheduled test jobs
+   - `postmind test schedule-stop <id>` - Stop scheduled job
+   - `postmind test schedule-delete <id>` - Delete scheduled job
+
+7. **Logging & Monitoring** ✅
+   - `postmind logs list` - List past executions with filtering
+   - `postmind logs view <id>` - View detailed log information
+   - `postmind logs export <file>` - Export logs to JSON/CSV
+   - `postmind logs clear` - Clear all local logs
+   - `postmind logs summary` - Show execution statistics
 
 ## 🎯 Key Features
 
