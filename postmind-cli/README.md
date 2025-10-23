@@ -10,6 +10,8 @@ A TypeScript-based CLI tool for managing API projects, environments, requests, a
 - **Collection Management**: Organize requests into collections
 - **Execution**: Run individual requests or entire collections
 - **History**: Track and replay past executions
+- **Testing & Automation**: Custom test framework with auto-generation and scheduling
+- **Logging & Monitoring**: Comprehensive execution logging and export capabilities
 - **Beautiful Output**: Colorized terminal output with progress indicators
 
 ## 📦 Installation
@@ -138,6 +140,59 @@ postmind run history-list
 postmind run history <history_id>
 ```
 
+### Testing & Automation
+
+```bash
+# Run all tests
+postmind test run
+
+# Run tests for specific request
+postmind test run --request "Get Users"
+
+# Generate test skeleton files
+postmind test generate
+
+# Schedule automated test runs
+postmind test schedule "0 * * * *" --name "Hourly Tests"
+
+# List scheduled jobs
+postmind test schedule-list
+
+# Stop scheduled job
+postmind test schedule-stop <job_id>
+
+# Delete scheduled job
+postmind test schedule-delete <job_id>
+```
+
+### Logging & Monitoring
+
+```bash
+# List execution logs
+postmind logs list
+
+# List with filtering
+postmind logs list --limit 10 --type request
+
+# View detailed log information
+postmind logs view <log_id>
+
+# Export logs to JSON
+postmind logs export ./logs/execution.json --format json
+
+# Export logs to CSV
+postmind logs export ./logs/execution.csv --format csv
+
+# Export with filtering
+postmind logs export ./logs/requests.json --type request --format json
+
+# Show execution summary
+postmind logs summary
+
+# Clear all logs
+postmind logs clear
+```
+
 ## 🌍 Environment Variables
 
 Environment variables are managed per project and can be used in requests using `{{VARIABLE_NAME}}` syntax:
@@ -180,6 +235,14 @@ postmind collection add "User Management" "Create User"
 
 # Run collection
 postmind run collection "User Management"
+
+# Generate and run tests
+postmind test generate
+postmind test run
+
+# View execution logs
+postmind logs list
+postmind logs summary
 ```
 
 ### 2. Interactive Request Creation
@@ -196,7 +259,26 @@ This will prompt you for:
 - Request body
 - Description
 
-### 3. Export and Import Collections
+### 3. Testing and Automation
+
+```bash
+# Generate test files for all requests
+postmind test generate
+
+# Run all tests
+postmind test run
+
+# Run tests for specific request
+postmind test run --request "Get Users"
+
+# Schedule automated testing
+postmind test schedule "0 2 * * *" --name "Daily Tests"
+
+# View test results in logs
+postmind logs list --type test
+```
+
+### 4. Export and Import Collections
 
 ```bash
 # Export collection to JSON
@@ -204,6 +286,9 @@ postmind collection export "User Management" ./user-api.json
 
 # Export to YAML
 postmind collection export "User Management" ./user-api.yaml -f yaml
+
+# Export execution logs
+postmind logs export ./logs/execution.json --format json
 ```
 
 ## 🎨 Output Formatting
@@ -228,11 +313,57 @@ All executions are automatically saved to history with:
 - Environment used
 - Response data (if `--save-response` is used)
 
+## 🧪 Testing Framework
+
+The CLI includes a comprehensive testing framework:
+
+### Test Generation
+- Auto-generates test skeleton files for all requests
+- Creates files in `tests/` directory with naming convention `{requestName}.test.js`
+- Includes example assertions and documentation
+
+### Test Execution
+- Custom test runner with Jest-like assertion syntax
+- Supports `expect().toBe()`, `expect().toEqual()`, `expect().toContain()`, etc.
+- Detailed test result reporting with pass/fail counts
+- Individual test timing and error reporting
+
+### Test Scheduling
+- Cron-based scheduling for automated test runs
+- Persistent job storage in `~/.postmind/schedules.json`
+- Support for starting, stopping, and deleting scheduled jobs
+- Automatic job execution on CLI startup
+
+## 📋 Logging and Monitoring
+
+Comprehensive logging system for execution tracking:
+
+### Log Types
+- **Request Logs**: Individual API request executions
+- **Test Logs**: Test suite runs with detailed results
+- **Collection Logs**: Collection execution summaries
+
+### Log Management
+- Automatic logging of all executions
+- Detailed log viewing with full execution context
+- Export capabilities (JSON/CSV) with filtering options
+- Log statistics and success rate tracking
+- Organized storage in `logs/` directory
+
+### Export Features
+- JSON export with full execution details
+- CSV export for spreadsheet analysis
+- Type-based filtering (request, test, collection)
+- Date range filtering
+- Nested directory support
+
 ## 🔧 Configuration
 
 The CLI stores configuration in `~/.postmind/`:
 - `projects/` - All project data
 - `current-project` - Currently active project
+- `schedules.json` - Scheduled test jobs
+- `logs/` - Execution logs (local project directory)
 
 ## 🚨 Error Handling
 
@@ -241,6 +372,9 @@ The CLI provides comprehensive error handling:
 - Invalid URLs with format hints
 - Missing projects/environments with helpful messages
 - Malformed JSON with parsing details
+- Test execution errors with detailed assertion information
+- Log export errors with file system guidance
+- Scheduling errors with cron expression validation
 
 ## 📚 Advanced Usage
 
@@ -263,6 +397,50 @@ postmind run request "Get Users" --verbose
 ```bash
 # Add multiple headers
 postmind request create -n "API Call" -m GET -u "https://api.example.com/data" -H "Authorization:Bearer token,Content-Type:application/json"
+```
+
+### Test Customization
+
+```bash
+# Create custom test assertions
+# Edit tests/getUsers.test.js
+export default function test(response, { expect }) {
+  expect(response.status).toBe(200);
+  expect(response.data).toHaveProperty('users');
+  expect(response.duration).toBeLessThan(1000);
+}
+
+# Run specific test
+postmind test run --request "getUsers"
+```
+
+### Log Analysis
+
+```bash
+# Export logs for analysis
+postmind logs export ./analysis/execution.json --format json
+
+# Filter logs by date range
+postmind logs export ./analysis/recent.json --start-date 2025-01-01 --format json
+
+# Export only failed executions
+postmind logs list --type request | grep "Failed"
+```
+
+### Automated Testing
+
+```bash
+# Schedule daily tests at 2 AM
+postmind test schedule "0 2 * * *" --name "Daily API Tests"
+
+# Schedule hourly tests
+postmind test schedule "0 * * * *" --name "Hourly Health Checks"
+
+# List all scheduled jobs
+postmind test schedule-list
+
+# Stop a scheduled job
+postmind test schedule-stop <job_id>
 ```
 
 ## 🤝 Contributing

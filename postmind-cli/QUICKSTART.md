@@ -53,6 +53,32 @@ postmind request create -i
 postmind run request "Get Users"
 ```
 
+### 6. Generate and Run Tests
+
+```bash
+# Generate test files for all requests
+postmind test generate
+
+# Run all tests
+postmind test run
+
+# Run tests for specific request
+postmind test run --request "Get Users"
+```
+
+### 7. View Execution Logs
+
+```bash
+# List recent executions
+postmind logs list
+
+# View detailed log information
+postmind logs view <log_id>
+
+# Show execution summary
+postmind logs summary
+```
+
 ## 🎯 Common Workflows
 
 ### Workflow 1: Basic API Testing
@@ -76,6 +102,14 @@ postmind collection add "JSONPlaceholder API" "Get Users"
 
 # 5. Run collection
 postmind run collection "JSONPlaceholder API"
+
+# 6. Generate and run tests
+postmind test generate
+postmind test run
+
+# 7. View execution logs
+postmind logs list
+postmind logs summary
 ```
 
 ### Workflow 2: REST API Development
@@ -101,6 +135,17 @@ postmind collection add "Items CRUD" "Delete Item"
 
 # 4. Test the API
 postmind run collection "Items CRUD"
+
+# 5. Generate and run tests
+postmind test generate
+postmind test run
+
+# 6. Schedule automated testing
+postmind test schedule "0 2 * * *" --name "Daily API Tests"
+
+# 7. Monitor execution
+postmind logs list
+postmind logs export ./api-logs.json --format json
 ```
 
 ### Workflow 3: API Testing with Multiple Environments
@@ -127,6 +172,14 @@ postmind request create -n "Get Data" -m GET -u "{{API_URL}}/data" -H "Authoriza
 postmind run request "Health Check" -e development
 postmind run request "Health Check" -e staging
 postmind run request "Health Check" -e production
+
+# 5. Generate tests and run them
+postmind test generate
+postmind test run
+
+# 6. Monitor all executions
+postmind logs list --type request
+postmind logs summary
 ```
 
 ## 🔧 Essential Commands
@@ -172,6 +225,25 @@ postmind run history-list                            # List execution history
 postmind run history <id>                            # Replay from history
 ```
 
+### Testing & Automation
+```bash
+postmind test run                                    # Run all tests
+postmind test run --request <name>                   # Run specific request tests
+postmind test generate                               # Generate test files
+postmind test schedule <cron>                        # Schedule test runs
+postmind test schedule-list                          # List scheduled jobs
+postmind test schedule-stop <id>                     # Stop scheduled job
+```
+
+### Logging & Monitoring
+```bash
+postmind logs list                                   # List execution logs
+postmind logs view <id>                              # View log details
+postmind logs export <file> --format json            # Export logs
+postmind logs clear                                  # Clear all logs
+postmind logs summary                                # Show statistics
+```
+
 ## 💡 Pro Tips
 
 ### 1. Use Interactive Mode
@@ -204,6 +276,36 @@ postmind request create -n "API Call" -m GET -u "{{BASE_URL}}/{{ENDPOINT}}"
 postmind collection export "My API" ./api-collection.json
 ```
 
+### 6. Generate Tests Automatically
+```bash
+# Auto-generate test files for all requests
+postmind test generate
+
+# Run tests to verify API behavior
+postmind test run
+```
+
+### 7. Schedule Automated Testing
+```bash
+# Run tests every hour
+postmind test schedule "0 * * * *" --name "Hourly Tests"
+
+# Run tests daily at 2 AM
+postmind test schedule "0 2 * * *" --name "Daily Tests"
+```
+
+### 8. Monitor and Export Logs
+```bash
+# View recent executions
+postmind logs list
+
+# Export logs for analysis
+postmind logs export ./logs/api-execution.json --format json
+
+# Filter logs by type
+postmind logs list --type request
+```
+
 ## 🚨 Troubleshooting
 
 ### Common Issues
@@ -234,6 +336,16 @@ postmind request list
 - Verify the URL is correct
 - Check if the API requires authentication
 
+**Test failures:**
+- Check test files in `tests/` directory
+- Verify test assertions are correct
+- Use `postmind test run --verbose` for detailed output
+
+**Log issues:**
+- Check if logs directory exists
+- Verify log permissions
+- Use `postmind logs clear` to reset logs
+
 ## 🎉 Next Steps
 
 1. **Explore the full documentation** in `README.md`
@@ -241,6 +353,9 @@ postmind request list
 3. **Create your own API collections**
 4. **Set up multiple environments** for different stages
 5. **Use history tracking** to monitor API changes over time
+6. **Generate and customize tests** for your APIs
+7. **Set up automated testing** with scheduling
+8. **Monitor execution logs** and export for analysis
 
 ## 📚 Additional Resources
 

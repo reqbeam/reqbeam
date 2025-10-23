@@ -4,6 +4,7 @@ import ora from 'ora';
 import { StorageManager } from '../utils/storage.js';
 import { RequestExecutor } from '../utils/request.js';
 import { Formatter } from '../utils/formatter.js';
+import { Logger } from '../utils/logger.js';
 import { ExecutionResult, HistoryEntry, RunOptions } from '../types.js';
 
 const runCommand = new Command('run');
@@ -58,6 +59,17 @@ runCommand
       
       console.log(Formatter.formatExecutionResult(result));
       
+      // Log the execution
+      const logger = Logger.getInstance();
+      const logId = await logger.logRequest(
+        requestName,
+        result.status,
+        result.duration,
+        result.success,
+        environment?.name,
+        result
+      );
+      
       // Save to history
       const historyEntry: HistoryEntry = {
         id: generateId(),
@@ -80,6 +92,8 @@ runCommand
       if (options.saveResponse && result.response) {
         console.log(chalk.blue(`Response saved to history (ID: ${historyEntry.id})`));
       }
+      
+      console.log(chalk.blue(`Execution logged (ID: ${logId})`));
       
     } catch (error: any) {
       console.error(chalk.red('Error running request:'), error.message);
@@ -173,6 +187,17 @@ runCommand
       
       console.log(Formatter.formatSummary(results));
       
+      // Log the collection execution
+      const logger = Logger.getInstance();
+      const logId = await logger.logCollection(
+        collectionName,
+        results.every(r => r.success) ? 200 : 500,
+        results.reduce((sum, r) => sum + r.duration, 0),
+        results.every(r => r.success),
+        environment?.name,
+        results
+      );
+      
       // Save to history
       const historyEntry: HistoryEntry = {
         id: generateId(),
@@ -195,6 +220,8 @@ runCommand
       if (options.saveResponse) {
         console.log(chalk.blue(`Results saved to history (ID: ${historyEntry.id})`));
       }
+      
+      console.log(chalk.blue(`Collection execution logged (ID: ${logId})`));
       
     } catch (error: any) {
       console.error(chalk.red('Error running collection:'), error.message);

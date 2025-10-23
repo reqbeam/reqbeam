@@ -70,3 +70,69 @@ export interface RunOptions {
   env?: string;
   verbose?: boolean;
 }
+
+// Testing & Automation Types
+export interface TestResult {
+  name: string;
+  passed: boolean;
+  duration: number;
+  error?: string;
+  assertions: TestAssertion[];
+}
+
+export interface TestAssertion {
+  description: string;
+  passed: boolean;
+  expected?: any;
+  actual?: any;
+}
+
+export interface TestSuite {
+  name: string;
+  results: TestResult[];
+  totalTests: number;
+  passedTests: number;
+  failedTests: number;
+  duration: number;
+  timestamp: string;
+}
+
+export interface ScheduledJob {
+  id: string;
+  name: string;
+  cronExpression: string;
+  command: string;
+  isActive: boolean;
+  createdAt: string;
+  lastRun?: string;
+  nextRun?: string;
+}
+
+// Logging & Monitoring Types
+export interface LogEntry {
+  id: string;
+  type: 'request' | 'test' | 'collection';
+  name: string;
+  status: string;
+  duration: number;
+  timestamp: string;
+  details?: any;
+  environment?: string;
+  success: boolean;
+}
+
+export interface LogSummary {
+  total: number;
+  passed: number;
+  failed: number;
+  averageDuration: number;
+  lastRun?: string;
+}
+
+export interface ExportOptions {
+  format: 'json' | 'csv';
+  filePath: string;
+  startDate?: string;
+  endDate?: string;
+  type?: 'request' | 'test' | 'collection' | 'all';
+}

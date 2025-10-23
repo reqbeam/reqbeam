@@ -45,6 +45,22 @@ I have successfully built a comprehensive TypeScript-based CLI tool called **Pos
    - `postmind run history-list` - List execution history
    - `postmind run history <id>` - Replay from history
 
+6. **Testing & Automation** ✅
+   - `postmind test run` - Run tests for all requests or specific request
+   - `postmind test run --request <name>` - Run tests for specific request
+   - `postmind test generate` - Auto-generate test skeleton files
+   - `postmind test schedule <cron>` - Schedule periodic test runs
+   - `postmind test schedule-list` - List scheduled test jobs
+   - `postmind test schedule-stop <id>` - Stop scheduled job
+   - `postmind test schedule-delete <id>` - Delete scheduled job
+
+7. **Logging & Monitoring** ✅
+   - `postmind logs list` - List past executions with filtering
+   - `postmind logs view <id>` - View detailed log information
+   - `postmind logs export <file>` - Export logs to JSON/CSV
+   - `postmind logs clear` - Clear all local logs
+   - `postmind logs summary` - Show execution statistics
+
 ## 🎯 Key Features
 
 ### Project Storage System
@@ -77,6 +93,20 @@ I have successfully built a comprehensive TypeScript-based CLI tool called **Pos
 - Response data saving for debugging
 - Execution statistics and summaries
 
+### Testing & Automation
+- Custom test framework with Jest-like assertions
+- Auto-generation of test skeleton files
+- Cron-based scheduling for automated test runs
+- Test result tracking and reporting
+- Support for request-specific and collection-wide testing
+
+### Logging & Monitoring
+- Comprehensive execution logging system
+- Detailed log viewing with full execution context
+- Export capabilities (JSON/CSV) with filtering
+- Log statistics and success rate tracking
+- Organized log storage in `logs/` directory
+
 ## 📁 Project Structure
 
 ```
@@ -88,11 +118,16 @@ postmind-cli/
 │   │   ├── env.ts         # Environment management
 │   │   ├── request.ts     # Request management
 │   │   ├── collection.ts  # Collection management
-│   │   └── run.ts         # Execution commands
+│   │   ├── run.ts         # Execution commands
+│   │   ├── test.ts        # Testing & automation commands
+│   │   └── logs.ts        # Logging & monitoring commands
 │   ├── utils/             # Utility functions
 │   │   ├── storage.ts     # Project storage management
 │   │   ├── request.ts     # HTTP request execution
-│   │   └── formatter.ts   # CLI output formatting
+│   │   ├── formatter.ts   # CLI output formatting
+│   │   ├── testRunner.ts  # Test execution framework
+│   │   ├── scheduler.ts   # Cron job scheduling
+│   │   └── logger.ts      # Logging and monitoring
 │   ├── types.ts           # TypeScript interfaces
 │   └── index.ts           # CLI entry point
 ├── bin/
@@ -143,6 +178,20 @@ postmind run collection "User API" --parallel
 
 # Export collection
 postmind collection export "User API" ./user-api.json
+
+# Generate and run tests
+postmind test generate
+postmind test run
+
+# Schedule automated testing
+postmind test schedule "0 * * * *" --name "Hourly Tests"
+
+# View execution logs
+postmind logs list
+postmind logs summary
+
+# Export logs for analysis
+postmind logs export ./logs/api-execution.json --format json
 ```
 
 ## 🎨 Sample Output
@@ -167,6 +216,34 @@ Summary:
   ✓ Passed: 2 | ✗ Failed: 1 | Total time: 490ms
 ```
 
+### Test Results:
+```
+🧪 Test Results for All Tests
+═══════════════════════════════════════
+
+✅ getUsers (5ms)
+   ✓ expect(200).toBe(200)
+   ✓ expect({}).toBeDefined()
+   ✓ expect(0).toBeLessThan(5000)
+
+✅ createUser (8ms)
+
+Summary: 2 passed, 0 failed, 2 total (13ms)
+✅ Passed: 2 | ❌ Failed: 0 | ⏱ Duration: 0.0s
+```
+
+### Log Summary:
+```
+📊 Log Summary
+
+Total executions: 5
+Passed: 4
+Failed: 1
+Average duration: 245ms
+Last run: 10/23/2025, 11:40:29 PM
+Success rate: 80.0%
+```
+
 ## 🛠️ Technology Stack
 
 - **TypeScript** - Fully typed codebase
@@ -179,6 +256,9 @@ Summary:
 - **table** - Table formatting
 - **ora** - Progress indicators
 - **fs-extra** - File operations
+- **jest** - Test framework
+- **node-cron** - Cron job scheduling
+- **csv-writer** - CSV export functionality
 
 ## 📚 Documentation
 
@@ -199,6 +279,11 @@ The CLI has been tested and verified working:
 - ✅ **History Tracking** - Records and replays execution history
 - ✅ **Error Handling** - Graceful error messages and recovery
 - ✅ **Beautiful Output** - Colorized and formatted terminal output
+- ✅ **Testing Framework** - Custom test runner with Jest-like assertions
+- ✅ **Test Generation** - Auto-generate test skeleton files
+- ✅ **Scheduling** - Cron-based automated test execution
+- ✅ **Logging System** - Comprehensive execution logging and monitoring
+- ✅ **Export Capabilities** - JSON/CSV log export with filtering
 
 ## 🎯 All Requirements Met
 
@@ -211,6 +296,8 @@ The CLI has been tested and verified working:
 ✅ **Environment Variables** - `{{VARIABLE}}` syntax support
 ✅ **Beautiful Output** - Colorized terminal output with Chalk
 ✅ **History** - Execution tracking and replay functionality
+✅ **Testing** - Custom test framework with auto-generation and scheduling
+✅ **Logging** - Comprehensive monitoring and export capabilities
 ✅ **TypeScript** - Fully typed codebase
 ✅ **Documentation** - Comprehensive guides and examples
 
@@ -221,9 +308,12 @@ The Postmind CLI is **production-ready** and can be used immediately for:
 - API development and testing
 - Collection management
 - Environment-based testing
+- Automated testing and scheduling
+- Execution monitoring and logging
 - CI/CD integration
 - Team collaboration
 - API documentation
+- Test automation and reporting
 
 **The tool successfully replicates and extends Postman CLI/Newman functionality with a modern, project-oriented approach!** 🎊
 
