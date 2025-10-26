@@ -2,14 +2,18 @@
 
 A TypeScript-based CLI tool for managing API projects, environments, requests, and collections - similar to Postman CLI or Newman, but with a full project-oriented command structure.
 
+> **Quick Tip:** You can use `pm` as a shorter alias for `postmind` in all commands!
+
 ## 🚀 Features
 
-- **Project Management**: Create, list, and delete API projects
-- **Environment Management**: Manage environment variables per project
+- **Web UI Sync**: 🔄 Real-time synchronization with Postmind web UI database
+- **Cloud Storage**: All data stored in PostgreSQL database
+- **Collection Management**: Organize requests into collections (synced with web UI)
 - **Request Management**: Create, update, delete, and list API requests
-- **Collection Management**: Organize requests into collections
+- **Environment Management**: Manage environment variables
 - **Execution**: Run individual requests or entire collections
-- **History**: Track and replay past executions
+- **History Logging**: 📊 All CLI executions automatically saved to web UI history
+- **Authentication**: Secure token-based authentication
 - **Testing & Automation**: Custom test framework with auto-generation and scheduling
 - **Logging & Monitoring**: Comprehensive execution logging and export capabilities
 - **Beautiful Output**: Colorized terminal output with progress indicators
@@ -31,17 +35,60 @@ npm run build
 npm link
 ```
 
-## 🏗️ Project Structure
+## 🏗️ Architecture
 
-Each project is stored in `~/.postmind/projects/<project_name>/` with the following structure:
+### Cloud-Based Storage
+All data is now stored in the PostgreSQL database and synchronized with the web UI in real-time:
 
 ```
-~/.postmind/projects/my-api-project/
-├── config.json          # Project configuration
-├── requests/            # Individual request files
-├── collections/         # Collection files
-└── environments/        # Environment files
+CLI ◄──► REST API ◄──► PostgreSQL Database ◄──► Web UI
 ```
+
+- Collections, requests, and environments stored in database
+- Changes reflect instantly across CLI and web UI
+- Access your configurations from anywhere
+- Authentication stored in `~/.postmind/auth.json`
+
+For detailed information about sync, see [SYNC.md](./SYNC.md).
+
+## 📋 Commands
+
+## ⚠️ Authentication Required
+
+**All Postmind CLI commands now require authentication.** You must log in before using any CLI functionality.
+
+```bash
+# First-time setup - login to web UI
+postmind auth login
+# or use the shorter alias
+pm auth login
+
+# Then you can use all other commands
+postmind init my-project
+# or
+pm init my-project
+```
+
+For detailed authentication documentation, see [AUTH.md](./AUTH.md).
+
+### 📊 History Tracking
+
+All request executions from the CLI are automatically saved to the database and appear in the web UI's history tab:
+
+```bash
+# Run a request - automatically logged to history
+postmind run request "Get Users"
+# or with alias
+pm run request "Get Users"
+
+# Run collection - each request logged
+pm run collection "User API"
+
+# View in Web UI → History tab
+# All CLI executions marked with "CLI" badge
+```
+
+For detailed history documentation, see [HISTORY.md](./HISTORY.md).
 
 ## 📋 Commands
 
@@ -49,13 +96,13 @@ Each project is stored in `~/.postmind/projects/<project_name>/` with the follow
 
 ```bash
 # Initialize a new project
-postmind init <project_name>
+pm init <project_name>
 
 # List all projects
-postmind project list
+pm project list
 
 # Switch to a different project
-postmind project switch <project_name>
+pm project switch <project_name>
 
 # Delete a project
 postmind project delete <project_name>
@@ -65,132 +112,132 @@ postmind project delete <project_name>
 
 ```bash
 # List environments
-postmind env list
+pm env list
 
 # Add a new environment
-postmind env add <name> -i  # Interactive mode
+pm env add <name> -i  # Interactive mode
 
 # Switch environment
-postmind env switch <name>
+pm env switch <name>
 
 # Remove environment
-postmind env remove <name>
+pm env remove <name>
 ```
 
 ### Request Management
 
 ```bash
 # Create a request
-postmind request create -n "Get Users" -m GET -u "https://api.example.com/users"
+pm request create -n "Get Users" -m GET -u "https://api.example.com/users"
 
 # Create request interactively
-postmind request create -i
+pm request create -i
 
 # List all requests
-postmind request list
+pm request list
 
 # Update a request
-postmind request update "Get Users" -u "https://api.example.com/v2/users"
+pm request update "Get Users" -u "https://api.example.com/v2/users"
 
 # Delete a request
-postmind request delete "Get Users"
+pm request delete "Get Users"
 ```
 
 ### Collection Management
 
 ```bash
 # Create a collection
-postmind collection create "User API"
+pm collection create "User API"
 
 # Add request to collection
-postmind collection add "User API" "Get Users"
+pm collection add "User API" "Get Users"
 
 # List collections
-postmind collection list
+pm collection list
 
 # Remove request from collection
-postmind collection remove "User API" "Get Users"
+pm collection remove "User API" "Get Users"
 
 # Export collection
-postmind collection export "User API" ./exported-collection.json
+pm collection export "User API" ./exported-collection.json
 ```
 
 ### Execution
 
 ```bash
 # Run a single request
-postmind run request "Get Users"
+pm run request "Get Users"
 
 # Run a collection
-postmind run collection "User API"
+pm run collection "User API"
 
 # Run collection in parallel
-postmind run collection "User API" --parallel
+pm run collection "User API" --parallel
 
 # Run with specific environment
-postmind run collection "User API" -e production
+pm run collection "User API" -e production
 
 # Save responses
-postmind run collection "User API" --save-response
+pm run collection "User API" --save-response
 
 # List execution history
-postmind run history-list
+pm run history-list
 
 # Replay from history
-postmind run history <history_id>
+pm run history <history_id>
 ```
 
 ### Testing & Automation
 
 ```bash
 # Run all tests
-postmind test run
+pm test run
 
 # Run tests for specific request
-postmind test run --request "Get Users"
+pm test run --request "Get Users"
 
 # Generate test skeleton files
-postmind test generate
+pm test generate
 
 # Schedule automated test runs
-postmind test schedule "0 * * * *" --name "Hourly Tests"
+pm test schedule "0 * * * *" --name "Hourly Tests"
 
 # List scheduled jobs
-postmind test schedule-list
+pm test schedule-list
 
 # Stop scheduled job
-postmind test schedule-stop <job_id>
+pm test schedule-stop <job_id>
 
 # Delete scheduled job
-postmind test schedule-delete <job_id>
+pm test schedule-delete <job_id>
 ```
 
 ### Logging & Monitoring
 
 ```bash
 # List execution logs
-postmind logs list
+pm logs list
 
 # List with filtering
-postmind logs list --limit 10 --type request
+pm logs list --limit 10 --type request
 
 # View detailed log information
-postmind logs view <log_id>
+pm logs view <log_id>
 
 # Export logs to JSON
-postmind logs export ./logs/execution.json --format json
+pm logs export ./logs/execution.json --format json
 
 # Export logs to CSV
-postmind logs export ./logs/execution.csv --format csv
+pm logs export ./logs/execution.csv --format csv
 
 # Export with filtering
-postmind logs export ./logs/requests.json --type request --format json
+pm logs export ./logs/requests.json --type request --format json
 
 # Show execution summary
-postmind logs summary
+pm logs summary
 
 # Clear all logs
-postmind logs clear
+pm logs clear
 ```
 
 ## 🌍 Environment Variables
@@ -199,11 +246,11 @@ Environment variables are managed per project and can be used in requests using 
 
 ```bash
 # Add environment with variables
-postmind env add production -i
+pm env add production -i
 # Enter: API_URL=https://api.example.com,API_KEY=your-key-here
 
 # Use in requests
-postmind request create -n "Get Users" -m GET -u "{{API_URL}}/users" -H "Authorization:Bearer {{API_KEY}}"
+pm request create -n "Get Users" -m GET -u "{{API_URL}}/users" -H "Authorization:Bearer {{API_KEY}}"
 ```
 
 ## 📝 Examples
@@ -212,43 +259,43 @@ postmind request create -n "Get Users" -m GET -u "{{API_URL}}/users" -H "Authori
 
 ```bash
 # Initialize project
-postmind init my-api-project
+pm init my-api-project
 
 # Add environments
-postmind env add development -i
+pm env add development -i
 # Enter: BASE_URL=http://localhost:3000,API_KEY=dev-key
 
-postmind env add production -i
+pm env add production -i
 # Enter: BASE_URL=https://api.example.com,API_KEY=prod-key
 
 # Switch to development
-postmind env switch development
+pm env switch development
 
 # Create requests
-postmind request create -n "Get Users" -m GET -u "{{BASE_URL}}/users" -H "Authorization:Bearer {{API_KEY}}"
-postmind request create -n "Create User" -m POST -u "{{BASE_URL}}/users" -b '{"name":"John","email":"john@example.com"}'
+pm request create -n "Get Users" -m GET -u "{{BASE_URL}}/users" -H "Authorization:Bearer {{API_KEY}}"
+pm request create -n "Create User" -m POST -u "{{BASE_URL}}/users" -b '{"name":"John","email":"john@example.com"}'
 
 # Create collection
-postmind collection create "User Management"
-postmind collection add "User Management" "Get Users"
-postmind collection add "User Management" "Create User"
+pm collection create "User Management"
+pm collection add "User Management" "Get Users"
+pm collection add "User Management" "Create User"
 
 # Run collection
-postmind run collection "User Management"
+pm run collection "User Management"
 
 # Generate and run tests
-postmind test generate
-postmind test run
+pm test generate
+pm test run
 
 # View execution logs
-postmind logs list
-postmind logs summary
+pm logs list
+pm logs summary
 ```
 
 ### 2. Interactive Request Creation
 
 ```bash
-postmind request create -i
+pm request create -i
 ```
 
 This will prompt you for:
@@ -263,32 +310,32 @@ This will prompt you for:
 
 ```bash
 # Generate test files for all requests
-postmind test generate
+pm test generate
 
 # Run all tests
-postmind test run
+pm test run
 
 # Run tests for specific request
-postmind test run --request "Get Users"
+pm test run --request "Get Users"
 
 # Schedule automated testing
-postmind test schedule "0 2 * * *" --name "Daily Tests"
+pm test schedule "0 2 * * *" --name "Daily Tests"
 
 # View test results in logs
-postmind logs list --type test
+pm logs list --type test
 ```
 
 ### 4. Export and Import Collections
 
 ```bash
 # Export collection to JSON
-postmind collection export "User Management" ./user-api.json
+pm collection export "User Management" ./user-api.json
 
 # Export to YAML
-postmind collection export "User Management" ./user-api.yaml -f yaml
+pm collection export "User Management" ./user-api.yaml -f yaml
 
 # Export execution logs
-postmind logs export ./logs/execution.json --format json
+pm logs export ./logs/execution.json --format json
 ```
 
 ## 🎨 Output Formatting

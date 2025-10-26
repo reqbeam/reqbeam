@@ -15,6 +15,52 @@ export class Formatter {
       output += `  ${chalk.red('Error:')} ${result.error}\n`;
     }
     
+    // Display response if available
+    if (result.response) {
+      output += `\n${chalk.bold('Response:')}\n`;
+      
+      // Show status text
+      if (result.response.statusText) {
+        output += `  ${chalk.gray('Status:')} ${result.response.status} ${result.response.statusText}\n`;
+      }
+      
+      // Show headers if available
+      if (result.response.headers && Object.keys(result.response.headers).length > 0) {
+        output += `  ${chalk.gray('Headers:')}\n`;
+        const relevantHeaders = ['content-type', 'content-length', 'server', 'date'];
+        for (const key of relevantHeaders) {
+          const headerKey = Object.keys(result.response.headers).find(
+            k => k.toLowerCase() === key.toLowerCase()
+          );
+          if (headerKey && result.response.headers[headerKey]) {
+            output += `    ${chalk.cyan(key)}: ${result.response.headers[headerKey]}\n`;
+          }
+        }
+      }
+      
+      // Show response data
+      if (result.response.data !== undefined) {
+        output += `  ${chalk.gray('Body:')}\n`;
+        try {
+          const dataString = typeof result.response.data === 'string' 
+            ? result.response.data 
+            : JSON.stringify(result.response.data, null, 2);
+          
+          // Show full response without truncation
+          const truncated = dataString;
+          
+          // Split into lines and add indentation
+          const lines = truncated.split('\n');
+          for (const line of lines) {
+            output += `    ${line}\n`;
+          }
+        } catch (e) {
+          output += `    ${chalk.yellow('Unable to format response data')}\n`;
+        }
+      }
+      output += '\n';
+    }
+    
     return output;
   }
 

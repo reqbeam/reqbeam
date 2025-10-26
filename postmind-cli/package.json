@@ -5,7 +5,8 @@
   "type": "module",
   "main": "dist/index.js",
   "bin": {
-    "postmind": "./bin/postmind.js"
+    "postmind": "./bin/postmind.js",
+    "pm": "./bin/pm.js"
   },
   "scripts": {
     "build": "tsc",

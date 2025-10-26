@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
+import { getAuthenticatedUser } from '@/lib/apiAuth'
 
 // GET /api/history - Fetch all history entries
 export async function GET(request: NextRequest) {

@@ -1,11 +1,8 @@
 import { Command } from 'commander';
 import chalk from 'chalk';
 import inquirer from 'inquirer';
-import fs from 'fs-extra';
-import path from 'path';
-import { StorageManager } from '../utils/storage.js';
+import { ApiStorageManager } from '../utils/apiStorage.js';
 import { Formatter } from '../utils/formatter.js';
-import { Collection } from '../types.js';
 
 const collectionCommand = new Command('collection');
 
@@ -20,35 +17,26 @@ collectionCommand
   .option('-d, --description <description>', 'Collection description')
   .action(async (name: string, options: { description?: string }) => {
     try {
-      const storage = StorageManager.getInstance();
-      const currentProject = await storage.getCurrentProject();
-      
-      if (!currentProject) {
-        console.log(chalk.red('No current project. Use "postmind init <name>" to create a project first.'));
-        process.exit(1);
-      }
-
-      const config = await storage.loadProjectConfig(currentProject);
+      const storage = ApiStorageManager.getInstance();
       
       // Check if collection already exists
-      const collectionExists = config.collections.some(c => c.name === name);
+      const collections = await storage.listCollections();
+      const collectionExists = collections.some(c => c.name === name);
+      
       if (collectionExists) {
         console.log(chalk.red(`Collection '${name}' already exists`));
         process.exit(1);
       }
 
-      const collection: Collection = {
-        name,
-        description: options.description,
-        requests: [],
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString()
-      };
-
-      config.collections.push(collection);
-      await storage.saveProjectConfig(currentProject, config);
+      const collection = await storage.createCollection(name, options.description);
+      
+      if (!collection) {
+        console.log(chalk.red('Failed to create collection'));
+        process.exit(1);
+      }
       
       console.log(chalk.green(`✓ Collection '${name}' created successfully`));
+      console.log(chalk.gray(`  ID: ${collection.id}`));
       
     } catch (error: any) {
       console.error(chalk.red('Error creating collection:'), error.message);
@@ -59,20 +47,30 @@ collectionCommand
 // List collections
 collectionCommand
   .command('list')
-  .description('List all collections in the current project')
+  .description('List all collections')
   .action(async () => {
     try {
-      const storage = StorageManager.getInstance();
-      const currentProject = await storage.getCurrentProject();
+      const storage = ApiStorageManager.getInstance();
+      const collections = await storage.listCollections();
       
-      if (!currentProject) {
-        console.log(chalk.red('No current project. Use "postmind init <name>" to create a project first.'));
-        process.exit(1);
+      if (collections.length === 0) {
+        console.log(chalk.yellow('No collections found'));
+        console.log(chalk.gray('Create one with: postmind collection create <name>'));
+        return;
       }
-
-      const config = await storage.loadProjectConfig(currentProject);
+      
       console.log(chalk.bold('Collections:'));
-      console.log(Formatter.formatCollections(config.collections));
+      
+      // Format collections with request counts - convert to old format
+      const formattedCollections = collections.map(col => ({
+        name: col.name,
+        description: col.description,
+        requests: (col.requests || []).map(r => r.name), // Convert to array of names
+        createdAt: col.createdAt,
+        updatedAt: col.updatedAt
+      }));
+      
+      console.log(Formatter.formatCollections(formattedCollections as any));
       
     } catch (error: any) {
       console.error(chalk.red('Error listing collections:'), error.message);
@@ -85,43 +83,37 @@ collectionCommand
   .command('add')
   .argument('<collection_name>', 'Name of the collection')
   .argument('<request_name>', 'Name of the request to add')
-  .description('Add a request to a collection')
+  .description('Add an existing request to a collection')
   .action(async (collectionName: string, requestName: string) => {
     try {
-      const storage = StorageManager.getInstance();
-      const currentProject = await storage.getCurrentProject();
+      const storage = ApiStorageManager.getInstance();
       
-      if (!currentProject) {
-        console.log(chalk.red('No current project. Use "postmind init <name>" to create a project first.'));
-        process.exit(1);
-      }
-
-      const config = await storage.loadProjectConfig(currentProject);
+      // Find collection
+      const collections = await storage.listCollections();
+      const collection = collections.find(c => c.name === collectionName);
       
-      // Check if collection exists
-      const collection = config.collections.find(c => c.name === collectionName);
       if (!collection) {
         console.log(chalk.red(`Collection '${collectionName}' not found`));
         process.exit(1);
       }
 
-      // Check if request exists
-      const request = config.requests.find(r => r.name === requestName);
+      // Find request
+      const request = await storage.findRequestByName(requestName);
+      
       if (!request) {
         console.log(chalk.red(`Request '${requestName}' not found`));
         process.exit(1);
       }
 
-      // Check if request is already in collection
-      if (collection.requests.includes(requestName)) {
-        console.log(chalk.yellow(`Request '${requestName}' is already in collection '${collectionName}'`));
-        return;
-      }
-
-      collection.requests.push(requestName);
-      collection.updatedAt = new Date().toISOString();
+      // Update request to assign it to the collection
+      const updated = await storage.updateRequest(request.id, {
+        collectionId: collection.id
+      });
       
-      await storage.saveProjectConfig(currentProject, config);
+      if (!updated) {
+        console.log(chalk.red('Failed to add request to collection'));
+        process.exit(1);
+      }
       
       console.log(chalk.green(`✓ Request '${requestName}' added to collection '${collectionName}'`));
       
@@ -139,34 +131,34 @@ collectionCommand
   .description('Remove a request from a collection')
   .action(async (collectionName: string, requestName: string) => {
     try {
-      const storage = StorageManager.getInstance();
-      const currentProject = await storage.getCurrentProject();
+      const storage = ApiStorageManager.getInstance();
       
-      if (!currentProject) {
-        console.log(chalk.red('No current project. Use "postmind init <name>" to create a project first.'));
-        process.exit(1);
-      }
-
-      const config = await storage.loadProjectConfig(currentProject);
+      // Find collection
+      const collections = await storage.listCollections();
+      const collection = collections.find(c => c.name === collectionName);
       
-      // Check if collection exists
-      const collection = config.collections.find(c => c.name === collectionName);
       if (!collection) {
         console.log(chalk.red(`Collection '${collectionName}' not found`));
         process.exit(1);
       }
 
-      // Check if request is in collection
-      const requestIndex = collection.requests.indexOf(requestName);
-      if (requestIndex === -1) {
-        console.log(chalk.yellow(`Request '${requestName}' is not in collection '${collectionName}'`));
-        return;
+      // Find request in this collection
+      const request = await storage.findRequestByName(requestName, collection.id);
+      
+      if (!request) {
+        console.log(chalk.red(`Request '${requestName}' not found in collection '${collectionName}'`));
+        process.exit(1);
       }
 
-      collection.requests.splice(requestIndex, 1);
-      collection.updatedAt = new Date().toISOString();
+      // Update request to remove collection assignment
+      const updated = await storage.updateRequest(request.id, {
+        collectionId: undefined
+      });
       
-      await storage.saveProjectConfig(currentProject, config);
+      if (!updated) {
+        console.log(chalk.red('Failed to remove request from collection'));
+        process.exit(1);
+      }
       
       console.log(chalk.green(`✓ Request '${requestName}' removed from collection '${collectionName}'`));
       
@@ -176,57 +168,93 @@ collectionCommand
     }
   });
 
-// Export collection
+// Delete collection
 collectionCommand
-  .command('export')
-  .argument('<collection_name>', 'Name of the collection to export')
-  .argument('<file_path>', 'Path to export the collection to')
-  .description('Export a collection to JSON or YAML file')
-  .option('-f, --format <format>', 'Export format (json, yaml)', 'json')
-  .action(async (collectionName: string, filePath: string, options: { format?: string }) => {
+  .command('delete')
+  .argument('<name>', 'Name of the collection to delete')
+  .description('Delete a collection')
+  .option('-f, --force', 'Force deletion without confirmation')
+  .action(async (name: string, options: { force?: boolean }) => {
     try {
-      const storage = StorageManager.getInstance();
-      const currentProject = await storage.getCurrentProject();
+      const storage = ApiStorageManager.getInstance();
       
-      if (!currentProject) {
-        console.log(chalk.red('No current project. Use "postmind init <name>" to create a project first.'));
-        process.exit(1);
-      }
-
-      const config = await storage.loadProjectConfig(currentProject);
+      // Find collection
+      const collections = await storage.listCollections();
+      const collection = collections.find(c => c.name === name);
       
-      // Check if collection exists
-      const collection = config.collections.find(c => c.name === collectionName);
       if (!collection) {
-        console.log(chalk.red(`Collection '${collectionName}' not found`));
+        console.log(chalk.red(`Collection '${name}' not found`));
         process.exit(1);
       }
 
-      // Get all requests in the collection
-      const collectionRequests = config.requests.filter(r => collection.requests.includes(r.name));
+      // Confirm deletion unless -f flag is used
+      if (!options.force) {
+        const requestCount = collection.requests?.length || 0;
+        const { confirm } = await inquirer.prompt([
+          {
+            type: 'confirm',
+            name: 'confirm',
+            message: `Are you sure you want to delete collection '${name}'? ${requestCount > 0 ? `(${requestCount} requests will be unassigned)` : ''}`,
+            default: false
+          }
+        ]);
 
-      const exportData = {
-        name: collection.name,
-        description: collection.description,
-        requests: collectionRequests,
-        exportedAt: new Date().toISOString()
-      };
-
-      // Determine format from file extension if not specified
-      const format = options.format || path.extname(filePath).slice(1).toLowerCase() || 'json';
-
-      if (format === 'yaml' || format === 'yml') {
-        const yaml = await import('js-yaml');
-        const yamlContent = yaml.dump(exportData, { indent: 2 });
-        await fs.writeFile(filePath, yamlContent);
-      } else {
-        await fs.writeJson(filePath, exportData, { spaces: 2 });
+        if (!confirm) {
+          console.log(chalk.yellow('Collection deletion cancelled'));
+          process.exit(0);
+        }
       }
 
-      console.log(chalk.green(`✓ Collection '${collectionName}' exported to ${filePath}`));
+      const deleted = await storage.deleteCollection(collection.id);
+      
+      if (!deleted) {
+        console.log(chalk.red('Failed to delete collection'));
+        process.exit(1);
+      }
+      
+      console.log(chalk.green(`✓ Collection '${name}' deleted successfully`));
       
     } catch (error: any) {
-      console.error(chalk.red('Error exporting collection:'), error.message);
+      console.error(chalk.red('Error deleting collection:'), error.message);
+      process.exit(1);
+    }
+  });
+
+// Update collection
+collectionCommand
+  .command('update')
+  .argument('<name>', 'Current name of the collection')
+  .description('Update a collection')
+  .option('-n, --new-name <newName>', 'New name for the collection')
+  .option('-d, --description <description>', 'New description')
+  .action(async (name: string, options: { newName?: string; description?: string }) => {
+    try {
+      const storage = ApiStorageManager.getInstance();
+      
+      // Find collection
+      const collections = await storage.listCollections();
+      const collection = collections.find(c => c.name === name);
+      
+      if (!collection) {
+        console.log(chalk.red(`Collection '${name}' not found`));
+        process.exit(1);
+      }
+
+      const updated = await storage.updateCollection(
+        collection.id,
+        options.newName,
+        options.description
+      );
+      
+      if (!updated) {
+        console.log(chalk.red('Failed to update collection'));
+        process.exit(1);
+      }
+      
+      console.log(chalk.green(`✓ Collection updated successfully`));
+      
+    } catch (error: any) {
+      console.error(chalk.red('Error updating collection:'), error.message);
       process.exit(1);
     }
   });

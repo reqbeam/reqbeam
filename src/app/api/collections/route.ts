@@ -1,18 +1,17 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getServerSession } from 'next-auth'
-import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
+import { getAuthenticatedUser } from '@/lib/apiAuth'
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
-    const session = await getServerSession(authOptions)
-    if (!session?.user?.id) {
+    const user = await getAuthenticatedUser(request)
+    if (!user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
     const collections = await prisma.collection.findMany({
       where: {
-        userId: session.user.id,
+        userId: user.id,
       },
       include: {
         requests: {
@@ -44,8 +43,8 @@ export async function GET() {
 
 export async function POST(request: NextRequest) {
   try {
-    const session = await getServerSession(authOptions)
-    if (!session?.user?.id) {
+    const user = await getAuthenticatedUser(request)
+    if (!user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
@@ -65,7 +64,7 @@ export async function POST(request: NextRequest) {
       const collection = await prisma.collection.findFirst({
         where: {
           id: collectionId,
-          userId: session.user.id,
+          userId: user.id,
         },
       })
 
@@ -82,11 +81,11 @@ export async function POST(request: NextRequest) {
           name: requestData.name,
           method: requestData.method,
           url: requestData.url,
-          headers: requestData.headers ? JSON.stringify(requestData.headers) : null,
+          headers: requestData.headers ? requestData.headers : undefined,
           body: requestData.body || null,
           bodyType: requestData.bodyType || 'json',
           collectionId: collectionId,
-          userId: session.user.id,
+          userId: user.id,
         },
       })
 
@@ -105,7 +104,7 @@ export async function POST(request: NextRequest) {
       data: {
         name,
         description,
-        userId: session.user.id,
+        userId: user.id,
       },
     })
 

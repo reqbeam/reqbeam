@@ -1,369 +1,355 @@
 # Postmind CLI - Quick Start Guide
 
-Get up and running with Postmind CLI in 5 minutes! 🚀
-
-## 🏃‍♂️ Quick Setup
-
-### 1. Build and Install
+## 🚀 Installation
 
 ```bash
+# Navigate to CLI directory
 cd postmind-cli
+
+# Install dependencies
 npm install
+
+# Build the project
 npm run build
-npm link  # Optional: install globally
+
+# Link globally (makes 'postmind' and 'pm' available everywhere)
+npm link
 ```
 
-### 2. Create Your First Project
+## ⚡ Using the PM Alias
+
+**Quick Tip:** Use `pm` instead of `postmind` for faster typing!
 
 ```bash
-# Initialize a new API project
-postmind init my-first-api
-
-# Verify it was created
-postmind project list
+# Both work identically
+postmind --version
+pm --version
 ```
 
-### 3. Add an Environment
+## 🔐 Authentication (Required)
+
+Before using any commands, you must authenticate:
 
 ```bash
-# Add development environment with variables
-postmind env add development -i
+# Login to your Postmind web UI
+pm auth login
+
+# You'll be prompted for:
+# - API URL (e.g., http://localhost:3000)
+# - Email
+# - Password
+
+# Check authentication status
+pm auth status
 ```
 
-When prompted, enter variables like:
-```
-BASE_URL=http://localhost:3000
-API_KEY=your-dev-key-here
-```
+## 📋 Basic Workflow
 
-### 4. Create Your First Request
+### 1. Initialize a Project
 
 ```bash
-# Create a GET request
-postmind request create -n "Get Users" -m GET -u "{{BASE_URL}}/users" -H "Authorization:Bearer {{API_KEY}}"
-
-# Or create interactively
-postmind request create -i
+pm init my-api-project
 ```
 
-### 5. Run Your Request
+### 2. Create Environments
 
 ```bash
-# Execute the request
-postmind run request "Get Users"
+# Add development environment
+pm env add development -i
+# Enter variables: BASE_URL=http://localhost:3000,API_KEY=dev-key
+
+# Add production environment
+pm env add production -i
+# Enter variables: BASE_URL=https://api.example.com,API_KEY=prod-key
+
+# List environments
+pm env list
+
+# Activate development
+pm env switch development
 ```
 
-### 6. Generate and Run Tests
+### 3. Create Requests
 
 ```bash
-# Generate test files for all requests
-postmind test generate
+# Interactive mode (recommended for beginners)
+pm request create -i
 
-# Run all tests
-postmind test run
+# Or specify directly
+pm request create \
+  -n "Get Users" \
+  -m GET \
+  -u "{{BASE_URL}}/users" \
+  -H "Authorization:Bearer {{API_KEY}}"
 
-# Run tests for specific request
-postmind test run --request "Get Users"
+# List all requests
+pm request list
 ```
 
-### 7. View Execution Logs
+### 4. Organize into Collections
 
 ```bash
-# List recent executions
-postmind logs list
+# Create a collection
+pm collection create "User API"
 
-# View detailed log information
-postmind logs view <log_id>
+# Add requests to collection
+pm collection add "User API" "Get Users"
+pm collection add "User API" "Create User"
 
-# Show execution summary
-postmind logs summary
+# List collections
+pm collection list
 ```
 
-## 🎯 Common Workflows
-
-### Workflow 1: Basic API Testing
+### 5. Run Requests
 
 ```bash
-# 1. Create project
-postmind init my-api
+# Run a single request
+pm run request "Get Users"
 
-# 2. Add environment
-postmind env add dev -i
-# Enter: API_URL=https://jsonplaceholder.typicode.com
+# Run entire collection
+pm run collection "User API"
 
-# 3. Create requests
-postmind request create -n "Get Posts" -m GET -u "{{API_URL}}/posts"
-postmind request create -n "Get Users" -m GET -u "{{API_URL}}/users"
+# Run collection in parallel
+pm run collection "User API" --parallel
 
-# 4. Create collection
-postmind collection create "JSONPlaceholder API"
-postmind collection add "JSONPlaceholder API" "Get Posts"
-postmind collection add "JSONPlaceholder API" "Get Users"
-
-# 5. Run collection
-postmind run collection "JSONPlaceholder API"
-
-# 6. Generate and run tests
-postmind test generate
-postmind test run
-
-# 7. View execution logs
-postmind logs list
-postmind logs summary
+# Run with specific environment
+pm run collection "User API" -e production
 ```
 
-### Workflow 2: REST API Development
+### 6. View History
 
 ```bash
-# 1. Setup project
-postmind init rest-api
-postmind env add development -i
-# Enter: BASE_URL=http://localhost:8080,TOKEN=dev-token
+# All CLI executions are automatically saved
+# View in web UI under History tab
 
-# 2. Create CRUD requests
-postmind request create -n "List Items" -m GET -u "{{BASE_URL}}/items" -H "Authorization:Bearer {{TOKEN}}"
-postmind request create -n "Create Item" -m POST -u "{{BASE_URL}}/items" -H "Authorization:Bearer {{TOKEN}},Content-Type:application/json" -b '{"name":"New Item","description":"Item description"}'
-postmind request create -n "Update Item" -m PUT -u "{{BASE_URL}}/items/1" -H "Authorization:Bearer {{TOKEN}},Content-Type:application/json" -b '{"name":"Updated Item"}'
-postmind request create -n "Delete Item" -m DELETE -u "{{BASE_URL}}/items/1" -H "Authorization:Bearer {{TOKEN}}"
-
-# 3. Organize in collection
-postmind collection create "Items CRUD"
-postmind collection add "Items CRUD" "List Items"
-postmind collection add "Items CRUD" "Create Item"
-postmind collection add "Items CRUD" "Update Item"
-postmind collection add "Items CRUD" "Delete Item"
-
-# 4. Test the API
-postmind run collection "Items CRUD"
-
-# 5. Generate and run tests
-postmind test generate
-postmind test run
-
-# 6. Schedule automated testing
-postmind test schedule "0 2 * * *" --name "Daily API Tests"
-
-# 7. Monitor execution
-postmind logs list
-postmind logs export ./api-logs.json --format json
+# Or list via CLI
+pm logs list
+pm logs summary
 ```
 
-### Workflow 3: API Testing with Multiple Environments
+## 📊 Common Commands
 
+### Authentication
 ```bash
-# 1. Create project
-postmind init multi-env-api
-
-# 2. Add environments
-postmind env add development -i
-# Enter: API_URL=http://localhost:3000,API_KEY=dev-key
-
-postmind env add staging -i
-# Enter: API_URL=https://staging-api.example.com,API_KEY=staging-key
-
-postmind env add production -i
-# Enter: API_URL=https://api.example.com,API_KEY=prod-key
-
-# 3. Create requests
-postmind request create -n "Health Check" -m GET -u "{{API_URL}}/health"
-postmind request create -n "Get Data" -m GET -u "{{API_URL}}/data" -H "Authorization:Bearer {{API_KEY}}"
-
-# 4. Test across environments
-postmind run request "Health Check" -e development
-postmind run request "Health Check" -e staging
-postmind run request "Health Check" -e production
-
-# 5. Generate tests and run them
-postmind test generate
-postmind test run
-
-# 6. Monitor all executions
-postmind logs list --type request
-postmind logs summary
+pm auth login      # Login to web UI
+pm auth status     # Check login status
+pm auth logout     # Logout
 ```
 
-## 🔧 Essential Commands
-
-### Project Management
+### Requests
 ```bash
-postmind init <name>           # Create new project
-postmind project list          # List all projects
-postmind project switch <name> # Switch project
-postmind project delete <name> # Delete project
+pm request list              # List all requests
+pm request create -i         # Create interactively
+pm request delete "name"     # Delete request
 ```
 
-### Environment Management
+### Collections
 ```bash
-postmind env list              # List environments
-postmind env add <name> -i     # Add environment (interactive)
-postmind env switch <name>     # Switch environment
-postmind env remove <name>     # Remove environment
+pm collection list           # List collections
+pm collection create "name"  # Create collection
+pm collection export "name"  # Export to file
 ```
 
-### Request Management
+### Environments
 ```bash
-postmind request create -i     # Create request (interactive)
-postmind request list          # List requests
-postmind request update <name> # Update request
-postmind request delete <name> # Delete request
-```
-
-### Collection Management
-```bash
-postmind collection create <name>                    # Create collection
-postmind collection add <collection> <request>       # Add request to collection
-postmind collection list                             # List collections
-postmind collection export <name> <file>             # Export collection
+pm env list          # List environments
+pm env add <name>    # Add environment
+pm env switch <name> # Switch environment
 ```
 
 ### Execution
 ```bash
-postmind run request <name>                          # Run single request
-postmind run collection <name>                       # Run collection
-postmind run collection <name> --parallel            # Run in parallel
-postmind run history-list                            # List execution history
-postmind run history <id>                            # Replay from history
+pm run request "name"              # Run single request
+pm run collection "name"           # Run collection
+pm run collection "name" --parallel # Run in parallel
 ```
 
-### Testing & Automation
+### Testing
 ```bash
-postmind test run                                    # Run all tests
-postmind test run --request <name>                   # Run specific request tests
-postmind test generate                               # Generate test files
-postmind test schedule <cron>                        # Schedule test runs
-postmind test schedule-list                          # List scheduled jobs
-postmind test schedule-stop <id>                     # Stop scheduled job
+pm test generate     # Generate test files
+pm test run          # Run all tests
+pm test schedule     # Schedule automated tests
 ```
 
-### Logging & Monitoring
+### Logs
 ```bash
-postmind logs list                                   # List execution logs
-postmind logs view <id>                              # View log details
-postmind logs export <file> --format json            # Export logs
-postmind logs clear                                  # Clear all logs
-postmind logs summary                                # Show statistics
+pm logs list         # View execution logs
+pm logs summary      # View summary
+pm logs export       # Export logs
+```
+
+## 🎯 Example: Complete API Testing Setup
+
+```bash
+# 1. Authenticate
+pm auth login
+
+# 2. Initialize
+pm init user-api-tests
+
+# 3. Setup environments
+pm env add dev -i
+pm env add prod -i
+pm env switch dev
+
+# 4. Create requests
+pm request create -n "Login" -m POST \
+  -u "{{BASE_URL}}/auth/login" \
+  -b '{"email":"test@example.com","password":"test123"}'
+
+pm request create -n "Get Profile" -m GET \
+  -u "{{BASE_URL}}/profile" \
+  -H "Authorization:Bearer {{TOKEN}}"
+
+# 5. Create collection
+pm collection create "Auth Flow"
+pm collection add "Auth Flow" "Login"
+pm collection add "Auth Flow" "Get Profile"
+
+# 6. Run tests
+pm run collection "Auth Flow"
+
+# 7. Generate and run automated tests
+pm test generate
+pm test run
+
+# 8. Schedule daily tests
+pm test schedule "0 9 * * *" --name "Daily Auth Tests"
+
+# 9. View results
+pm logs list
+pm logs summary
 ```
 
 ## 💡 Pro Tips
 
-### 1. Use Interactive Mode
+### 1. Use Environment Variables
+
 ```bash
-# Interactive request creation is easier for complex requests
-postmind request create -i
+# Create environment with variables
+pm env add staging -i
+# Enter: BASE_URL=https://staging.api.com,API_KEY=staging-key
+
+# Use in requests with {{VARIABLE}} syntax
+pm request create -n "Test" -m GET -u "{{BASE_URL}}/test"
 ```
 
-### 2. Save Responses for Debugging
+### 2. Interactive Mode
+
 ```bash
-# Save responses to history for later analysis
-postmind run collection "My API" --save-response
+# Use -i flag for guided creation
+pm request create -i
+pm env add production -i
 ```
 
-### 3. Parallel Execution for Speed
+### 3. Parallel Execution
+
 ```bash
-# Run requests simultaneously for faster testing
-postmind run collection "API Tests" --parallel
+# Run collections faster with --parallel
+pm run collection "Smoke Tests" --parallel
 ```
 
-### 4. Environment Variables
+### 4. Export Collections
+
 ```bash
-# Use {{VARIABLE}} syntax in URLs, headers, and body
-postmind request create -n "API Call" -m GET -u "{{BASE_URL}}/{{ENDPOINT}}"
+# Export for sharing or backup
+pm collection export "User API" ./user-api.json
 ```
 
-### 5. Export Collections
+### 5. View Detailed Logs
+
 ```bash
-# Share collections with your team
-postmind collection export "My API" ./api-collection.json
-```
-
-### 6. Generate Tests Automatically
-```bash
-# Auto-generate test files for all requests
-postmind test generate
-
-# Run tests to verify API behavior
-postmind test run
-```
-
-### 7. Schedule Automated Testing
-```bash
-# Run tests every hour
-postmind test schedule "0 * * * *" --name "Hourly Tests"
-
-# Run tests daily at 2 AM
-postmind test schedule "0 2 * * *" --name "Daily Tests"
-```
-
-### 8. Monitor and Export Logs
-```bash
-# View recent executions
-postmind logs list
+# Filter logs
+pm logs list --limit 10 --type request
 
 # Export logs for analysis
-postmind logs export ./logs/api-execution.json --format json
-
-# Filter logs by type
-postmind logs list --type request
+pm logs export ./test-results.json --format json
 ```
+
+## 🔍 Getting Help
+
+```bash
+# General help
+pm --help
+
+# Command-specific help
+pm auth --help
+pm run --help
+pm request --help
+
+# See version
+pm --version
+```
+
+## 🌐 Web UI Integration
+
+All CLI operations sync with the web UI:
+
+- **Collections**: View and edit in web UI
+- **Requests**: Manage from both CLI and web
+- **History**: All CLI executions appear in web UI history tab
+- **Environments**: Shared between CLI and web
+- **Authentication**: Single login for both
+
+Visit the web UI to:
+- Visual request builder
+- Response viewer
+- History timeline
+- Collection management
+- Environment variables editor
 
 ## 🚨 Troubleshooting
 
-### Common Issues
+### Authentication Issues
 
-**"No current project" error:**
 ```bash
-# Solution: Initialize or switch to a project
-postmind init my-project
-# or
-postmind project switch existing-project
+# Check authentication status
+pm auth status
+
+# Re-login if expired
+pm auth logout
+pm auth login
 ```
 
-**"Environment not found" error:**
+### Command Not Found
+
 ```bash
-# Solution: Check available environments and switch
-postmind env list
-postmind env switch correct-environment
+# Ensure CLI is linked
+cd postmind-cli
+npm link
+
+# Verify installation
+which pm
+pm --version
 ```
 
-**"Request not found" error:**
+### API Connection Issues
+
 ```bash
-# Solution: Check available requests
-postmind request list
+# Verify API URL in auth config
+cat ~/.postmind/auth.json
+
+# Check web UI is running
+curl http://localhost:3000/api/collections
 ```
 
-**Network errors:**
-- Check your internet connection
-- Verify the URL is correct
-- Check if the API requires authentication
+## 📚 Documentation
 
-**Test failures:**
-- Check test files in `tests/` directory
-- Verify test assertions are correct
-- Use `postmind test run --verbose` for detailed output
+- **README.md** - Complete feature documentation
+- **AUTH.md** - Authentication guide
+- **PM-ALIAS.md** - Alias reference
+- **SYNC.md** - Web UI synchronization
+- **HISTORY.md** - History tracking
 
-**Log issues:**
-- Check if logs directory exists
-- Verify log permissions
-- Use `postmind logs clear` to reset logs
+## 🎉 You're Ready!
 
-## 🎉 Next Steps
+Start testing your APIs with Postmind:
 
-1. **Explore the full documentation** in `README.md`
-2. **Try the examples** in the `examples/` directory
-3. **Create your own API collections**
-4. **Set up multiple environments** for different stages
-5. **Use history tracking** to monitor API changes over time
-6. **Generate and customize tests** for your APIs
-7. **Set up automated testing** with scheduling
-8. **Monitor execution logs** and export for analysis
+```bash
+pm auth login
+pm init my-project
+pm request create -i
+pm run request "Test"
+```
 
-## 📚 Additional Resources
-
-- [Full Documentation](README.md)
-- [Command Reference](README.md#commands)
-- [Examples](README.md#examples)
-- [Configuration](README.md#configuration)
-
----
-
-**You're all set! Start building amazing API projects with Postmind CLI!** 🎊
+Happy testing! 🚀

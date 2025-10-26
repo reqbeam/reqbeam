@@ -1,9 +1,8 @@
 import { Command } from 'commander';
 import chalk from 'chalk';
 import inquirer from 'inquirer';
-import { StorageManager } from '../utils/storage.js';
+import { ApiStorageManager } from '../utils/apiStorage.js';
 import { Formatter } from '../utils/formatter.js';
-import { Environment } from '../types.js';
 
 const envCommand = new Command('env');
 
@@ -13,20 +12,20 @@ envCommand
 // List environments
 envCommand
   .command('list')
-  .description('List all environments in the current project')
+  .description('List all environments')
   .action(async () => {
     try {
-      const storage = StorageManager.getInstance();
-      const currentProject = await storage.getCurrentProject();
+      const storage = ApiStorageManager.getInstance();
+      const environments = await storage.listEnvironments();
       
-      if (!currentProject) {
-        console.log(chalk.red('No current project. Use "postmind init <name>" to create a project first.'));
-        process.exit(1);
+      if (environments.length === 0) {
+        console.log(chalk.yellow('No environments found'));
+        console.log(chalk.gray('Create one with: postmind env add <name> -i'));
+        return;
       }
-
-      const config = await storage.loadProjectConfig(currentProject);
+      
       console.log(chalk.bold('Environments:'));
-      console.log(Formatter.formatEnvironments(config.environments));
+      console.log(Formatter.formatEnvironments(environments));
       
     } catch (error: any) {
       console.error(chalk.red('Error listing environments:'), error.message);
@@ -42,19 +41,11 @@ envCommand
   .option('-i, --interactive', 'Add variables interactively')
   .action(async (name: string, options: { interactive?: boolean }) => {
     try {
-      const storage = StorageManager.getInstance();
-      const currentProject = await storage.getCurrentProject();
-      
-      if (!currentProject) {
-        console.log(chalk.red('No current project. Use "postmind init <name>" to create a project first.'));
-        process.exit(1);
-      }
-
-      const config = await storage.loadProjectConfig(currentProject);
+      const storage = ApiStorageManager.getInstance();
       
       // Check if environment already exists
-      const envExists = config.environments.some(e => e.name === name);
-      if (envExists) {
+      const existingEnv = await storage.findEnvironmentByName(name);
+      if (existingEnv) {
         console.log(chalk.red(`Environment '${name}' already exists`));
         process.exit(1);
       }
@@ -85,16 +76,16 @@ envCommand
         }
       }
 
-      const environment: Environment = {
-        name,
-        variables,
-        isActive: config.environments.length === 0 // First environment is active by default
-      };
-
-      config.environments.push(environment);
-      await storage.saveProjectConfig(currentProject, config);
+      const environment = await storage.createEnvironment(name, variables);
+      
+      if (!environment) {
+        console.log(chalk.red('Failed to create environment'));
+        process.exit(1);
+      }
       
       console.log(chalk.green(`✓ Environment '${name}' added successfully`));
+      console.log(chalk.gray(`  ID: ${environment.id}`));
+      console.log(chalk.gray(`  Variables: ${Object.keys(variables).length}`));
       
     } catch (error: any) {
       console.error(chalk.red('Error adding environment:'), error.message);
@@ -110,19 +101,12 @@ envCommand
   .option('-f, --force', 'Force removal without confirmation')
   .action(async (name: string, options: { force?: boolean }) => {
     try {
-      const storage = StorageManager.getInstance();
-      const currentProject = await storage.getCurrentProject();
+      const storage = ApiStorageManager.getInstance();
       
-      if (!currentProject) {
-        console.log(chalk.red('No current project. Use "postmind init <name>" to create a project first.'));
-        process.exit(1);
-      }
-
-      const config = await storage.loadProjectConfig(currentProject);
+      // Find environment
+      const environment = await storage.findEnvironmentByName(name);
       
-      // Check if environment exists
-      const envIndex = config.environments.findIndex(e => e.name === name);
-      if (envIndex === -1) {
+      if (!environment) {
         console.log(chalk.red(`Environment '${name}' not found`));
         process.exit(1);
       }
@@ -144,14 +128,12 @@ envCommand
         }
       }
 
-      config.environments.splice(envIndex, 1);
+      const deleted = await storage.deleteEnvironment(environment.id);
       
-      // If this was the current environment, clear it
-      if (config.currentEnvironment === name) {
-        config.currentEnvironment = undefined;
+      if (!deleted) {
+        console.log(chalk.red('Failed to delete environment'));
+        process.exit(1);
       }
-      
-      await storage.saveProjectConfig(currentProject, config);
       
       console.log(chalk.green(`✓ Environment '${name}' removed successfully`));
       
@@ -164,39 +146,85 @@ envCommand
 // Switch environment
 envCommand
   .command('switch')
-  .argument('<name>', 'Name of the environment to switch to')
-  .description('Switch to a different environment')
+  .argument('<name>', 'Name of the environment to activate')
+  .description('Switch to a different environment (activate it)')
   .action(async (name: string) => {
     try {
-      const storage = StorageManager.getInstance();
-      const currentProject = await storage.getCurrentProject();
+      const storage = ApiStorageManager.getInstance();
       
-      if (!currentProject) {
-        console.log(chalk.red('No current project. Use "postmind init <name>" to create a project first.'));
-        process.exit(1);
-      }
-
-      const config = await storage.loadProjectConfig(currentProject);
+      // Find environment
+      const environment = await storage.findEnvironmentByName(name);
       
-      // Check if environment exists
-      const envExists = config.environments.some(e => e.name === name);
-      if (!envExists) {
+      if (!environment) {
         console.log(chalk.red(`Environment '${name}' not found`));
         process.exit(1);
       }
 
-      // Update active environment
-      config.environments.forEach(env => {
-        env.isActive = env.name === name;
-      });
-      config.currentEnvironment = name;
+      const activated = await storage.activateEnvironment(environment.id);
       
-      await storage.saveProjectConfig(currentProject, config);
+      if (!activated) {
+        console.log(chalk.red('Failed to activate environment'));
+        process.exit(1);
+      }
       
       console.log(chalk.green(`✓ Switched to environment '${name}'`));
       
     } catch (error: any) {
       console.error(chalk.red('Error switching environment:'), error.message);
+      process.exit(1);
+    }
+  });
+
+// Update environment
+envCommand
+  .command('update')
+  .argument('<name>', 'Name of the environment to update')
+  .description('Update environment variables')
+  .option('-a, --add <variables>', 'Add/update variables as key=value pairs (comma-separated)')
+  .option('-r, --remove <keys>', 'Remove variables by keys (comma-separated)')
+  .action(async (name: string, options: { add?: string; remove?: string }) => {
+    try {
+      const storage = ApiStorageManager.getInstance();
+      
+      // Find environment
+      const environment = await storage.findEnvironmentByName(name);
+      
+      if (!environment) {
+        console.log(chalk.red(`Environment '${name}' not found`));
+        process.exit(1);
+      }
+
+      const variables = { ...environment.variables };
+
+      // Add/update variables
+      if (options.add) {
+        options.add.split(',').forEach((pair: string) => {
+          const [key, value] = pair.trim().split('=');
+          if (key && value) {
+            variables[key.trim()] = value.trim();
+          }
+        });
+      }
+
+      // Remove variables
+      if (options.remove) {
+        options.remove.split(',').forEach((key: string) => {
+          delete variables[key.trim()];
+        });
+      }
+
+      const updated = await storage.updateEnvironment(environment.id, undefined, variables);
+      
+      if (!updated) {
+        console.log(chalk.red('Failed to update environment'));
+        process.exit(1);
+      }
+      
+      console.log(chalk.green(`✓ Environment '${name}' updated successfully`));
+      console.log(chalk.gray(`  Variables: ${Object.keys(variables).length}`));
+      
+    } catch (error: any) {
+      console.error(chalk.red('Error updating environment:'), error.message);
       process.exit(1);
     }
   });

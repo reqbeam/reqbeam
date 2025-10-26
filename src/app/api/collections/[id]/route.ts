@@ -1,15 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getServerSession } from 'next-auth'
-import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
+import { getAuthenticatedUser } from '@/lib/apiAuth'
 
 export async function DELETE(
   request: NextRequest,
   { params }: { params: { id: string } }
 ) {
   try {
-    const session = await getServerSession(authOptions)
-    if (!session?.user?.id) {
+    const user = await getAuthenticatedUser(request)
+    if (!user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
@@ -19,7 +18,7 @@ export async function DELETE(
     const collection = await prisma.collection.findFirst({
       where: {
         id: collectionId,
-        userId: session.user.id,
+        userId: user.id,
       },
     })
 
@@ -52,19 +51,20 @@ export async function PUT(
   { params }: { params: { id: string } }
 ) {
   try {
-    const session = await getServerSession(authOptions)
-    if (!session?.user?.id) {
+    const user = await getAuthenticatedUser(request)
+    if (!user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
     const collectionId = params.id
-    const { name, description } = await request.json()
+    const body = await request.json()
+    const { name, description } = body
 
     // Check if collection belongs to user
     const collection = await prisma.collection.findFirst({
       where: {
         id: collectionId,
-        userId: session.user.id,
+        userId: user.id,
       },
     })
 
@@ -81,8 +81,8 @@ export async function PUT(
         id: collectionId,
       },
       data: {
-        name,
-        description,
+        ...(name && { name }),
+        ...(description !== undefined && { description }),
       },
     })
 
@@ -95,5 +95,3 @@ export async function PUT(
     )
   }
 }
-
-

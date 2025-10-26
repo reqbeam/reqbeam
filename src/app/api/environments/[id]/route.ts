@@ -1,15 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getServerSession } from 'next-auth'
-import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
+import { getAuthenticatedUser } from '@/lib/apiAuth'
 
 export async function PUT(
   request: NextRequest,
   { params }: { params: { id: string } }
 ) {
   try {
-    const session = await getServerSession(authOptions)
-    if (!session?.user?.id) {
+    const user = await getAuthenticatedUser(request)
+    if (!user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
@@ -20,7 +19,7 @@ export async function PUT(
     const environment = await prisma.environment.findFirst({
       where: {
         id: environmentId,
-        userId: session.user.id,
+        userId: user.id,
       },
     })
 
@@ -37,8 +36,8 @@ export async function PUT(
         id: environmentId,
       },
       data: {
-        name,
-        variables: variables || {},
+        ...(name && { name }),
+        ...(variables !== undefined && { variables: variables || {} }),
       },
     })
 
@@ -57,8 +56,8 @@ export async function DELETE(
   { params }: { params: { id: string } }
 ) {
   try {
-    const session = await getServerSession(authOptions)
-    if (!session?.user?.id) {
+    const user = await getAuthenticatedUser(request)
+    if (!user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
@@ -68,7 +67,7 @@ export async function DELETE(
     const environment = await prisma.environment.findFirst({
       where: {
         id: environmentId,
-        userId: session.user.id,
+        userId: user.id,
       },
     })
 
@@ -95,5 +94,3 @@ export async function DELETE(
     )
   }
 }
-
-

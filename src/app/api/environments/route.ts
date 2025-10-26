@@ -1,18 +1,17 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getServerSession } from 'next-auth'
-import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
+import { getAuthenticatedUser } from '@/lib/apiAuth'
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
-    const session = await getServerSession(authOptions)
-    if (!session?.user?.id) {
+    const user = await getAuthenticatedUser(request)
+    if (!user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
     const environments = await prisma.environment.findMany({
       where: {
-        userId: session.user.id,
+        userId: user.id,
       },
       orderBy: {
         createdAt: 'desc',
@@ -31,8 +30,8 @@ export async function GET() {
 
 export async function POST(request: NextRequest) {
   try {
-    const session = await getServerSession(authOptions)
-    if (!session?.user?.id) {
+    const user = await getAuthenticatedUser(request)
+    if (!user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
@@ -48,7 +47,7 @@ export async function POST(request: NextRequest) {
     // If this is the first environment, make it active
     const existingEnvironments = await prisma.environment.count({
       where: {
-        userId: session.user.id,
+        userId: user.id,
       },
     })
 
@@ -56,7 +55,7 @@ export async function POST(request: NextRequest) {
       data: {
         name,
         variables: variables || {},
-        userId: session.user.id,
+        userId: user.id,
         isActive: existingEnvironments === 0, // First environment is active by default
       },
     })

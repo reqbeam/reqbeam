@@ -1,9 +1,8 @@
 import { Command } from 'commander';
 import chalk from 'chalk';
 import inquirer from 'inquirer';
-import { StorageManager } from '../utils/storage.js';
+import { ApiStorageManager } from '../utils/apiStorage.js';
 import { Formatter } from '../utils/formatter.js';
-import { Request } from '../types.js';
 
 const requestCommand = new Command('request');
 
@@ -18,8 +17,8 @@ requestCommand
   .option('-m, --method <method>', 'HTTP method (GET, POST, PUT, DELETE, PATCH)')
   .option('-u, --url <url>', 'Request URL')
   .option('-H, --headers <headers>', 'Headers as key:value pairs (comma-separated)')
-  .option('-b, --body <body>', 'Request body (JSON string or file path)')
-  .option('-d, --description <description>', 'Request description')
+  .option('-b, --body <body>', 'Request body (JSON string)')
+  .option('-c, --collection <collection>', 'Collection name to add request to')
   .option('-i, --interactive', 'Create request interactively')
   .action(async (options: {
     name?: string;
@@ -27,23 +26,19 @@ requestCommand
     url?: string;
     headers?: string;
     body?: string;
-    description?: string;
+    collection?: string;
     interactive?: boolean;
   }) => {
     try {
-      const storage = StorageManager.getInstance();
-      const currentProject = await storage.getCurrentProject();
+      const storage = ApiStorageManager.getInstance();
       
-      if (!currentProject) {
-        console.log(chalk.red('No current project. Use "postmind init <name>" to create a project first.'));
-        process.exit(1);
-      }
-
-      const config = await storage.loadProjectConfig(currentProject);
-      
-      let requestData: Partial<Request> = {};
+      let requestData: any = {};
 
       if (options.interactive || !options.name) {
+        // Get list of collections for selection
+        const collections = await storage.listCollections();
+        const collectionChoices = ['None', ...collections.map(c => c.name)];
+        
         const answers = await inquirer.prompt([
           {
             type: 'input',
@@ -73,14 +68,15 @@ requestCommand
           {
             type: 'input',
             name: 'body',
-            message: 'Request body (JSON string or file path):',
+            message: 'Request body (JSON string):',
             default: ''
           },
           {
-            type: 'input',
-            name: 'description',
-            message: 'Description (optional):',
-            default: ''
+            type: 'list',
+            name: 'collection',
+            message: 'Add to collection:',
+            choices: collectionChoices,
+            default: 'None'
           }
         ]);
 
@@ -88,11 +84,11 @@ requestCommand
       } else {
         requestData = {
           name: options.name,
-          method: (options.method as any) || 'GET',
+          method: options.method || 'GET',
           url: options.url || '',
-          headers: options.headers ? parseHeaders(options.headers) : undefined,
-          body: options.body || undefined,
-          description: options.description || undefined
+          headers: options.headers,
+          body: options.body,
+          collection: options.collection
         };
       }
 
@@ -103,41 +99,48 @@ requestCommand
       }
 
       // Check if request already exists
-      const requestExists = config.requests.some(r => r.name === requestData.name);
-      if (requestExists) {
+      const existingRequest = await storage.findRequestByName(requestData.name);
+      if (existingRequest) {
         console.log(chalk.red(`Request '${requestData.name}' already exists`));
         process.exit(1);
       }
 
       // Parse headers if provided
-      if (requestData.headers && typeof requestData.headers === 'string') {
-        requestData.headers = parseHeaders(requestData.headers);
+      let headers = undefined;
+      if (requestData.headers && requestData.headers.trim()) {
+        headers = parseHeaders(requestData.headers);
       }
 
-      // Parse body if it's a JSON string
-      if (requestData.body && typeof requestData.body === 'string') {
-        try {
-          requestData.body = JSON.parse(requestData.body);
-        } catch {
-          // Keep as string if not valid JSON
+      // Find collection ID if specified
+      let collectionId = undefined;
+      if (requestData.collection && requestData.collection !== 'None') {
+        const collections = await storage.listCollections();
+        const collection = collections.find(c => c.name === requestData.collection);
+        if (collection) {
+          collectionId = collection.id;
         }
       }
 
-      const request: Request = {
-        name: requestData.name!,
-        method: requestData.method as any,
-        url: requestData.url!,
-        headers: requestData.headers,
-        body: requestData.body,
-        description: requestData.description,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString()
-      };
-
-      config.requests.push(request);
-      await storage.saveProjectConfig(currentProject, config);
+      const request = await storage.createRequest({
+        name: requestData.name,
+        method: requestData.method.toUpperCase(),
+        url: requestData.url,
+        headers,
+        body: requestData.body || undefined,
+        bodyType: 'json',
+        collectionId
+      });
+      
+      if (!request) {
+        console.log(chalk.red('Failed to create request'));
+        process.exit(1);
+      }
       
       console.log(chalk.green(`✓ Request '${request.name}' created successfully`));
+      console.log(chalk.gray(`  ID: ${request.id}`));
+      if (collectionId) {
+        console.log(chalk.gray(`  Collection: ${requestData.collection}`));
+      }
       
     } catch (error: any) {
       console.error(chalk.red('Error creating request:'), error.message);
@@ -148,20 +151,42 @@ requestCommand
 // List requests
 requestCommand
   .command('list')
-  .description('List all requests in the current project')
-  .action(async () => {
+  .description('List all requests')
+  .option('-c, --collection <collection>', 'Filter by collection name')
+  .action(async (options: { collection?: string }) => {
     try {
-      const storage = StorageManager.getInstance();
-      const currentProject = await storage.getCurrentProject();
+      const storage = ApiStorageManager.getInstance();
       
-      if (!currentProject) {
-        console.log(chalk.red('No current project. Use "postmind init <name>" to create a project first.'));
-        process.exit(1);
+      let requests;
+      
+      if (options.collection) {
+        // Find collection first
+        const collections = await storage.listCollections();
+        const collection = collections.find(c => c.name === options.collection);
+        
+        if (!collection) {
+          console.log(chalk.red(`Collection '${options.collection}' not found`));
+          process.exit(1);
+        }
+        
+        requests = await storage.listRequests(collection.id);
+      } else {
+        requests = await storage.listRequests();
       }
-
-      const config = await storage.loadProjectConfig(currentProject);
+      
+      if (requests.length === 0) {
+        console.log(chalk.yellow('No requests found'));
+        console.log(chalk.gray('Create one with: postmind request create -i'));
+        return;
+      }
+      
       console.log(chalk.bold('Requests:'));
-      console.log(Formatter.formatRequests(config.requests));
+      // Convert API requests to formatter-compatible format
+      const formattedRequests = requests.map(r => ({
+        ...r,
+        method: r.method as any
+      }));
+      console.log(Formatter.formatRequests(formattedRequests as any));
       
     } catch (error: any) {
       console.error(chalk.red('Error listing requests:'), error.message);
@@ -178,49 +203,50 @@ requestCommand
   .option('-u, --url <url>', 'Request URL')
   .option('-H, --headers <headers>', 'Headers as key:value pairs')
   .option('-b, --body <body>', 'Request body')
-  .option('-d, --description <description>', 'Request description')
+  .option('-c, --collection <collection>', 'Collection name')
   .action(async (name: string, options: {
     method?: string;
     url?: string;
     headers?: string;
     body?: string;
-    description?: string;
+    collection?: string;
   }) => {
     try {
-      const storage = StorageManager.getInstance();
-      const currentProject = await storage.getCurrentProject();
+      const storage = ApiStorageManager.getInstance();
       
-      if (!currentProject) {
-        console.log(chalk.red('No current project. Use "postmind init <name>" to create a project first.'));
-        process.exit(1);
-      }
-
-      const config = await storage.loadProjectConfig(currentProject);
+      // Find request
+      const request = await storage.findRequestByName(name);
       
-      const requestIndex = config.requests.findIndex(r => r.name === name);
-      if (requestIndex === -1) {
+      if (!request) {
         console.log(chalk.red(`Request '${name}' not found`));
         process.exit(1);
       }
 
-      const request = config.requests[requestIndex];
-
-      // Update fields if provided
-      if (options.method) request.method = options.method as any;
-      if (options.url) request.url = options.url;
-      if (options.headers) request.headers = parseHeaders(options.headers);
-      if (options.body !== undefined) {
-        try {
-          request.body = JSON.parse(options.body);
-        } catch {
-          request.body = options.body;
+      // Build update data
+      const updateData: any = {};
+      
+      if (options.method) updateData.method = options.method.toUpperCase();
+      if (options.url) updateData.url = options.url;
+      if (options.headers) updateData.headers = parseHeaders(options.headers);
+      if (options.body !== undefined) updateData.body = options.body;
+      
+      if (options.collection) {
+        const collections = await storage.listCollections();
+        const collection = collections.find(c => c.name === options.collection);
+        if (collection) {
+          updateData.collectionId = collection.id;
+        } else {
+          console.log(chalk.red(`Collection '${options.collection}' not found`));
+          process.exit(1);
         }
       }
-      if (options.description !== undefined) request.description = options.description;
-      
-      request.updatedAt = new Date().toISOString();
 
-      await storage.saveProjectConfig(currentProject, config);
+      const updated = await storage.updateRequest(request.id, updateData);
+      
+      if (!updated) {
+        console.log(chalk.red('Failed to update request'));
+        process.exit(1);
+      }
       
       console.log(chalk.green(`✓ Request '${name}' updated successfully`));
       
@@ -238,18 +264,12 @@ requestCommand
   .option('-f, --force', 'Force deletion without confirmation')
   .action(async (name: string, options: { force?: boolean }) => {
     try {
-      const storage = StorageManager.getInstance();
-      const currentProject = await storage.getCurrentProject();
+      const storage = ApiStorageManager.getInstance();
       
-      if (!currentProject) {
-        console.log(chalk.red('No current project. Use "postmind init <name>" to create a project first.'));
-        process.exit(1);
-      }
-
-      const config = await storage.loadProjectConfig(currentProject);
+      // Find request
+      const request = await storage.findRequestByName(name);
       
-      const requestIndex = config.requests.findIndex(r => r.name === name);
-      if (requestIndex === -1) {
+      if (!request) {
         console.log(chalk.red(`Request '${name}' not found`));
         process.exit(1);
       }
@@ -271,14 +291,12 @@ requestCommand
         }
       }
 
-      config.requests.splice(requestIndex, 1);
+      const deleted = await storage.deleteRequest(request.id);
       
-      // Remove from collections
-      config.collections.forEach(collection => {
-        collection.requests = collection.requests.filter(reqName => reqName !== name);
-      });
-      
-      await storage.saveProjectConfig(currentProject, config);
+      if (!deleted) {
+        console.log(chalk.red('Failed to delete request'));
+        process.exit(1);
+      }
       
       console.log(chalk.green(`✓ Request '${name}' deleted successfully`));
       

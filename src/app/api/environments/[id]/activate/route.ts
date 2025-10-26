@@ -1,15 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getServerSession } from 'next-auth'
-import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
+import { getAuthenticatedUser } from '@/lib/apiAuth'
 
 export async function POST(
   request: NextRequest,
   { params }: { params: { id: string } }
 ) {
   try {
-    const session = await getServerSession(authOptions)
-    if (!session?.user?.id) {
+    const user = await getAuthenticatedUser(request)
+    if (!user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
@@ -19,7 +18,7 @@ export async function POST(
     const environment = await prisma.environment.findFirst({
       where: {
         id: environmentId,
-        userId: session.user.id,
+        userId: user.id,
       },
     })
 
@@ -33,7 +32,7 @@ export async function POST(
     // Deactivate all other environments for this user
     await prisma.environment.updateMany({
       where: {
-        userId: session.user.id,
+        userId: user.id,
         isActive: true,
       },
       data: {
@@ -42,7 +41,7 @@ export async function POST(
     })
 
     // Activate the selected environment
-    await prisma.environment.update({
+    const activatedEnvironment = await prisma.environment.update({
       where: {
         id: environmentId,
       },
@@ -51,7 +50,7 @@ export async function POST(
       },
     })
 
-    return NextResponse.json({ message: 'Environment activated successfully' })
+    return NextResponse.json(activatedEnvironment)
   } catch (error) {
     console.error('Error activating environment:', error)
     return NextResponse.json(
@@ -60,5 +59,3 @@ export async function POST(
     )
   }
 }
-
-

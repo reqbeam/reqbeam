@@ -1,120 +1,72 @@
 import { Command } from 'commander';
 import chalk from 'chalk';
-import inquirer from 'inquirer';
-import { StorageManager } from '../utils/storage.js';
+import { ApiStorageManager } from '../utils/apiStorage.js';
 import { Formatter } from '../utils/formatter.js';
 
 const projectCommand = new Command('project');
 
 projectCommand
-  .description('Manage API projects');
+  .description('Manage projects (now mapped to collections)');
 
-// List projects
+// List projects (collections)
 projectCommand
   .command('list')
-  .description('List all projects')
+  .description('List all collections (projects)')
   .action(async () => {
     try {
-      const storage = StorageManager.getInstance();
-      const projects = await storage.listProjects();
-      const currentProject = await storage.getCurrentProject();
+      console.log(chalk.yellow('ℹ️  Projects are now mapped to Collections in the web UI\n'));
       
-      console.log(chalk.bold('Projects:'));
-      console.log(Formatter.formatProjects(projects));
+      const storage = ApiStorageManager.getInstance();
+      const collections = await storage.listCollections();
       
-      if (currentProject) {
-        console.log(chalk.blue(`Current project: ${currentProject}`));
-      } else {
-        console.log(chalk.yellow('No current project set'));
+      if (collections.length === 0) {
+        console.log(chalk.yellow('No collections found'));
+        console.log(chalk.gray('Create one with: postmind collection create <name>'));
+        return;
       }
       
+      console.log(chalk.bold('Collections:'));
+      
+      // Convert to old format for formatter
+      const formattedCollections = collections.map(col => ({
+        name: col.name,
+        description: col.description,
+        requests: (col.requests || []).map(r => r.name),
+        createdAt: col.createdAt,
+        updatedAt: col.updatedAt
+      }));
+      
+      console.log(Formatter.formatCollections(formattedCollections as any));
+      
+      console.log(chalk.gray('\nTip: Use "postmind collection list" instead'));
+      
     } catch (error: any) {
-      console.error(chalk.red('Error listing projects:'), error.message);
+      console.error(chalk.red('Error listing collections:'), error.message);
       process.exit(1);
     }
   });
 
-// Delete project
-projectCommand
-  .command('delete')
-  .argument('<project_name>', 'Name of the project to delete')
-  .description('Delete a project')
-  .option('-f, --force', 'Force deletion without confirmation')
-  .action(async (projectName: string, options: { force?: boolean }) => {
-    try {
-      const storage = StorageManager.getInstance();
-      
-      // Check if project exists
-      const projects = await storage.listProjects();
-      const projectExists = projects.some(p => p.name === projectName);
-      
-      if (!projectExists) {
-        console.log(chalk.red(`Project '${projectName}' not found`));
-        process.exit(1);
-      }
-
-      // Confirm deletion unless -f flag is used
-      if (!options.force) {
-        const { confirm } = await inquirer.prompt([
-          {
-            type: 'confirm',
-            name: 'confirm',
-            message: `Are you sure you want to delete project '${projectName}'? This action cannot be undone.`,
-            default: false
-          }
-        ]);
-
-        if (!confirm) {
-          console.log(chalk.yellow('Project deletion cancelled'));
-          process.exit(0);
-        }
-      }
-
-      // Delete project
-      await storage.deleteProject(projectName);
-      
-      // If this was the current project, clear it
-      const currentProject = await storage.getCurrentProject();
-      if (currentProject === projectName) {
-        // Note: We'd need to implement a method to clear current project
-        console.log(chalk.yellow('Note: This was your current project. Please set a new current project.'));
-      }
-      
-      console.log(chalk.green(`✓ Project '${projectName}' deleted successfully`));
-      
-    } catch (error: any) {
-      console.error(chalk.red('Error deleting project:'), error.message);
-      process.exit(1);
-    }
-  });
-
-// Switch project
+// Switch project (deprecated)
 projectCommand
   .command('switch')
-  .argument('<project_name>', 'Name of the project to switch to')
-  .description('Switch to a different project')
-  .action(async (projectName: string) => {
-    try {
-      const storage = StorageManager.getInstance();
-      
-      // Check if project exists
-      const projects = await storage.listProjects();
-      const projectExists = projects.some(p => p.name === projectName);
-      
-      if (!projectExists) {
-        console.log(chalk.red(`Project '${projectName}' not found`));
-        process.exit(1);
-      }
+  .argument('<name>', 'Collection name')
+  .description('Switch project (deprecated - use collections instead)')
+  .action(async (name: string) => {
+    console.log(chalk.yellow('⚠️  The "project switch" command is deprecated.'));
+    console.log(chalk.gray('\nPostmind CLI now works directly with all your collections.'));
+    console.log(chalk.gray('You can filter requests by collection using:'));
+    console.log(chalk.cyan('  postmind request list -c "' + name + '"'));
+  });
 
-      // Switch to project
-      await storage.setCurrentProject(projectName);
-      
-      console.log(chalk.green(`✓ Switched to project '${projectName}'`));
-      
-    } catch (error: any) {
-      console.error(chalk.red('Error switching project:'), error.message);
-      process.exit(1);
-    }
+// Delete project (deprecated)
+projectCommand
+  .command('delete')
+  .argument('<name>', 'Collection name')
+  .description('Delete project (deprecated - use collections instead)')
+  .action(async (name: string) => {
+    console.log(chalk.yellow('⚠️  The "project delete" command is deprecated.'));
+    console.log(chalk.gray('\nTo delete a collection, use:'));
+    console.log(chalk.cyan('  postmind collection delete "' + name + '"'));
   });
 
 export { projectCommand };
