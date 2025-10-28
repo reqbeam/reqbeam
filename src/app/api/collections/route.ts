@@ -92,8 +92,12 @@ export async function POST(request: NextRequest) {
           name: requestData.name,
           method: requestData.method,
           url: requestData.url,
-          headers: requestData.headers ? requestData.headers : undefined,
-          body: requestData.body || null,
+          headers: requestData.headers
+            ? (typeof requestData.headers === 'string' ? requestData.headers : JSON.stringify(requestData.headers))
+            : null,
+          body: requestData.body
+            ? (typeof requestData.body === 'string' ? requestData.body : JSON.stringify(requestData.body))
+            : null,
           bodyType: requestData.bodyType || 'json',
           collectionId: collectionId,
           userId: user.id,
@@ -130,4 +134,3 @@ export async function POST(request: NextRequest) {
     )
   }
 }
-

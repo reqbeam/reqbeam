@@ -10,6 +10,15 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
+    // Verify user exists in database
+    const dbUser = await prisma.user.findUnique({
+      where: { id: user.id },
+    })
+    
+    if (!dbUser) {
+      return NextResponse.json({ error: 'User not found in database' }, { status: 404 })
+    }
+
     // Check if user already has workspaces
     const existingWorkspace = await prisma.workspace.findFirst({
       where: {
@@ -25,11 +34,12 @@ export async function POST(request: NextRequest) {
     }
 
     // Create default workspace
+    console.log('Initializing workspace for userId:', user.id)
     const defaultWorkspace = await prisma.workspace.create({
       data: {
         name: 'My Workspace',
         description: 'Default workspace',
-        ownerId: user.id,
+        owner: { connect: { id: user.id } },
       },
       include: {
         owner: {
