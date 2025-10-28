@@ -6,7 +6,7 @@ import Dashboard from '@/components/Dashboard'
 export default async function WorkspacePage({
   params,
 }: {
-  params: { workspaceId: string }
+  params: Promise<{ workspaceId: string }>
 }) {
   const session = await getServerSession(authOptions)
 
@@ -14,6 +14,7 @@ export default async function WorkspacePage({
     redirect('/auth/signin')
   }
 
-  return <Dashboard workspaceId={params.workspaceId} />
+  const { workspaceId } = await params
+  return <Dashboard workspaceId={workspaceId} />
 }
 

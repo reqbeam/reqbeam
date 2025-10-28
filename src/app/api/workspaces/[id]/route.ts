@@ -5,7 +5,7 @@ import { getAuthenticatedUser } from '@/lib/apiAuth'
 // GET /api/workspaces/:id - Get specific workspace
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const user = await getAuthenticatedUser(request)
@@ -13,9 +13,10 @@ export async function GET(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
+    const { id } = await params
     const workspace = await prisma.workspace.findFirst({
       where: {
-        id: params.id,
+        id: id,
         OR: [
           { ownerId: user.id },
           {
@@ -76,7 +77,7 @@ export async function GET(
 // PUT /api/workspaces/:id - Update workspace
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const user = await getAuthenticatedUser(request)
@@ -84,13 +85,14 @@ export async function PUT(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
+    const { id } = await params
     const body = await request.json()
     const { name, description } = body
 
     // Verify ownership or editor permission
     const workspace = await prisma.workspace.findFirst({
       where: {
-        id: params.id,
+        id: id,
         OR: [
           { ownerId: user.id },
           {
@@ -127,7 +129,7 @@ export async function PUT(
     }
 
     const updatedWorkspace = await prisma.workspace.update({
-      where: { id: params.id },
+      where: { id: id },
       data: updateData,
       include: {
         owner: {
@@ -171,7 +173,7 @@ export async function PUT(
 // DELETE /api/workspaces/:id - Delete workspace
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const user = await getAuthenticatedUser(request)
@@ -180,9 +182,10 @@ export async function DELETE(
     }
 
     // Verify ownership (only owner can delete)
+    const { id } = await params
     const workspace = await prisma.workspace.findFirst({
       where: {
-        id: params.id,
+        id: id,
         ownerId: user.id,
       },
     })
@@ -195,7 +198,7 @@ export async function DELETE(
     }
 
     await prisma.workspace.delete({
-      where: { id: params.id },
+      where: { id: id },
     })
 
     return NextResponse.json({ success: true })

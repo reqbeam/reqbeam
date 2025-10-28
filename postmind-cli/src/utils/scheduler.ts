@@ -145,9 +145,9 @@ export class Scheduler {
    * Stop all scheduled jobs
    */
   public stopAllJobs(): void {
-    for (const task of this.jobs.values()) {
+    this.jobs.forEach((task) => {
       task.stop();
-    }
+    });
     this.jobs.clear();
   }
 

@@ -21,9 +21,9 @@ export async function POST(request: NextRequest) {
     }
 
     // Prepare headers
-    const requestHeaders: HeadersInit = {
+    const requestHeaders: Record<string, string> = {
       'User-Agent': 'Postman-Clone/1.0',
-      ...headers,
+      ...(headers as Record<string, string> | undefined),
     }
 
     // Prepare body based on type
@@ -52,7 +52,7 @@ export async function POST(request: NextRequest) {
 
     const response = await fetch(url, {
       method,
-      headers: requestHeaders,
+      headers: requestHeaders as HeadersInit,
       body: requestBody,
     })
 

@@ -5,7 +5,7 @@ import { getAuthenticatedUser } from '@/lib/apiAuth'
 // POST /api/workspaces/:id/activate - Set active workspace
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const user = await getAuthenticatedUser(request)
@@ -14,9 +14,10 @@ export async function POST(
     }
 
     // Verify user has access to this workspace
+    const { id } = await params
     const workspace = await prisma.workspace.findFirst({
       where: {
-        id: params.id,
+        id: id,
         OR: [
           { ownerId: user.id },
           {

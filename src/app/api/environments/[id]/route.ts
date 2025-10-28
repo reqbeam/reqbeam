@@ -4,7 +4,7 @@ import { getAuthenticatedUser } from '@/lib/apiAuth'
 
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const user = await getAuthenticatedUser(request)
@@ -12,7 +12,7 @@ export async function PUT(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const environmentId = params.id
+    const { id: environmentId } = await params
     const { name, variables } = await request.json()
 
     // Check if environment belongs to user
@@ -53,7 +53,7 @@ export async function PUT(
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const user = await getAuthenticatedUser(request)
@@ -61,7 +61,7 @@ export async function DELETE(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const environmentId = params.id
+    const { id: environmentId } = await params
 
     // Check if environment belongs to user
     const environment = await prisma.environment.findFirst({

@@ -4,7 +4,7 @@ import { getAuthenticatedUser } from '@/lib/apiAuth'
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const user = await getAuthenticatedUser(request)
@@ -12,7 +12,7 @@ export async function POST(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const environmentId = params.id
+    const { id: environmentId } = await params
 
     // Check if environment belongs to user
     const environment = await prisma.environment.findFirst({

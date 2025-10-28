@@ -4,7 +4,7 @@ import { getAuthenticatedUser } from '@/lib/apiAuth'
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const user = await getAuthenticatedUser(request)
@@ -12,7 +12,7 @@ export async function DELETE(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const collectionId = params.id
+    const { id: collectionId } = await params
 
     // Check if collection belongs to user
     const collection = await prisma.collection.findFirst({
@@ -48,7 +48,7 @@ export async function DELETE(
 
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const user = await getAuthenticatedUser(request)
@@ -56,7 +56,7 @@ export async function PUT(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const collectionId = params.id
+    const { id: collectionId } = await params
     const body = await request.json()
     const { name, description } = body
 

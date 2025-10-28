@@ -42,13 +42,13 @@ export function usePermissions(workspaceId?: string): {
 
     // For now, assume the current user is the owner
     // In the future, this will check the actual user's role in the workspace
-    const userRole: WorkspaceRole = 'owner' // This will be dynamic when collaboration is implemented
+    let userRole: WorkspaceRole = 'owner' // This will be dynamic when collaboration is implemented
 
     return {
       role: userRole,
       isOwner: userRole === 'owner',
-      isEditor: userRole === 'editor',
-      isViewer: userRole === 'viewer',
+      isEditor: String(userRole) === 'editor',
+      isViewer: String(userRole) === 'viewer',
     }
   }, [workspace])
 
@@ -67,56 +67,43 @@ export function usePermissions(workspaceId?: string): {
       }
     }
 
-    switch (role) {
-      case 'owner':
-        return {
-          canEdit: true,
-          canDelete: true,
-          canInvite: true,
-          canManageMembers: true,
-          canCreateCollections: true,
-          canDeleteCollections: true,
-          canCreateRequests: true,
-          canDeleteRequests: true,
-          canManageEnvironments: true,
-        }
-      case 'editor':
-        return {
-          canEdit: true,
-          canDelete: false,
-          canInvite: false,
-          canManageMembers: false,
-          canCreateCollections: true,
-          canDeleteCollections: true,
-          canCreateRequests: true,
-          canDeleteRequests: true,
-          canManageEnvironments: true,
-        }
-      case 'viewer':
-        return {
-          canEdit: false,
-          canDelete: false,
-          canInvite: false,
-          canManageMembers: false,
-          canCreateCollections: false,
-          canDeleteCollections: false,
-          canCreateRequests: false,
-          canDeleteRequests: false,
-          canManageEnvironments: false,
-        }
-      default:
-        return {
-          canEdit: false,
-          canDelete: false,
-          canInvite: false,
-          canManageMembers: false,
-          canCreateCollections: false,
-          canDeleteCollections: false,
-          canCreateRequests: false,
-          canDeleteRequests: false,
-          canManageEnvironments: false,
-        }
+    const byRole: Record<WorkspaceRole, Permissions> = {
+      owner: {
+        canEdit: true,
+        canDelete: true,
+        canInvite: true,
+        canManageMembers: true,
+        canCreateCollections: true,
+        canDeleteCollections: true,
+        canCreateRequests: true,
+        canDeleteRequests: true,
+        canManageEnvironments: true,
+      },
+      editor: {
+        canEdit: true,
+        canDelete: false,
+        canInvite: false,
+        canManageMembers: false,
+        canCreateCollections: true,
+        canDeleteCollections: true,
+        canCreateRequests: true,
+        canDeleteRequests: true,
+        canManageEnvironments: true,
+      },
+      viewer: {
+        canEdit: false,
+        canDelete: false,
+        canInvite: false,
+        canManageMembers: false,
+        canCreateCollections: false,
+        canDeleteCollections: false,
+        canCreateRequests: false,
+        canDeleteRequests: false,
+        canManageEnvironments: false,
+      },
     }
+
+    return byRole[role]
   }, [role])
 
   return {
