@@ -1,13 +1,17 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
+import { getAuthenticatedUser } from '@/lib/apiAuth'
 
 export async function POST(request: NextRequest) {
   const startTime = Date.now()
   let statusCode: number | undefined
   let errorMessage: string | undefined
 
+  // Get authenticated user (optional for history logging)
+  const user = await getAuthenticatedUser(request)
+
   try {
-    const { method, url, headers, body, bodyType } = await request.json()
+    const { method, url, headers, body, bodyType, workspaceId } = await request.json()
 
     if (!url) {
       return NextResponse.json(
@@ -73,15 +77,19 @@ export async function POST(request: NextRequest) {
     const duration = Date.now() - startTime
 
     // Log to history (async, don't wait)
-    prisma.apiHistory.create({
-      data: {
-        method: method.toUpperCase(),
-        url,
-        statusCode,
-        source: 'WEB',
-        duration,
-      },
-    }).catch((err) => console.error('Failed to log history:', err))
+    if (user) {
+      prisma.apiHistory.create({
+        data: {
+          method: method.toUpperCase(),
+          url,
+          statusCode,
+          source: 'WEB',
+          duration,
+          userId: user.id,
+          workspaceId: workspaceId || null,
+        },
+      }).catch((err) => console.error('Failed to log history:', err))
+    }
 
     return NextResponse.json({
       status: response.status,
@@ -95,16 +103,20 @@ export async function POST(request: NextRequest) {
     const duration = Date.now() - startTime
 
     // Log error to history (async, don't wait)
-    prisma.apiHistory.create({
-      data: {
-        method: 'GET', // Default if we don't have the method
-        url: 'unknown',
-        statusCode,
-        source: 'WEB',
-        duration,
-        error: errorMessage,
-      },
-    }).catch((err) => console.error('Failed to log history:', err))
+    if (user) {
+      prisma.apiHistory.create({
+        data: {
+          method: 'GET', // Default if we don't have the method
+          url: 'unknown',
+          statusCode,
+          source: 'WEB',
+          duration,
+          error: errorMessage,
+          userId: user.id,
+          workspaceId: null,
+        },
+      }).catch((err) => console.error('Failed to log history:', err))
+    }
 
     return NextResponse.json(
       { error: errorMessage },

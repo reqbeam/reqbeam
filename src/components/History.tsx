@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { History as HistoryIcon, RefreshCw, Trash2, Terminal, Globe, Clock, AlertCircle } from 'lucide-react'
+import { useWorkspaceStore } from '@/store/workspaceStore'
 
 interface HistoryEntry {
   id: string
@@ -22,19 +23,37 @@ export default function History({ onSelectRequest }: HistoryProps) {
   const [history, setHistory] = useState<HistoryEntry[]>([])
   const [loading, setLoading] = useState(true)
   const [filter, setFilter] = useState<'ALL' | 'CLI' | 'WEB'>('ALL')
+  const [hasLegacyHistory, setHasLegacyHistory] = useState(false)
+  const [isMigrating, setIsMigrating] = useState(false)
+  const { activeWorkspace } = useWorkspaceStore()
 
   const fetchHistory = async () => {
     try {
       setLoading(true)
       const params = new URLSearchParams()
+      
       if (filter !== 'ALL') {
         params.append('source', filter)
+      }
+
+      // Filter by active workspace if available
+      // If no workspace, API will return all user history
+      if (activeWorkspace) {
+        params.append('workspaceId', activeWorkspace.id)
       }
       
       const response = await fetch(`/api/history?${params.toString()}`)
       if (response.ok) {
         const data = await response.json()
         setHistory(data)
+        
+        // Check if there's any legacy history (without workspaceId)
+        if (activeWorkspace) {
+          const legacyCount = data.filter((entry: any) => !entry.workspaceId).length
+          setHasLegacyHistory(legacyCount > 0)
+        }
+      } else {
+        console.error('Failed to fetch history:', response.status)
       }
     } catch (error) {
       console.error('Error fetching history:', error)
@@ -44,10 +63,19 @@ export default function History({ onSelectRequest }: HistoryProps) {
   }
 
   const clearHistory = async () => {
-    if (!confirm('Are you sure you want to clear all history?')) return
+    const confirmMessage = activeWorkspace
+      ? `Are you sure you want to clear all history for "${activeWorkspace.name}"?`
+      : 'Are you sure you want to clear all history?'
+    
+    if (!confirm(confirmMessage)) return
     
     try {
-      const response = await fetch('/api/history', {
+      const params = new URLSearchParams()
+      if (activeWorkspace) {
+        params.append('workspaceId', activeWorkspace.id)
+      }
+
+      const response = await fetch(`/api/history?${params.toString()}`, {
         method: 'DELETE',
       })
       
@@ -59,9 +87,41 @@ export default function History({ onSelectRequest }: HistoryProps) {
     }
   }
 
+  // Refetch when filter or workspace changes
   useEffect(() => {
     fetchHistory()
-  }, [filter])
+  }, [filter, activeWorkspace])
+
+  const migrateHistory = async () => {
+    if (!activeWorkspace) return
+    
+    setIsMigrating(true)
+    try {
+      const response = await fetch('/api/history/migrate', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          workspaceId: activeWorkspace.id,
+        }),
+      })
+
+      if (response.ok) {
+        const data = await response.json()
+        setHasLegacyHistory(false)
+        fetchHistory()
+        alert(`Successfully migrated ${data.migratedCount} history entries to "${activeWorkspace.name}"`)
+      } else {
+        alert('Failed to migrate history')
+      }
+    } catch (error) {
+      console.error('Error migrating history:', error)
+      alert('Error migrating history')
+    } finally {
+      setIsMigrating(false)
+    }
+  }
 
   const getMethodColor = (method: string) => {
     switch (method.toUpperCase()) {
@@ -120,6 +180,27 @@ export default function History({ onSelectRequest }: HistoryProps) {
 
   return (
     <div className="flex flex-col h-full">
+      {/* Migration Banner */}
+      {hasLegacyHistory && activeWorkspace && (
+        <div className="p-3 bg-orange-500/10 border-b border-orange-500/30">
+          <div className="flex items-center justify-between gap-3">
+            <div className="flex-1 min-w-0">
+              <p className="text-sm text-orange-400 font-medium">Legacy History Found</p>
+              <p className="text-xs text-orange-300/80 mt-0.5">
+                You have history entries not yet associated with this workspace
+              </p>
+            </div>
+            <button
+              onClick={migrateHistory}
+              disabled={isMigrating}
+              className="px-3 py-1.5 bg-orange-500 text-white text-xs font-medium rounded hover:bg-orange-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap"
+            >
+              {isMigrating ? 'Migrating...' : 'Migrate to This Workspace'}
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* Header with filters */}
       <div className="p-3 border-b border-[#3c3c3c] space-y-3">
         <div className="flex items-center justify-between">

@@ -10,7 +10,7 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json()
-    const { name, method, url, headers, body: reqBody, bodyType, collectionId } = body
+    const { name, method, url, headers, body: reqBody, bodyType, collectionId, workspaceId } = body
 
     if (!name || !method || !url) {
       return NextResponse.json(
@@ -18,6 +18,8 @@ export async function POST(request: NextRequest) {
         { status: 400 }
       )
     }
+
+    let finalWorkspaceId = workspaceId
 
     // Verify the collection belongs to the user if collectionId is provided
     if (collectionId) {
@@ -34,6 +36,9 @@ export async function POST(request: NextRequest) {
           { status: 404 }
         )
       }
+
+      // Use collection's workspaceId if not provided
+      finalWorkspaceId = finalWorkspaceId || collection.workspaceId
     }
 
     // Create the request
@@ -47,6 +52,7 @@ export async function POST(request: NextRequest) {
         bodyType: bodyType || 'json',
         collectionId: collectionId || null,
         userId: user.id,
+        workspaceId: finalWorkspaceId || null,
       },
     })
 

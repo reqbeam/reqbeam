@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { Plus, Settings, Trash2, Edit, Check } from 'lucide-react'
+import { useWorkspaceStore } from '@/store/workspaceStore'
 
 interface Environment {
   id: string
@@ -19,14 +20,20 @@ export default function Environments() {
   const [newEnvVariables, setNewEnvVariables] = useState<Record<string, string>>({})
   const [newVarKey, setNewVarKey] = useState('')
   const [newVarValue, setNewVarValue] = useState('')
+  const { activeWorkspace } = useWorkspaceStore()
 
   useEffect(() => {
     fetchEnvironments()
-  }, [])
+  }, [activeWorkspace])
 
   const fetchEnvironments = async () => {
     try {
-      const response = await fetch('/api/environments')
+      // Include workspaceId in the query if available
+      const url = activeWorkspace 
+        ? `/api/environments?workspaceId=${activeWorkspace.id}`
+        : '/api/environments'
+      
+      const response = await fetch(url)
       if (response.ok) {
         const data = await response.json()
         setEnvironments(data)
@@ -51,6 +58,7 @@ export default function Environments() {
         body: JSON.stringify({
           name: newEnvName,
           variables: newEnvVariables,
+          workspaceId: activeWorkspace?.id,
         }),
       })
 

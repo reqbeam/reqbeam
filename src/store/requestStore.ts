@@ -144,6 +144,18 @@ export const useRequestStore = create<RequestStore>((set, get) => ({
     try {
       const startTime = Date.now()
       
+      // Get active workspace ID from localStorage or workspace store
+      let workspaceId: string | null = null
+      try {
+        const workspaceStorage = localStorage.getItem('workspace-storage')
+        if (workspaceStorage) {
+          const parsed = JSON.parse(workspaceStorage)
+          workspaceId = parsed.state?.activeWorkspace?.id || null
+        }
+      } catch (err) {
+        console.error('Error reading workspace from storage:', err)
+      }
+      
       const response = await fetch('/api/request/send', {
         method: 'POST',
         headers: {
@@ -155,6 +167,7 @@ export const useRequestStore = create<RequestStore>((set, get) => ({
           headers: tab.headers,
           body: tab.body,
           bodyType: tab.bodyType,
+          workspaceId,
         }),
       })
 

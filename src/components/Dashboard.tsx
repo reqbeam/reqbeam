@@ -1,15 +1,59 @@
 'use client'
 
+import { useState, useEffect } from 'react'
 import { useSession, signOut } from 'next-auth/react'
+import { useRouter } from 'next/navigation'
 import Sidebar from './Sidebar'
 import RequestBuilder from './RequestBuilder'
 import ResponseViewer from './ResponseViewer'
+import WorkspaceSwitcher from './WorkspaceSwitcher'
+import WorkspaceModal from './WorkspaceModal'
 import { useRequestStore } from '@/store/requestStore'
-import { Plus } from 'lucide-react'
+import { useWorkspaceStore } from '@/store/workspaceStore'
+import { Plus, Loader2 } from 'lucide-react'
 
-export default function Dashboard() {
+interface DashboardProps {
+  workspaceId?: string
+}
+
+export default function Dashboard({ workspaceId }: DashboardProps) {
   const { data: session } = useSession()
+  const router = useRouter()
   const { activeTab, tabs, createTab, closeTab, setActiveTab } = useRequestStore()
+  const { workspaces, activeWorkspace, setActiveWorkspace, fetchWorkspaces, isInitialized } = useWorkspaceStore()
+  const [isWorkspaceModalOpen, setIsWorkspaceModalOpen] = useState(false)
+  const [isLoading, setIsLoading] = useState(true)
+
+  // Initialize and set active workspace based on URL
+  useEffect(() => {
+    const initializeWorkspace = async () => {
+      if (!isInitialized) {
+        await fetchWorkspaces()
+      }
+
+      if (workspaceId && isInitialized) {
+        // Check if the workspace exists and user has access
+        const workspace = workspaces.find(w => w.id === workspaceId)
+        if (workspace) {
+          if (!activeWorkspace || activeWorkspace.id !== workspaceId) {
+            await setActiveWorkspace(workspaceId)
+          }
+          setIsLoading(false)
+        } else {
+          // Workspace not found or no access, redirect to first available workspace
+          if (workspaces.length > 0) {
+            router.push(`/w/${workspaces[0].id}`)
+          } else {
+            router.push('/')
+          }
+        }
+      } else if (isInitialized) {
+        setIsLoading(false)
+      }
+    }
+
+    initializeWorkspace()
+  }, [workspaceId, workspaces, activeWorkspace, isInitialized, setActiveWorkspace, fetchWorkspaces, router])
 
   const handleNewRequest = () => {
     createTab()
@@ -23,6 +67,21 @@ export default function Dashboard() {
     setActiveTab(tabId)
   }
 
+  const handleCreateWorkspace = () => {
+    setIsWorkspaceModalOpen(true)
+  }
+
+  if (isLoading) {
+    return (
+      <div className="h-screen flex items-center justify-center bg-[#1e1e1e]">
+        <div className="text-center">
+          <Loader2 className="w-8 h-8 animate-spin text-orange-500 mx-auto mb-4" />
+          <p className="text-gray-400">Loading workspace...</p>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className="h-screen flex flex-col md:flex-row bg-[#1e1e1e]">
       {/* Sidebar - Hidden on mobile, visible on md+ */}
@@ -33,9 +92,10 @@ export default function Dashboard() {
       {/* Main Content */}
       <div className="flex-1 flex flex-col min-h-0 min-w-0">
         {/* Header */}
-        <header className="bg-[#252525] border-b border-[#3c3c3c] px-3 sm:px-6 py-3 flex items-center justify-between">
-          <div className="flex items-center gap-2 sm:gap-4">
-            <h1 className="text-base sm:text-lg font-semibold text-white">API NEXUS</h1>
+        <header className="bg-[#252525] border-b border-[#3c3c3c] px-3 sm:px-6 py-3 flex items-center justify-between gap-4">
+          <div className="flex items-center gap-2 sm:gap-4 flex-1 min-w-0">
+            <h1 className="text-base sm:text-lg font-semibold text-white hidden lg:block">API NEXUS</h1>
+            <WorkspaceSwitcher onCreateNew={handleCreateWorkspace} />
             <button
               onClick={handleNewRequest}
               className="px-3 sm:px-4 py-1.5 text-xs sm:text-sm bg-transparent border border-gray-600 text-gray-300 rounded hover:bg-gray-700 flex items-center gap-1 sm:gap-2"
@@ -46,7 +106,7 @@ export default function Dashboard() {
           </div>
           <div className="flex items-center gap-2 sm:gap-3">
             {session?.user?.email && (
-              <span className="hidden sm:inline text-sm text-gray-400 truncate max-w-[150px]">{session.user.email}</span>
+              <span className="hidden lg:inline text-sm text-gray-400 truncate max-w-[150px]">{session.user.email}</span>
             )}
             <button
               onClick={() => signOut()}
@@ -56,6 +116,13 @@ export default function Dashboard() {
             </button>
           </div>
         </header>
+
+      {/* Workspace Modal */}
+      <WorkspaceModal
+        isOpen={isWorkspaceModalOpen}
+        onClose={() => setIsWorkspaceModalOpen(false)}
+        mode="create"
+      />
 
         {/* Tabs */}
         {tabs.length > 0 && (

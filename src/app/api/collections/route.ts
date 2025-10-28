@@ -9,10 +9,21 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
+    // Get workspaceId from query params or header
+    const { searchParams } = new URL(request.url)
+    const workspaceId = searchParams.get('workspaceId') || request.headers.get('x-workspace-id')
+
+    const whereClause: any = {
+      userId: user.id,
+    }
+
+    // Filter by workspace if workspaceId is provided
+    if (workspaceId) {
+      whereClause.workspaceId = workspaceId
+    }
+
     const collections = await prisma.collection.findMany({
-      where: {
-        userId: user.id,
-      },
+      where: whereClause,
       include: {
         requests: {
           select: {
@@ -49,7 +60,7 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json()
-    const { name, description, collectionId, request: requestData } = body
+    const { name, description, collectionId, workspaceId, request: requestData } = body
 
     // If saving a request to a collection
     if (collectionId && requestData) {
@@ -75,7 +86,7 @@ export async function POST(request: NextRequest) {
         )
       }
 
-      // Create the request
+      // Create the request with workspaceId from collection
       const newRequest = await prisma.request.create({
         data: {
           name: requestData.name,
@@ -86,6 +97,7 @@ export async function POST(request: NextRequest) {
           bodyType: requestData.bodyType || 'json',
           collectionId: collectionId,
           userId: user.id,
+          workspaceId: collection.workspaceId,
         },
       })
 
@@ -105,6 +117,7 @@ export async function POST(request: NextRequest) {
         name,
         description,
         userId: user.id,
+        workspaceId: workspaceId || null,
       },
     })
 

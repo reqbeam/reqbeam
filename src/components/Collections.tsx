@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { Plus, Folder, MoreVertical, Edit, Trash2, Play, Loader2, ChevronDown, ChevronRight, FileText, X, Check } from 'lucide-react'
 import { useRequestStore } from '@/store/requestStore'
+import { useWorkspaceStore } from '@/store/workspaceStore'
 
 interface Collection {
   id: string
@@ -42,14 +43,20 @@ export default function Collections({ searchQuery = '' }: CollectionsProps) {
   const [newRequestMethod, setNewRequestMethod] = useState('GET')
   const editInputRef = useRef<HTMLInputElement>(null)
   const { createTab, updateTab, loadRequestIntoActiveTab } = useRequestStore()
+  const { activeWorkspace } = useWorkspaceStore()
 
   useEffect(() => {
     fetchCollections()
-  }, [])
+  }, [activeWorkspace])
 
   const fetchCollections = async () => {
     try {
-      const response = await fetch('/api/collections')
+      // Include workspaceId in the query if available
+      const url = activeWorkspace 
+        ? `/api/collections?workspaceId=${activeWorkspace.id}`
+        : '/api/collections'
+      
+      const response = await fetch(url)
       if (response.ok) {
         const data = await response.json()
         setCollections(data)
@@ -74,6 +81,7 @@ export default function Collections({ searchQuery = '' }: CollectionsProps) {
         body: JSON.stringify({
           name: newCollectionName,
           description: newCollectionDescription,
+          workspaceId: activeWorkspace?.id,
         }),
       })
 
@@ -225,6 +233,7 @@ export default function Collections({ searchQuery = '' }: CollectionsProps) {
           method: newRequestMethod,
           url: 'https://api.example.com',
           collectionId,
+          workspaceId: activeWorkspace?.id,
         }),
       })
 

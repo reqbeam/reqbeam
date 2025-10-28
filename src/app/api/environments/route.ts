@@ -9,10 +9,21 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
+    // Get workspaceId from query params or header
+    const { searchParams } = new URL(request.url)
+    const workspaceId = searchParams.get('workspaceId') || request.headers.get('x-workspace-id')
+
+    const whereClause: any = {
+      userId: user.id,
+    }
+
+    // Filter by workspace if workspaceId is provided
+    if (workspaceId) {
+      whereClause.workspaceId = workspaceId
+    }
+
     const environments = await prisma.environment.findMany({
-      where: {
-        userId: user.id,
-      },
+      where: whereClause,
       orderBy: {
         createdAt: 'desc',
       },
@@ -35,7 +46,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const { name, variables } = await request.json()
+    const { name, variables, workspaceId } = await request.json()
 
     if (!name) {
       return NextResponse.json(
@@ -44,11 +55,16 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // If this is the first environment, make it active
+    // Count existing environments for this workspace
+    const whereClause: any = {
+      userId: user.id,
+    }
+    if (workspaceId) {
+      whereClause.workspaceId = workspaceId
+    }
+
     const existingEnvironments = await prisma.environment.count({
-      where: {
-        userId: user.id,
-      },
+      where: whereClause,
     })
 
     const environment = await prisma.environment.create({
@@ -56,6 +72,7 @@ export async function POST(request: NextRequest) {
         name,
         variables: variables || {},
         userId: user.id,
+        workspaceId: workspaceId || null,
         isActive: existingEnvironments === 0, // First environment is active by default
       },
     })
