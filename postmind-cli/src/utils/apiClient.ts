@@ -36,6 +36,35 @@ export interface Environment {
   updatedAt: string;
 }
 
+export interface Workspace {
+  id: string;
+  name: string;
+  description?: string;
+  ownerId: string;
+  createdAt: string;
+  updatedAt: string;
+  owner?: {
+    id: string;
+    name: string;
+    email: string;
+  };
+  members?: Array<{
+    id: string;
+    userId: string;
+    role: string;
+    user: {
+      id: string;
+      name: string;
+      email: string;
+    };
+  }>;
+  _count?: {
+    collections: number;
+    requests: number;
+    environments: number;
+  };
+}
+
 export interface RequestHistory {
   id: string;
   requestId: string;
@@ -92,6 +121,37 @@ export class ApiClient {
       ApiClient.instance = new ApiClient();
     }
     return ApiClient.instance;
+  }
+
+  // ===== Workspaces =====
+
+  async getWorkspaces(): Promise<Workspace[]> {
+    const response = await this.client.get('/api/workspaces');
+    return response.data;
+  }
+
+  async getWorkspace(id: string): Promise<Workspace> {
+    const response = await this.client.get(`/api/workspaces/${id}`);
+    return response.data;
+  }
+
+  async createWorkspace(data: { name: string; description?: string }): Promise<Workspace> {
+    const response = await this.client.post('/api/workspaces', data);
+    return response.data;
+  }
+
+  async updateWorkspace(id: string, data: { name?: string; description?: string }): Promise<Workspace> {
+    const response = await this.client.put(`/api/workspaces/${id}`, data);
+    return response.data;
+  }
+
+  async deleteWorkspace(id: string): Promise<void> {
+    await this.client.delete(`/api/workspaces/${id}`);
+  }
+
+  async activateWorkspace(id: string): Promise<Workspace> {
+    const response = await this.client.post(`/api/workspaces/${id}/activate`);
+    return response.data;
   }
 
   // ===== Collections =====

@@ -98,14 +98,22 @@ For detailed history documentation, see [HISTORY.md](./HISTORY.md).
 # Initialize a new project
 pm init <project_name>
 
-# List all projects
-pm project list
+# List all workspaces
+pm workspace list
 
-# Switch to a different project
-pm project switch <project_name>
+# Create a new workspace
+pm workspace create <name> [-d <description>] [-i]
 
-# Delete a project
-postmind project delete <project_name>
+# Switch to a different workspace
+pm workspace switch <name>
+
+# Activate a workspace (alias for switch)
+pm workspace activate <name>
+
+# Delete a workspace
+pm workspace delete <name> [-f]
+
+# Note: "project" commands are deprecated but still work for backward compatibility
 ```
 
 ### Environment Management

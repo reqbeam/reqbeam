@@ -278,18 +278,20 @@ I have successfully built a comprehensive TypeScript-based CLI tool called **Pos
 
 ### Core Features (100% Complete)
 
-1. **Project Management** ✅
-   - `postmind init <project_name>` - Initialize new API projects
-   - `postmind project list` - List all projects
-   - `postmind project switch <project_name>` - Switch between projects
-   - `postmind project delete <project_name>` - Delete projects
+1. **Workspace Management** ✅
+   - `postmind init <project_name>` - Initialize new API projects (deprecated - use workspace commands)
+   - `postmind workspace list` - List all workspaces
+   - `postmind workspace create <name>` - Create a new workspace
+   - `postmind workspace switch <name>` - Switch between workspaces
+   - `postmind workspace activate <name>` - Activate a workspace
+   - `postmind workspace delete <name>` - Delete workspaces
 
 2. **Environment Management** ✅
    - `postmind env list` - List environments
    - `postmind env add <name> -i` - Add environments interactively
    - `postmind env switch <name>` - Switch environments
    - `postmind env remove <name>` - Remove environments
-   - Environment variables stored per project in `env.json`
+   - Environment variables stored per workspace
 
 3. **Request Management** ✅
    - `postmind request create -n <name> -m <method> -u <url>` - Create requests
@@ -333,13 +335,14 @@ I have successfully built a comprehensive TypeScript-based CLI tool called **Pos
 
 ## 🎯 Key Features
 
-### Project Storage System
-- Projects stored in `~/.postmind/projects/<project_name>/`
-- Each project has its own configuration, requests, collections, and environments
-- Automatic project switching and management
+### Workspace Management System
+- Workspaces stored in the cloud database (synchronized with web UI)
+- Each workspace has its own collections, requests, and environments
+- Automatic workspace switching and management
+- Workspaces can be shared with team members
 
 ### Environment Variables
-- Per-project environment management
+- Per-workspace environment management
 - `{{VARIABLE}}` syntax support in URLs, headers, and body
 - Easy switching between environments (dev, staging, prod)
 

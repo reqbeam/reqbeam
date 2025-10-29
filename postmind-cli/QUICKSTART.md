@@ -45,10 +45,19 @@ pm auth status
 
 ## 📋 Basic Workflow
 
-### 1. Initialize a Project
+### 1. List or Create Workspaces
 
 ```bash
-pm init my-api-project
+# List existing workspaces
+pm workspace list
+
+# Create a new workspace
+pm workspace create my-api-workspace
+
+# Switch to a workspace
+pm workspace switch my-api-workspace
+
+# Note: 'pm init' is deprecated - use workspace commands instead
 ```
 
 ### 2. Create Environments
@@ -347,7 +356,8 @@ Start testing your APIs with Postmind:
 
 ```bash
 pm auth login
-pm init my-project
+pm workspace create my-workspace
+pm workspace switch my-workspace
 pm request create -i
 pm run request "Test"
 ```

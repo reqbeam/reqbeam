@@ -1,4 +1,4 @@
-import { ApiClient, Collection, Request, Environment } from './apiClient.js';
+import { ApiClient, Collection, Request, Environment, Workspace } from './apiClient.js';
 import chalk from 'chalk';
 
 /**
@@ -18,6 +18,68 @@ export class ApiStorageManager {
       ApiStorageManager.instance = new ApiStorageManager();
     }
     return ApiStorageManager.instance;
+  }
+
+  // ===== Workspaces =====
+
+  async listWorkspaces(): Promise<Workspace[]> {
+    try {
+      return await this.apiClient.getWorkspaces();
+    } catch (error: any) {
+      console.error(chalk.red('Error fetching workspaces:'), error.message);
+      return [];
+    }
+  }
+
+  async getWorkspace(id: string): Promise<Workspace | null> {
+    try {
+      return await this.apiClient.getWorkspace(id);
+    } catch (error: any) {
+      console.error(chalk.red('Error fetching workspace:'), error.message);
+      return null;
+    }
+  }
+
+  async findWorkspaceByName(name: string): Promise<Workspace | null> {
+    const workspaces = await this.listWorkspaces();
+    return workspaces.find(w => w.name === name) || null;
+  }
+
+  async createWorkspace(name: string, description?: string): Promise<Workspace | null> {
+    try {
+      return await this.apiClient.createWorkspace({ name, description });
+    } catch (error: any) {
+      console.error(chalk.red('Error creating workspace:'), error.message);
+      return null;
+    }
+  }
+
+  async updateWorkspace(id: string, name?: string, description?: string): Promise<Workspace | null> {
+    try {
+      return await this.apiClient.updateWorkspace(id, { name, description });
+    } catch (error: any) {
+      console.error(chalk.red('Error updating workspace:'), error.message);
+      return null;
+    }
+  }
+
+  async deleteWorkspace(id: string): Promise<boolean> {
+    try {
+      await this.apiClient.deleteWorkspace(id);
+      return true;
+    } catch (error: any) {
+      console.error(chalk.red('Error deleting workspace:'), error.message);
+      return false;
+    }
+  }
+
+  async activateWorkspace(id: string): Promise<Workspace | null> {
+    try {
+      return await this.apiClient.activateWorkspace(id);
+    } catch (error: any) {
+      console.error(chalk.red('Error activating workspace:'), error.message);
+      return null;
+    }
   }
 
   // ===== Collections (replaces Projects) =====

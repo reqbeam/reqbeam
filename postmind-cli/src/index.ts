@@ -4,6 +4,7 @@ import { Command } from 'commander';
 import chalk from 'chalk';
 import { initCommand } from './commands/init.js';
 import { projectCommand } from './commands/project.js';
+import { workspaceCommand } from './commands/workspace.js';
 import { envCommand } from './commands/env.js';
 import { requestCommand } from './commands/request.js';
 import { collectionCommand } from './commands/collection.js';
@@ -27,7 +28,8 @@ program
 // Add commands
 program.addCommand(authCommand);
 program.addCommand(initCommand);
-program.addCommand(projectCommand);
+program.addCommand(workspaceCommand);
+program.addCommand(projectCommand); // Kept for backward compatibility (deprecated)
 program.addCommand(envCommand);
 program.addCommand(requestCommand);
 program.addCommand(collectionCommand);

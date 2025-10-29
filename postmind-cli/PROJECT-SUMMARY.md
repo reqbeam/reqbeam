@@ -8,11 +8,14 @@ I have successfully built a comprehensive TypeScript-based CLI tool called **Pos
 
 ### Core Features (100% Complete)
 
-1. **Project Management** ✅
-   - `postmind init <project_name>` - Initialize new API projects
-   - `postmind project list` - List all projects
-   - `postmind project switch <project_name>` - Switch between projects
-   - `postmind project delete <project_name>` - Delete projects
+1. **Workspace Management** ✅
+   - `postmind init <project_name>` - Initialize new API projects (deprecated - use workspace commands)
+   - `postmind workspace list` - List all workspaces
+   - `postmind workspace create <name>` - Create a new workspace
+   - `postmind workspace switch <name>` - Switch between workspaces
+   - `postmind workspace activate <name>` - Activate a workspace
+   - `postmind workspace delete <name>` - Delete workspaces
+   - Note: `postmind project` commands are deprecated but still work for backward compatibility
 
 2. **Environment Management** ✅
    - `postmind env list` - List environments
@@ -63,13 +66,14 @@ I have successfully built a comprehensive TypeScript-based CLI tool called **Pos
 
 ## 🎯 Key Features
 
-### Project Storage System
-- Projects stored in `~/.postmind/projects/<project_name>/`
-- Each project has its own configuration, requests, collections, and environments
-- Automatic project switching and management
+### Workspace Management System
+- Workspaces stored in the cloud database (synchronized with web UI)
+- Each workspace has its own collections, requests, and environments
+- Automatic workspace switching and management
+- Workspaces can be shared with team members
 
 ### Environment Variables
-- Per-project environment management
+- Per-workspace environment management
 - `{{VARIABLE}}` syntax support in URLs, headers, and body
 - Easy switching between environments (dev, staging, prod)
 
@@ -287,7 +291,7 @@ The CLI has been tested and verified working:
 
 ## 🎯 All Requirements Met
 
-✅ **Project Management** - Complete with init, list, switch, delete
+✅ **Workspace Management** - Complete with list, create, switch, activate, delete
 ✅ **Environment Management** - Full CRUD operations with variable support
 ✅ **Request Management** - Create, update, delete, list with full HTTP support
 ✅ **Collection Management** - Organize requests with export capabilities

@@ -1,72 +1,111 @@
 import { Command } from 'commander';
 import chalk from 'chalk';
 import { ApiStorageManager } from '../utils/apiStorage.js';
-import { Formatter } from '../utils/formatter.js';
 
 const projectCommand = new Command('project');
 
 projectCommand
-  .description('Manage projects (now mapped to collections)');
+  .description('Manage projects (deprecated - use workspace commands instead)');
 
-// List projects (collections)
+// List projects (redirects to workspace list)
 projectCommand
   .command('list')
-  .description('List all collections (projects)')
+  .description('List all projects (deprecated - use workspace list)')
   .action(async () => {
+    console.log(chalk.yellow('⚠️  The "project" command is deprecated.'));
+    console.log(chalk.gray('\nPlease use "workspace" commands instead:'));
+    console.log(chalk.cyan('  postmind workspace list\n'));
+    
     try {
-      console.log(chalk.yellow('ℹ️  Projects are now mapped to Collections in the web UI\n'));
-      
       const storage = ApiStorageManager.getInstance();
-      const collections = await storage.listCollections();
+      const workspaces = await storage.listWorkspaces();
       
-      if (collections.length === 0) {
-        console.log(chalk.yellow('No collections found'));
-        console.log(chalk.gray('Create one with: postmind collection create <name>'));
+      if (workspaces.length === 0) {
+        console.log(chalk.yellow('No workspaces found'));
+        console.log(chalk.gray('Create one with: postmind workspace create <name>'));
         return;
       }
       
-      console.log(chalk.bold('Collections:'));
-      
-      // Convert to old format for formatter
-      const formattedCollections = collections.map(col => ({
-        name: col.name,
-        description: col.description,
-        requests: (col.requests || []).map(r => r.name),
-        createdAt: col.createdAt,
-        updatedAt: col.updatedAt
-      }));
-      
-      console.log(Formatter.formatCollections(formattedCollections as any));
-      
-      console.log(chalk.gray('\nTip: Use "postmind collection list" instead'));
+      console.log(chalk.bold('Workspaces (using workspace command):'));
+      workspaces.forEach((workspace) => {
+        console.log(chalk.cyan(`  - ${workspace.name}`));
+        if (workspace.description) {
+          console.log(chalk.gray(`    ${workspace.description}`));
+        }
+      });
       
     } catch (error: any) {
-      console.error(chalk.red('Error listing collections:'), error.message);
+      console.error(chalk.red('Error listing workspaces:'), error.message);
       process.exit(1);
     }
   });
 
-// Switch project (deprecated)
+// Switch project (deprecated, redirects to workspace switch)
 projectCommand
   .command('switch')
-  .argument('<name>', 'Collection name')
-  .description('Switch project (deprecated - use collections instead)')
+  .argument('<name>', 'Workspace name or ID')
+  .description('Switch project (deprecated - use workspace switch)')
   .action(async (name: string) => {
     console.log(chalk.yellow('⚠️  The "project switch" command is deprecated.'));
-    console.log(chalk.gray('\nPostmind CLI now works directly with all your collections.'));
-    console.log(chalk.gray('You can filter requests by collection using:'));
-    console.log(chalk.cyan('  postmind request list -c "' + name + '"'));
+    console.log(chalk.gray('\nPlease use:'));
+    console.log(chalk.cyan(`  postmind workspace switch "${name}"\n`));
+    
+    try {
+      const storage = ApiStorageManager.getInstance();
+      
+      let workspace = await storage.findWorkspaceByName(name);
+      if (!workspace) {
+        workspace = await storage.getWorkspace(name);
+      }
+      
+      if (!workspace) {
+        console.error(chalk.red(`Workspace "${name}" not found`));
+        process.exit(1);
+      }
+      
+      const activated = await storage.activateWorkspace(workspace.id);
+      if (activated) {
+        console.log(chalk.green(`✓ Switched to workspace "${activated.name}"`));
+      }
+      
+    } catch (error: any) {
+      console.error(chalk.red('Error switching workspace:'), error.message);
+      process.exit(1);
+    }
   });
 
-// Delete project (deprecated)
+// Delete project (deprecated, redirects to workspace delete)
 projectCommand
   .command('delete')
-  .argument('<name>', 'Collection name')
-  .description('Delete project (deprecated - use collections instead)')
+  .argument('<name>', 'Workspace name or ID')
+  .description('Delete project (deprecated - use workspace delete)')
   .action(async (name: string) => {
     console.log(chalk.yellow('⚠️  The "project delete" command is deprecated.'));
-    console.log(chalk.gray('\nTo delete a collection, use:'));
-    console.log(chalk.cyan('  postmind collection delete "' + name + '"'));
+    console.log(chalk.gray('\nPlease use:'));
+    console.log(chalk.cyan(`  postmind workspace delete "${name}"\n`));
+    
+    try {
+      const storage = ApiStorageManager.getInstance();
+      
+      let workspace = await storage.findWorkspaceByName(name);
+      if (!workspace) {
+        workspace = await storage.getWorkspace(name);
+      }
+      
+      if (!workspace) {
+        console.error(chalk.red(`Workspace "${name}" not found`));
+        process.exit(1);
+      }
+      
+      const deleted = await storage.deleteWorkspace(workspace.id);
+      if (deleted) {
+        console.log(chalk.green(`✓ Workspace "${workspace.name}" deleted successfully`));
+      }
+      
+    } catch (error: any) {
+      console.error(chalk.red('Error deleting workspace:'), error.message);
+      process.exit(1);
+    }
   });
 
 export { projectCommand };
