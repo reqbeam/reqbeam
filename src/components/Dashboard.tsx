@@ -94,7 +94,7 @@ export default function Dashboard({ workspaceId }: DashboardProps) {
         {/* Header */}
         <header className="bg-[#252525] border-b border-[#3c3c3c] px-3 sm:px-6 py-3 flex items-center justify-between gap-4">
           <div className="flex items-center gap-2 sm:gap-4 flex-1 min-w-0">
-            <h1 className="text-base sm:text-lg font-semibold text-white hidden lg:block">API NEXUS</h1>
+            <h1 className="text-base sm:text-lg font-semibold text-white hidden lg:block">Postmind</h1>
             <WorkspaceSwitcher onCreateNew={handleCreateWorkspace} />
             <button
               onClick={handleNewRequest}

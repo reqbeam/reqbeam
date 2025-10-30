@@ -13,6 +13,7 @@ I have successfully built a comprehensive TypeScript-based CLI tool called **Pos
    - `postmind workspace list` - List all workspaces
    - `postmind workspace create <name>` - Create a new workspace
    - `postmind workspace switch <name>` - Switch between workspaces
+   - `postmind workspace select <name>` - Select a workspace (persists locally and scopes CLI)
    - `postmind workspace activate <name>` - Activate a workspace
    - `postmind workspace delete <name>` - Delete workspaces
    - Note: `postmind project` commands are deprecated but still work for backward compatibility
@@ -22,7 +23,7 @@ I have successfully built a comprehensive TypeScript-based CLI tool called **Pos
    - `postmind env add <name> -i` - Add environments interactively
    - `postmind env switch <name>` - Switch environments
    - `postmind env remove <name>` - Remove environments
-   - Environment variables stored per project in `env.json`
+   - Environment variables are managed per workspace
 
 3. **Request Management** ✅
    - `postmind request create -n <name> -m <method> -u <url>` - Create requests
@@ -37,6 +38,7 @@ I have successfully built a comprehensive TypeScript-based CLI tool called **Pos
    - `postmind collection add <collection> <request>` - Add requests to collections
    - `postmind collection remove <collection> <request>` - Remove requests
    - `postmind collection list` - List collections
+   - `postmind collection select <name>` - Select a collection (defaults requests to this collection)
    - `postmind collection export <name> <file>` - Export to JSON/YAML
 
 5. **Execution & Run** ✅
@@ -71,6 +73,7 @@ I have successfully built a comprehensive TypeScript-based CLI tool called **Pos
 - Each workspace has its own collections, requests, and environments
 - Automatic workspace switching and management
 - Workspaces can be shared with team members
+ - CLI persists selected workspace and sends `x-workspace-id` to scope API calls
 
 ### Environment Variables
 - Per-workspace environment management
@@ -131,6 +134,7 @@ postmind-cli/
 │   │   ├── formatter.ts   # CLI output formatting
 │   │   ├── testRunner.ts  # Test execution framework
 │   │   ├── scheduler.ts   # Cron job scheduling
+│   │   ├── context.ts     # Persist selected workspace/collection
 │   │   └── logger.ts      # Logging and monitoring
 │   ├── types.ts           # TypeScript interfaces
 │   └── index.ts           # CLI entry point
@@ -291,10 +295,10 @@ The CLI has been tested and verified working:
 
 ## 🎯 All Requirements Met
 
-✅ **Workspace Management** - Complete with list, create, switch, activate, delete
+✅ **Workspace Management** - Complete with list, create, switch, select, activate, delete
 ✅ **Environment Management** - Full CRUD operations with variable support
 ✅ **Request Management** - Create, update, delete, list with full HTTP support
-✅ **Collection Management** - Organize requests with export capabilities
+✅ **Collection Management** - Organize requests with export capabilities and selection
 ✅ **Execution** - Run requests and collections with parallel support
 ✅ **Storage** - Local project storage in `~/.postmind/projects/`
 ✅ **Environment Variables** - `{{VARIABLE}}` syntax support

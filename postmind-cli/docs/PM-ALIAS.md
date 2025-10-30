@@ -45,12 +45,13 @@ postmind auth status    →  pm auth status
 
 ### Workspace Management
 ```bash
-postmind init my-project            →  pm init my-project (deprecated)
-postmind workspace list             →  pm workspace list
-postmind workspace create my-ws    →  pm workspace create my-ws
-postmind workspace switch dev       →  pm workspace switch dev
-postmind workspace activate dev     →  pm workspace activate dev
-postmind workspace delete old-ws    →  pm workspace delete old-ws
+postmind init my-project              →  pm init my-project (deprecated)
+postmind workspace list               →  pm workspace list
+postmind workspace create my-ws       →  pm workspace create my-ws
+postmind workspace switch dev         →  pm workspace switch dev
+postmind workspace select dev         →  pm workspace select dev
+postmind workspace activate dev       →  pm workspace activate dev
+postmind workspace delete old-ws      →  pm workspace delete old-ws
 
 # Deprecated (still works for backward compatibility)
 postmind project list               →  pm project list

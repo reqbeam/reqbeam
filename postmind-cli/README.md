@@ -104,8 +104,9 @@ pm workspace list
 # Create a new workspace
 pm workspace create <name> [-d <description>] [-i]
 
-# Switch to a different workspace
+# Switch/select a workspace
 pm workspace switch <name>
+pm workspace select <name>
 
 # Activate a workspace (alias for switch)
 pm workspace activate <name>

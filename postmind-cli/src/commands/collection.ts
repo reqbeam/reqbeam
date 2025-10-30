@@ -2,6 +2,7 @@ import { Command } from 'commander';
 import chalk from 'chalk';
 import inquirer from 'inquirer';
 import { ApiStorageManager } from '../utils/apiStorage.js';
+import { ContextManager } from '../utils/context.js';
 import { Formatter } from '../utils/formatter.js';
 
 const collectionCommand = new Command('collection');
@@ -87,6 +88,7 @@ collectionCommand
   .action(async (collectionName: string, requestName: string) => {
     try {
       const storage = ApiStorageManager.getInstance();
+      const ctx = ContextManager.getInstance();
       
       // Find collection
       const collections = await storage.listCollections();
@@ -98,7 +100,9 @@ collectionCommand
       }
 
       // Find request
-      const request = await storage.findRequestByName(requestName);
+      // Prefer within selected collection
+      const activeCollection = await ctx.getActiveCollection();
+      const request = await storage.findRequestByName(requestName, activeCollection?.id);
       
       if (!request) {
         console.log(chalk.red(`Request '${requestName}' not found`));
@@ -260,3 +264,25 @@ collectionCommand
   });
 
 export { collectionCommand };
+
+// Select collection
+collectionCommand
+  .command('select')
+  .argument('<name>', 'Collection name')
+  .description('Select a collection to work on (affects request defaults)')
+  .action(async (name: string) => {
+    try {
+      const storage = ApiStorageManager.getInstance();
+      const collections = await storage.listCollections();
+      const collection = collections.find(c => c.name === name || c.id === name);
+      if (!collection) {
+        console.log(chalk.red(`Collection '${name}' not found`));
+        process.exit(1);
+      }
+      await ContextManager.getInstance().setActiveCollection({ id: collection.id, name: collection.name });
+      console.log(chalk.green(`✓ Selected collection '${collection.name}'`));
+    } catch (error: any) {
+      console.error(chalk.red('Error selecting collection:'), error.message);
+      process.exit(1);
+    }
+  });

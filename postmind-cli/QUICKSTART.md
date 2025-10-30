@@ -54,8 +54,9 @@ pm workspace list
 # Create a new workspace
 pm workspace create my-api-workspace
 
-# Switch to a workspace
+# Switch/select a workspace
 pm workspace switch my-api-workspace
+pm workspace select my-api-workspace
 
 # Note: 'pm init' is deprecated - use workspace commands instead
 ```

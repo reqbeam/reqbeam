@@ -15,6 +15,8 @@ export interface RequestTab {
   headers: Record<string, string>
   body: string
   bodyType: 'json' | 'form-data' | 'x-www-form-urlencoded'
+  requestId?: string
+  collectionId?: string
 }
 
 export interface Response {
@@ -93,7 +95,7 @@ export const useRequestStore = create<RequestStore>((set, get) => ({
   },
 
   setActiveTab: (tabId: string) => {
-    set({ activeTab: tabId })
+    set({ activeTab: tabId, response: null })
   },
 
   updateTab: (tabId: string, updates: Partial<RequestTab>) => {
@@ -122,6 +124,7 @@ export const useRequestStore = create<RequestStore>((set, get) => ({
         return {
           tabs: [...state.tabs, newTab],
           activeTab: newTab.id,
+          response: null,
         }
       } else {
         // Update the active tab with the request data
@@ -129,6 +132,7 @@ export const useRequestStore = create<RequestStore>((set, get) => ({
           tabs: state.tabs.map((tab) =>
             tab.id === state.activeTab ? { ...tab, ...requestData } : tab
           ),
+          response: null,
         }
       }
     })

@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { useToast } from './Toast'
 import { History as HistoryIcon, RefreshCw, Trash2, Terminal, Globe, Clock, AlertCircle } from 'lucide-react'
 import { useWorkspaceStore } from '@/store/workspaceStore'
 
@@ -26,6 +27,7 @@ export default function History({ onSelectRequest }: HistoryProps) {
   const [hasLegacyHistory, setHasLegacyHistory] = useState(false)
   const [isMigrating, setIsMigrating] = useState(false)
   const { activeWorkspace } = useWorkspaceStore()
+  const toast = useToast()
 
   const fetchHistory = async () => {
     try {
@@ -111,13 +113,13 @@ export default function History({ onSelectRequest }: HistoryProps) {
         const data = await response.json()
         setHasLegacyHistory(false)
         fetchHistory()
-        alert(`Successfully migrated ${data.migratedCount} history entries to "${activeWorkspace.name}"`)
+        toast.success(`Successfully migrated ${data.migratedCount} history entries to "${activeWorkspace.name}"`)
       } else {
-        alert('Failed to migrate history')
+        toast.error('Failed to migrate history')
       }
     } catch (error) {
       console.error('Error migrating history:', error)
-      alert('Error migrating history')
+      toast.error('Error migrating history')
     } finally {
       setIsMigrating(false)
     }

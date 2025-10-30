@@ -2,6 +2,7 @@ import { Command } from 'commander';
 import chalk from 'chalk';
 import inquirer from 'inquirer';
 import { ApiStorageManager } from '../utils/apiStorage.js';
+import { ContextManager } from '../utils/context.js';
 import { Formatter } from '../utils/formatter.js';
 
 const requestCommand = new Command('request');
@@ -113,12 +114,16 @@ requestCommand
 
       // Find collection ID if specified
       let collectionId = undefined;
+      const ctx = ContextManager.getInstance();
+      const activeCollection = await ctx.getActiveCollection();
       if (requestData.collection && requestData.collection !== 'None') {
         const collections = await storage.listCollections();
         const collection = collections.find(c => c.name === requestData.collection);
         if (collection) {
           collectionId = collection.id;
         }
+      } else if (activeCollection) {
+        collectionId = activeCollection.id;
       }
 
       const request = await storage.createRequest({
@@ -156,6 +161,7 @@ requestCommand
   .action(async (options: { collection?: string }) => {
     try {
       const storage = ApiStorageManager.getInstance();
+      const ctx = ContextManager.getInstance();
       
       let requests;
       
@@ -171,7 +177,12 @@ requestCommand
         
         requests = await storage.listRequests(collection.id);
       } else {
-        requests = await storage.listRequests();
+        const activeCollection = await ctx.getActiveCollection();
+        if (activeCollection) {
+          requests = await storage.listRequests(activeCollection.id);
+        } else {
+          requests = await storage.listRequests();
+        }
       }
       
       if (requests.length === 0) {

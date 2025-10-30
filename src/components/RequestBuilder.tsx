@@ -3,11 +3,13 @@
 import { useState, useEffect } from 'react'
 import { Send, Plus, Trash2, Save, Folder } from 'lucide-react'
 import { useRequestStore } from '@/store/requestStore'
+import { useToast } from './Toast'
 
 const HTTP_METHODS = ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'HEAD', 'OPTIONS']
 
 export default function RequestBuilder() {
   const { activeTab, tabs, updateTab, sendRequest, isLoading } = useRequestStore()
+  const toast = useToast()
   const [newHeaderKey, setNewHeaderKey] = useState('')
   const [newHeaderValue, setNewHeaderValue] = useState('')
   const [newParamKey, setNewParamKey] = useState('')
@@ -16,6 +18,7 @@ export default function RequestBuilder() {
   const [collections, setCollections] = useState<any[]>([])
   const [selectedCollection, setSelectedCollection] = useState('')
   const [requestName, setRequestName] = useState('')
+  const [saveMode, setSaveMode] = useState<'update' | 'new'>('new')
   const [activeRequestTab, setActiveRequestTab] = useState<'params' | 'headers' | 'body'>('params')
 
   useEffect(() => {
@@ -24,7 +27,20 @@ export default function RequestBuilder() {
 
   const fetchCollections = async () => {
     try {
-      const response = await fetch('/api/collections')
+      // Scope collections to active workspace
+      let workspaceId: string | null = null
+      try {
+        const workspaceStorage = localStorage.getItem('workspace-storage')
+        if (workspaceStorage) {
+          const parsed = JSON.parse(workspaceStorage)
+          workspaceId = parsed.state?.activeWorkspace?.id || null
+        }
+      } catch (err) {
+        console.error('Error reading workspace from storage:', err)
+      }
+
+      const url = workspaceId ? `/api/collections?workspaceId=${encodeURIComponent(workspaceId)}` : '/api/collections'
+      const response = await fetch(url)
       if (response.ok) {
         const data = await response.json()
         setCollections(data)
@@ -35,46 +51,70 @@ export default function RequestBuilder() {
   }
 
   const handleSaveToCollection = async () => {
-    if (!currentTab || !selectedCollection || !requestName) return
+    if (!currentTab || !requestName) return
 
     // Validate required fields
     if (!currentTab.url.trim()) {
-      alert('Please enter a URL before saving')
+      toast.warning('Please enter a URL before saving')
       return
     }
 
     try {
-      const response = await fetch('/api/collections', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          collectionId: selectedCollection,
-          request: {
+      let ok = false
+      let errorText = 'Unknown error'
+      if (currentTab.requestId && saveMode === 'update') {
+        const res = await fetch(`/api/requests/${currentTab.requestId}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
             name: requestName.trim(),
             method: currentTab.method,
             url: currentTab.url.trim(),
             headers: currentTab.headers || {},
             body: currentTab.body || '',
             bodyType: currentTab.bodyType || 'json',
-          },
-        }),
-      })
+            collectionId: selectedCollection || (currentTab.collectionId as any) || undefined,
+          }),
+        })
+        ok = res.ok
+        if (!ok) { try { const ed = await res.json(); errorText = ed?.error || errorText } catch {} }
+      } else {
+        if (!selectedCollection) {
+          toast.warning('Please select a collection to save this request')
+          return
+        }
+        const res = await fetch('/api/collections', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            collectionId: selectedCollection,
+            request: {
+              name: requestName.trim(),
+              method: currentTab.method,
+              url: currentTab.url.trim(),
+              headers: currentTab.headers || {},
+              body: currentTab.body || '',
+              bodyType: currentTab.bodyType || 'json',
+            },
+          }),
+        })
+        ok = res.ok
+        if (!ok) { try { const ed = await res.json(); errorText = ed?.error || errorText } catch {} }
+      }
 
-      if (response.ok) {
+      if (ok) {
         setShowSaveModal(false)
         setRequestName('')
         setSelectedCollection('')
         fetchCollections()
-        alert(`Request "${requestName}" saved successfully to collection!`)
+        try { window.dispatchEvent(new CustomEvent('collections:refresh')) } catch {}
+        toast.success(`Request "${requestName}" saved successfully!`)
       } else {
-        const errorData = await response.json()
-        alert(`Error saving request: ${errorData.error || 'Unknown error'}`)
+        toast.error(`Error saving request: ${errorText}`)
       }
     } catch (error) {
       console.error('Error saving request:', error)
-      alert('Failed to save request. Please try again.')
+      toast.error('Failed to save request. Please try again.')
     }
   }
 
@@ -212,7 +252,14 @@ export default function RequestBuilder() {
           {/* Action Buttons */}
           <div className="flex gap-2 flex-shrink-0">
             <button
-              onClick={() => setShowSaveModal(true)}
+              onClick={() => {
+                if (currentTab) {
+                  setRequestName(currentTab.name || '')
+                  setSelectedCollection((currentTab.collectionId as any) || '')
+                  setSaveMode(currentTab.requestId ? 'update' : 'new')
+                }
+                setShowSaveModal(true)
+              }}
               className="flex-1 md:flex-none px-3 sm:px-4 py-2 bg-transparent border border-gray-600 text-gray-300 rounded hover:bg-gray-700 flex items-center justify-center gap-1 sm:gap-2 text-xs sm:text-sm"
               title="Save to Collection"
             >
@@ -441,7 +488,7 @@ export default function RequestBuilder() {
       {showSaveModal && (
         <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
           <div className="bg-[#252525] border border-[#3c3c3c] rounded-lg p-4 sm:p-6 w-full max-w-md max-h-[90vh] overflow-y-auto">
-            <h3 className="text-base sm:text-lg font-semibold text-white mb-3 sm:mb-4">Save Request to Collection</h3>
+            <h3 className="text-base sm:text-lg font-semibold text-white mb-3 sm:mb-4">{currentTab.requestId ? (saveMode === 'update' ? 'Save Changes' : 'Save as New Request') : 'Save Request to Collection'}</h3>
             
             {/* Request Preview */}
             {currentTab && (
@@ -479,6 +526,21 @@ export default function RequestBuilder() {
             )}
             
             <div className="space-y-3 sm:space-y-4">
+              {currentTab.requestId && (
+                <div className="flex items-center gap-3">
+                  <label className="text-xs sm:text-sm text-gray-300">Save Mode:</label>
+                  <div className="flex items-center gap-3 text-xs sm:text-sm">
+                    <label className="flex items-center gap-1 cursor-pointer">
+                      <input type="radio" name="saveMode" value="update" checked={saveMode==='update'} onChange={() => setSaveMode('update')} />
+                      <span className="text-gray-300">Update existing</span>
+                    </label>
+                    <label className="flex items-center gap-1 cursor-pointer">
+                      <input type="radio" name="saveMode" value="new" checked={saveMode==='new'} onChange={() => setSaveMode('new')} />
+                      <span className="text-gray-300">Save as new</span>
+                    </label>
+                  </div>
+                </div>
+              )}
               <div>
                 <label className="block text-xs sm:text-sm font-medium text-gray-300 mb-2">
                   Request Name *
@@ -492,23 +554,25 @@ export default function RequestBuilder() {
                 />
               </div>
               
-              <div>
-                <label className="block text-xs sm:text-sm font-medium text-gray-300 mb-2">
-                  Collection *
-                </label>
-                <select
-                  value={selectedCollection}
-                  onChange={(e) => setSelectedCollection(e.target.value)}
-                  className="w-full px-2 sm:px-3 py-2 bg-[#1e1e1e] border border-[#3c3c3c] text-gray-200 rounded focus:outline-none focus:ring-1 focus:ring-primary-500 text-xs sm:text-sm"
-                >
-                  <option value="">Select a collection</option>
-                  {collections.map((collection) => (
-                    <option key={collection.id} value={collection.id}>
-                      {collection.name}
-                    </option>
-                  ))}
-                </select>
-              </div>
+              {(!currentTab.requestId || saveMode === 'new') && (
+                <div>
+                  <label className="block text-xs sm:text-sm font-medium text-gray-300 mb-2">
+                    Collection *
+                  </label>
+                  <select
+                    value={selectedCollection}
+                    onChange={(e) => setSelectedCollection(e.target.value)}
+                    className="w-full px-2 sm:px-3 py-2 bg-[#1e1e1e] border border-[#3c3c3c] text-gray-200 rounded focus:outline-none focus:ring-1 focus:ring-primary-500 text-xs sm:text-sm"
+                  >
+                    <option value="">Select a collection</option>
+                    {collections.map((collection) => (
+                      <option key={collection.id} value={collection.id}>
+                        {collection.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              )}
             </div>
             
             <div className="flex flex-col-reverse sm:flex-row justify-end gap-2 sm:gap-3 mt-4 sm:mt-6">
@@ -520,10 +584,10 @@ export default function RequestBuilder() {
               </button>
               <button
                 onClick={handleSaveToCollection}
-                disabled={!requestName.trim() || !selectedCollection}
+                disabled={!requestName.trim() || ((!currentTab.requestId || saveMode==='new') && !selectedCollection)}
                 className="w-full sm:w-auto px-4 py-2 bg-[#ff6c37] text-white rounded hover:bg-[#ff8c5a] disabled:opacity-50 disabled:cursor-not-allowed text-sm"
               >
-                Save Request
+                {currentTab.requestId ? (saveMode==='update' ? 'Save Changes' : 'Save as New') : 'Save Request'}
               </button>
             </div>
           </div>

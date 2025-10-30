@@ -128,6 +128,8 @@ export default function Collections({ searchQuery = '' }: CollectionsProps) {
       headers: parsedHeaders,
       body: request.body || '',
       bodyType: (request.bodyType as 'json' | 'form-data' | 'x-www-form-urlencoded') || 'json',
+      requestId: request.id,
+      collectionId: request.collectionId,
     })
   }
 
@@ -261,6 +263,13 @@ export default function Collections({ searchQuery = '' }: CollectionsProps) {
       return () => document.removeEventListener('click', handleClickOutside)
     }
   }, [contextMenu])
+
+  // Listen for global refresh events (from RequestBuilder saves)
+  useEffect(() => {
+    const onRefresh = () => fetchCollections()
+    window.addEventListener('collections:refresh', onRefresh as any)
+    return () => window.removeEventListener('collections:refresh', onRefresh as any)
+  }, [])
 
   useEffect(() => {
     if (editingCollectionId || editingRequestId) {

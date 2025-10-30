@@ -1,4 +1,5 @@
 import { ApiClient, Collection, Request, Environment, Workspace } from './apiClient.js';
+import { ContextManager } from './context.js';
 import chalk from 'chalk';
 
 /**
@@ -104,7 +105,10 @@ export class ApiStorageManager {
 
   async createCollection(name: string, description?: string): Promise<Collection | null> {
     try {
-      return await this.apiClient.createCollection({ name, description });
+      // Attach selected workspace if present
+      const ctx = ContextManager.getInstance();
+      const activeWorkspace = await ctx.getActiveWorkspace();
+      return await this.apiClient.createCollection({ name, description, ...(activeWorkspace ? { workspaceId: activeWorkspace.id } as any : {}) });
     } catch (error: any) {
       console.error(chalk.red('Error creating collection:'), error.message);
       return null;
@@ -165,7 +169,9 @@ export class ApiStorageManager {
     collectionId?: string;
   }): Promise<Request | null> {
     try {
-      return await this.apiClient.createRequest(data);
+      const ctx = ContextManager.getInstance();
+      const activeWorkspace = await ctx.getActiveWorkspace();
+      return await this.apiClient.createRequest({ ...data, ...(activeWorkspace ? { workspaceId: activeWorkspace.id } as any : {}) });
     } catch (error: any) {
       console.error(chalk.red('Error creating request:'), error.message);
       return null;

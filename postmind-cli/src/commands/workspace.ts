@@ -2,6 +2,7 @@ import { Command } from 'commander';
 import chalk from 'chalk';
 import inquirer from 'inquirer';
 import { ApiStorageManager } from '../utils/apiStorage.js';
+import { ContextManager } from '../utils/context.js';
 
 const workspaceCommand = new Command('workspace');
 
@@ -161,6 +162,9 @@ workspaceCommand
         process.exit(1);
       }
       
+      // Persist selection locally
+      await ContextManager.getInstance().setActiveWorkspace({ id: activated.id, name: activated.name });
+
       console.log(chalk.green(`✓ Switched to workspace "${activated.name}"`));
       
       const counts = activated._count || { collections: 0, requests: 0, environments: 0 };
@@ -280,10 +284,41 @@ workspaceCommand
         process.exit(1);
       }
       
+      await ContextManager.getInstance().setActiveWorkspace({ id: activated.id, name: activated.name });
+
       console.log(chalk.green(`✓ Activated workspace "${activated.name}"`));
       
     } catch (error: any) {
       console.error(chalk.red('Error activating workspace:'), error.message);
+      process.exit(1);
+    }
+  });
+
+// Select workspace (explicit selection)
+workspaceCommand
+  .command('select')
+  .argument('<name>', 'Workspace name or ID')
+  .description('Select a workspace to work on (persists locally and activates on server)')
+  .action(async (name: string) => {
+    try {
+      const storage = ApiStorageManager.getInstance();
+      let workspace = await storage.findWorkspaceByName(name);
+      if (!workspace) {
+        workspace = await storage.getWorkspace(name);
+      }
+      if (!workspace) {
+        console.error(chalk.red(`Workspace "${name}" not found`));
+        process.exit(1);
+      }
+      const activated = await storage.activateWorkspace(workspace.id);
+      if (!activated) {
+        console.error(chalk.red('Failed to activate workspace'));
+        process.exit(1);
+      }
+      await ContextManager.getInstance().setActiveWorkspace({ id: activated.id, name: activated.name });
+      console.log(chalk.green(`✓ Selected workspace "${activated.name}"`));
+    } catch (error: any) {
+      console.error(chalk.red('Error selecting workspace:'), error.message);
       process.exit(1);
     }
   });

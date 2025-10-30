@@ -1,5 +1,6 @@
 import axios, { AxiosInstance, AxiosResponse } from 'axios';
 import { AuthManager } from './auth.js';
+import { ContextManager } from './context.js';
 import chalk from 'chalk';
 
 export interface Collection {
@@ -89,14 +90,20 @@ export class ApiClient {
       timeout: 30000,
     });
 
-    // Add request interceptor to add auth headers
+    // Add request interceptor to add auth headers and workspace context
     this.client.interceptors.request.use(async (config) => {
       const authManager = AuthManager.getInstance();
       const authConfig = await authManager.loadConfig();
+      const contextManager = ContextManager.getInstance();
+      const activeWorkspace = await contextManager.getActiveWorkspace();
       
       if (authConfig) {
         config.baseURL = authConfig.apiUrl;
         config.headers.Authorization = `Bearer ${authConfig.token}`;
+      }
+      if (activeWorkspace) {
+        // Inform backend which workspace to scope queries to
+        config.headers['x-workspace-id'] = activeWorkspace.id;
       }
       
       return config;
