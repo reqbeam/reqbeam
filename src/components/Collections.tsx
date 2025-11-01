@@ -21,6 +21,7 @@ interface Request {
   headers?: string
   body?: string
   bodyType?: string
+  auth?: string | object
 }
 
 interface CollectionsProps {
@@ -42,7 +43,7 @@ export default function Collections({ searchQuery = '' }: CollectionsProps) {
   const [newRequestName, setNewRequestName] = useState('')
   const [newRequestMethod, setNewRequestMethod] = useState('GET')
   const editInputRef = useRef<HTMLInputElement>(null)
-  const { createTab, updateTab, loadRequestIntoActiveTab } = useRequestStore()
+  const { createTab, updateTab, tabs, setActiveTab } = useRequestStore()
   const { activeWorkspace } = useWorkspaceStore()
 
   useEffect(() => {
@@ -113,7 +114,16 @@ export default function Collections({ searchQuery = '' }: CollectionsProps) {
   }
 
   const runRequest = (request: Request) => {
-    // Load request data into the active tab (or create new one if none exists)
+    // Check if this request is already open in a tab
+    const existingTab = tabs.find(tab => tab.requestId === request.id)
+    
+    if (existingTab) {
+      // Switch to the existing tab instead of creating a new one
+      setActiveTab(existingTab.id)
+      return
+    }
+    
+    // Request is not open, create a new tab
     let parsedHeaders = {}
     try {
       parsedHeaders = request.headers ? JSON.parse(request.headers) : {}
@@ -121,16 +131,34 @@ export default function Collections({ searchQuery = '' }: CollectionsProps) {
       parsedHeaders = {}
     }
     
-    loadRequestIntoActiveTab({
-      name: request.name,
-      method: request.method,
-      url: request.url,
-      headers: parsedHeaders,
-      body: request.body || '',
-      bodyType: (request.bodyType as 'json' | 'form-data' | 'x-www-form-urlencoded') || 'json',
-      requestId: request.id,
-      collectionId: request.collectionId,
-    })
+    let parsedAuth = null
+    try {
+      if (request.auth) {
+        parsedAuth = typeof request.auth === 'string' ? JSON.parse(request.auth) : request.auth
+      }
+    } catch {
+      parsedAuth = null
+    }
+    
+    // Create a new tab - zustand updates are synchronous, so we can access state immediately
+    createTab()
+    
+    // Get the newly created tab ID from the store state (zustand updates are synchronous)
+    const newTabId = useRequestStore.getState().activeTab
+    
+    if (newTabId) {
+      updateTab(newTabId, {
+        name: request.name,
+        method: request.method,
+        url: request.url,
+        headers: parsedHeaders,
+        body: request.body || '',
+        bodyType: (request.bodyType as 'json' | 'form-data' | 'x-www-form-urlencoded') || 'json',
+        auth: parsedAuth,
+        requestId: request.id,
+        collectionId: request.collectionId,
+      })
+    }
   }
 
   const toggleCollection = (collectionId: string) => {

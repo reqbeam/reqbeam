@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { Send, Plus, Trash2, Save, Folder } from 'lucide-react'
 import { useRequestStore } from '@/store/requestStore'
 import { useToast } from './Toast'
+import AuthorizationTab from './AuthorizationTab'
 
 const HTTP_METHODS = ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'HEAD', 'OPTIONS']
 
@@ -19,7 +20,7 @@ export default function RequestBuilder() {
   const [selectedCollection, setSelectedCollection] = useState('')
   const [requestName, setRequestName] = useState('')
   const [saveMode, setSaveMode] = useState<'update' | 'new'>('new')
-  const [activeRequestTab, setActiveRequestTab] = useState<'params' | 'headers' | 'body'>('params')
+  const [activeRequestTab, setActiveRequestTab] = useState<'params' | 'headers' | 'body' | 'authorization'>('params')
 
   useEffect(() => {
     fetchCollections()
@@ -73,6 +74,7 @@ export default function RequestBuilder() {
             headers: currentTab.headers || {},
             body: currentTab.body || '',
             bodyType: currentTab.bodyType || 'json',
+            auth: currentTab.auth || null,
             collectionId: selectedCollection || (currentTab.collectionId as any) || undefined,
           }),
         })
@@ -95,6 +97,7 @@ export default function RequestBuilder() {
               headers: currentTab.headers || {},
               body: currentTab.body || '',
               bodyType: currentTab.bodyType || 'json',
+              auth: currentTab.auth || null,
             },
           }),
         })
@@ -278,13 +281,14 @@ export default function RequestBuilder() {
         </div>
       </div>
 
-      {/* Tabs for Params/Headers/Body */}
+      {/* Tabs for Params/Headers/Body/Authorization */}
       <div className="border-b border-[#3c3c3c] px-2 sm:px-4">
         <div className="flex space-x-3 sm:space-x-6 overflow-x-auto scrollbar-hide">
           {[
             { key: 'params', label: 'Params' },
             { key: 'headers', label: 'Headers' },
-            { key: 'body', label: 'Body' }
+            { key: 'body', label: 'Body' },
+            { key: 'authorization', label: 'Authorization' }
           ].map((tab) => (
             <button
               key={tab.key}
@@ -443,6 +447,18 @@ export default function RequestBuilder() {
               </button>
             </div>
           </div>
+        )}
+
+        {/* Authorization Tab */}
+        {activeRequestTab === 'authorization' && (
+          <AuthorizationTab
+            auth={currentTab.auth}
+            onChange={(auth) => {
+              if (currentTab) {
+                updateTab(currentTab.id, { auth })
+              }
+            }}
+          />
         )}
 
         {/* Body Tab */}

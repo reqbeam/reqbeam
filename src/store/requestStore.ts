@@ -1,4 +1,5 @@
 import { create } from 'zustand'
+import type { AuthConfig } from '@/types/auth'
 
 export interface QueryParam {
   key: string
@@ -15,6 +16,7 @@ export interface RequestTab {
   headers: Record<string, string>
   body: string
   bodyType: 'json' | 'form-data' | 'x-www-form-urlencoded'
+  auth?: AuthConfig | null
   requestId?: string
   collectionId?: string
 }
@@ -160,6 +162,14 @@ export const useRequestStore = create<RequestStore>((set, get) => ({
         console.error('Error reading workspace from storage:', err)
       }
       
+      // Inject auth into headers and URL
+      const { AuthInjector } = await import('@/utils/authInjector')
+      const { headers: authHeaders, url: authUrl } = AuthInjector.injectAuth(
+        tab.auth,
+        tab.headers,
+        tab.url
+      )
+      
       const response = await fetch('/api/request/send', {
         method: 'POST',
         headers: {
@@ -167,8 +177,8 @@ export const useRequestStore = create<RequestStore>((set, get) => ({
         },
         body: JSON.stringify({
           method: tab.method,
-          url: tab.url,
-          headers: tab.headers,
+          url: authUrl,
+          headers: authHeaders,
           body: tab.body,
           bodyType: tab.bodyType,
           workspaceId,

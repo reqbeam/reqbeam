@@ -16,6 +16,7 @@ A modern, full-featured API testing tool built with **Next.js 15**, **TypeScript
 - **Query Parameters Management** - Add, edit, enable/disable params with automatic URL sync
 - **Headers Management** - Custom headers with key-value pairs
 - **Request Body** - Support for JSON, form-data, and x-www-form-urlencoded
+- **Authorization System** - Multiple auth types: No Auth, API Key, Bearer Token, Basic Auth, OAuth 2.0
 - **Response Viewer** - Beautiful syntax-highlighted JSON responses
 - **Request History** - Track all your API requests
 - **Collections** - Organize requests into collections

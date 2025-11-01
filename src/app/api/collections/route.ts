@@ -34,6 +34,7 @@ export async function GET(request: NextRequest) {
             headers: true,
             body: true,
             bodyType: true,
+            auth: true,
           },
         },
       },
@@ -99,6 +100,9 @@ export async function POST(request: NextRequest) {
             ? (typeof requestData.body === 'string' ? requestData.body : JSON.stringify(requestData.body))
             : null,
           bodyType: requestData.bodyType || 'json',
+          auth: requestData.auth
+            ? (typeof requestData.auth === 'string' ? requestData.auth : JSON.stringify(requestData.auth))
+            : null,
           collectionId: collectionId,
           userId: user.id,
           workspaceId: collection.workspaceId,

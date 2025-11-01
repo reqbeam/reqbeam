@@ -14,7 +14,7 @@ export async function PUT(
 
     const { id: requestId } = await params
     const body = await request.json()
-    const { name, method, url, headers, body: reqBody, bodyType, collectionId } = body
+    const { name, method, url, headers, body: reqBody, bodyType, auth, collectionId } = body
 
     // Check if request belongs to user
     const existingRequest = await prisma.request.findFirst({
@@ -43,6 +43,7 @@ export async function PUT(
         ...(headers !== undefined && { headers: headers ? JSON.stringify(headers) : null }),
         ...(reqBody !== undefined && { body: reqBody }),
         ...(bodyType !== undefined && { bodyType }),
+        ...(auth !== undefined && { auth: auth ? (typeof auth === 'string' ? auth : JSON.stringify(auth)) : null }),
         ...(collectionId !== undefined && { collectionId }),
       },
     })

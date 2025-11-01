@@ -55,6 +55,7 @@ model Request {
   headers      String? // Store headers as JSON string
   body         String? // Request body
   bodyType     String? // json, form-data, x-www-form-urlencoded
+  auth         String? // Store auth config as JSON string
   collectionId String?
   userId       String
   workspaceId  String?
