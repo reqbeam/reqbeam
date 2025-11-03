@@ -94,8 +94,18 @@ export class RequestExecutor {
   }
 
   private static replaceVariables(text: string, variables: Record<string, string>): string {
-    return text.replace(/\{\{(\w+)\}\}/g, (match, varName) => {
-      return variables[varName] || match;
+    if (!text || typeof text !== 'string') {
+      return text;
+    }
+
+    if (!variables || Object.keys(variables).length === 0) {
+      return text;
+    }
+
+    // Match {{variableName}} with any whitespace handling
+    return text.replace(/{{(.*?)}}/g, (_, key) => {
+      const trimmedKey = key.trim();
+      return variables[trimmedKey] ?? `{{${key}}}`;
     });
   }
 }

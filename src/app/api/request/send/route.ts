@@ -1,6 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { getAuthenticatedUser } from '@/lib/apiAuth'
+import {
+  resolveEnvironmentVariables,
+  resolveHeaders,
+  resolveBody,
+} from '@/lib/variableResolver'
 
 export async function POST(request: NextRequest) {
   const startTime = Date.now()
@@ -11,13 +16,43 @@ export async function POST(request: NextRequest) {
   const user = await getAuthenticatedUser(request)
 
   try {
-    const { method, url, headers, body, bodyType, workspaceId } = await request.json()
+    let { method, url, headers, body, bodyType, workspaceId } = await request.json()
 
     if (!url) {
       return NextResponse.json(
         { error: 'URL is required' },
         { status: 400 }
       )
+    }
+
+    // Load active environment variables if user is authenticated and workspaceId provided
+    let envVars: Record<string, string> = {}
+    if (user && workspaceId) {
+      try {
+        const activeEnv = await prisma.environment.findFirst({
+          where: {
+            userId: user.id,
+            workspaceId: workspaceId,
+            isActive: true,
+          },
+        })
+        if (activeEnv) {
+          try {
+            envVars = activeEnv.variables ? JSON.parse(activeEnv.variables) : {}
+          } catch {
+            envVars = {}
+          }
+        }
+      } catch (err) {
+        console.warn('Failed to load environment variables:', err)
+      }
+    }
+
+    // Resolve environment variables (if any variables exist)
+    if (Object.keys(envVars).length > 0) {
+      url = resolveEnvironmentVariables(url, envVars)
+      headers = resolveHeaders(headers, envVars) || headers
+      body = resolveBody(body, envVars)
     }
 
     // Prepare headers
@@ -30,23 +65,26 @@ export async function POST(request: NextRequest) {
     let requestBody: string | FormData | URLSearchParams | undefined
 
     if (body && ['POST', 'PUT', 'PATCH'].includes(method)) {
+      // Convert body to string if needed (after variable resolution)
+      const bodyString = typeof body === 'string' ? body : JSON.stringify(body)
+
       switch (bodyType) {
         case 'json':
           requestHeaders['Content-Type'] = 'application/json'
-          requestBody = body
+          requestBody = bodyString
           break
         case 'form-data':
           // For form-data, we'll send as JSON for now
           // In a real implementation, you'd use FormData
           requestHeaders['Content-Type'] = 'application/json'
-          requestBody = body
+          requestBody = bodyString
           break
         case 'x-www-form-urlencoded':
           requestHeaders['Content-Type'] = 'application/x-www-form-urlencoded'
-          requestBody = body
+          requestBody = bodyString
           break
         default:
-          requestBody = body
+          requestBody = bodyString
       }
     }
 

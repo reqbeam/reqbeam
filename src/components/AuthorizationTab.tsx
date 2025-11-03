@@ -305,7 +305,7 @@ export default function AuthorizationTab({ auth, onChange }: AuthorizationTabPro
               className="w-full bg-[#1e1e1e] border border-[#3c3c3c] rounded px-3 py-2 text-gray-200 placeholder-gray-500 focus:outline-none focus:border-orange-500"
             />
             <p className="mt-2 text-xs text-gray-400">
-              Usually "Bearer" for OAuth 2.0
+              Usually &quot;Bearer&quot; for OAuth 2.0
             </p>
           </div>
         </div>

@@ -2,6 +2,15 @@ import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { getAuthenticatedUser } from '@/lib/apiAuth'
 
+// Helper to parse variables JSON string to object
+function parseVariables(variables: string): Record<string, string> {
+  try {
+    return variables ? JSON.parse(variables) : {}
+  } catch {
+    return {}
+  }
+}
+
 export async function POST(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
@@ -29,11 +38,17 @@ export async function POST(
       )
     }
 
-    // Deactivate all other environments for this user
+    // Deactivate all other environments for this user in the same workspace
+    // If environment has no workspace, only deactivate other environments with no workspace
+    const workspaceFilter = environment.workspaceId 
+      ? { workspaceId: environment.workspaceId }
+      : { workspaceId: null }
+    
     await prisma.environment.updateMany({
       where: {
         userId: user.id,
         isActive: true,
+        ...workspaceFilter,
       },
       data: {
         isActive: false,
@@ -50,7 +65,10 @@ export async function POST(
       },
     })
 
-    return NextResponse.json(activatedEnvironment)
+    return NextResponse.json({
+      ...activatedEnvironment,
+      variables: parseVariables(activatedEnvironment.variables),
+    })
   } catch (error) {
     console.error('Error activating environment:', error)
     return NextResponse.json(

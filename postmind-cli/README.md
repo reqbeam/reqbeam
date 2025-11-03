@@ -129,9 +129,14 @@ pm env add <name> -i  # Interactive mode
 # Switch environment
 pm env switch <name>
 
+# Update environment variables
+pm env update <name> -a "key=value" -r "oldKey"
+
 # Remove environment
 pm env remove <name>
 ```
+
+For detailed environment documentation, see [ENVIRONMENT.md](./docs/ENVIRONMENT.md).
 
 ### Request Management
 

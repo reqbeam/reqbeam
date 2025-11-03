@@ -2,6 +2,15 @@ import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { getAuthenticatedUser } from '@/lib/apiAuth'
 
+// Helper to parse variables JSON string to object
+function parseVariables(variables: string): Record<string, string> {
+  try {
+    return variables ? JSON.parse(variables) : {}
+  } catch {
+    return {}
+  }
+}
+
 export async function GET(request: NextRequest) {
   try {
     const user = await getAuthenticatedUser(request)
@@ -29,7 +38,13 @@ export async function GET(request: NextRequest) {
       },
     })
 
-    return NextResponse.json(environments)
+    // Parse variables from JSON string to object
+    const parsedEnvironments = environments.map((env) => ({
+      ...env,
+      variables: parseVariables(env.variables),
+    }))
+
+    return NextResponse.json(parsedEnvironments)
   } catch (error) {
     console.error('Error fetching environments:', error)
     return NextResponse.json(
@@ -70,14 +85,20 @@ export async function POST(request: NextRequest) {
     const environment = await prisma.environment.create({
       data: {
         name,
-        variables: variables || {},
+        variables: JSON.stringify(variables || {}),
         userId: user.id,
         workspaceId: workspaceId || null,
         isActive: existingEnvironments === 0, // First environment is active by default
       },
     })
 
-    return NextResponse.json(environment, { status: 201 })
+    return NextResponse.json(
+      {
+        ...environment,
+        variables: parseVariables(environment.variables),
+      },
+      { status: 201 }
+    )
   } catch (error) {
     console.error('Error creating environment:', error)
     return NextResponse.json(

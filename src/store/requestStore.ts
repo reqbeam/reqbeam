@@ -1,5 +1,10 @@
 import { create } from 'zustand'
 import type { AuthConfig } from '@/types/auth'
+import {
+  resolveEnvironmentVariables,
+  resolveHeaders,
+  resolveBody,
+} from '@/lib/variableResolver'
 
 export interface QueryParam {
   key: string
@@ -161,13 +166,48 @@ export const useRequestStore = create<RequestStore>((set, get) => ({
       } catch (err) {
         console.error('Error reading workspace from storage:', err)
       }
-      
-      // Inject auth into headers and URL
+
+      // Load active environment variables
+      let envVars: Record<string, string> = {}
+      try {
+        // Always fetch from API to ensure we get the correct active environment for the workspace
+        // This is more reliable than localStorage which might be stale
+        if (workspaceId) {
+          const envResponse = await fetch(`/api/environments?workspaceId=${workspaceId}`)
+          if (envResponse.ok) {
+            const envs: Array<{ isActive: boolean; variables: Record<string, string> }> =
+              await envResponse.json()
+            const active = envs.find((e) => e.isActive)
+            if (active?.variables) {
+              envVars = active.variables
+            }
+          }
+        } else {
+          // Fallback to localStorage if no workspaceId (shouldn't happen normally)
+          const envStorage = localStorage.getItem('environment-storage')
+          if (envStorage) {
+            const parsed = JSON.parse(envStorage)
+            const activeEnv = parsed.state?.activeEnvironment
+            if (activeEnv?.variables) {
+              envVars = activeEnv.variables
+            }
+          }
+        }
+      } catch (err) {
+        console.warn('Failed to load environment variables:', err)
+      }
+
+      // Resolve environment variables in URL, headers, and body
+      const resolvedUrl = resolveEnvironmentVariables(tab.url, envVars)
+      const resolvedHeaders = resolveHeaders(tab.headers, envVars)
+      const resolvedBody = resolveBody(tab.body, envVars)
+
+      // Inject auth into headers and URL (after variable resolution)
       const { AuthInjector } = await import('@/utils/authInjector')
       const { headers: authHeaders, url: authUrl } = AuthInjector.injectAuth(
         tab.auth,
-        tab.headers,
-        tab.url
+        resolvedHeaders || {},
+        resolvedUrl
       )
       
       const response = await fetch('/api/request/send', {
@@ -179,7 +219,7 @@ export const useRequestStore = create<RequestStore>((set, get) => ({
           method: tab.method,
           url: authUrl,
           headers: authHeaders,
-          body: tab.body,
+          body: typeof resolvedBody === 'string' ? resolvedBody : JSON.stringify(resolvedBody),
           bodyType: tab.bodyType,
           workspaceId,
         }),
