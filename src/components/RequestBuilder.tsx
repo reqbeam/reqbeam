@@ -125,12 +125,12 @@ export default function RequestBuilder() {
 
   if (!currentTab) {
     return (
-      <div className="flex-1 flex items-center justify-center bg-[#252525]">
+      <div className="flex-1 flex items-center justify-center bg-white dark:bg-[#252525] transition-colors">
         <div className="text-center">
-          <h3 className="text-lg font-medium text-gray-300 mb-2">
+          <h3 className="text-lg font-medium text-gray-700 dark:text-gray-300 mb-2 transition-colors">
             No Request Selected
           </h3>
-          <p className="text-gray-500">
+          <p className="text-gray-600 dark:text-gray-500 transition-colors">
             Create a new request to get started
           </p>
         </div>
@@ -220,9 +220,9 @@ export default function RequestBuilder() {
   }
 
   return (
-    <div className="flex-1 flex flex-col bg-[#252525]">
+    <div className="flex-1 flex flex-col bg-white dark:bg-[#252525] transition-colors">
       {/* Request URL and Method */}
-      <div className="border-b border-[#3c3c3c] p-2 sm:p-3 md:p-4">
+      <div className="border-b border-gray-200 dark:border-[#3c3c3c] p-2 sm:p-3 md:p-4 transition-colors">
         <div className="flex flex-col md:flex-row gap-2">
           {/* Method and URL */}
           <div className="flex gap-2 flex-1 min-w-0">
@@ -248,7 +248,7 @@ export default function RequestBuilder() {
               value={currentTab.url}
               onChange={(e) => handleUrlChange(e.target.value)}
               placeholder="https://api.example.com"
-              className="flex-1 min-w-0 px-2 sm:px-3 py-2 bg-[#1e1e1e] border border-[#3c3c3c] text-gray-200 rounded focus:outline-none focus:ring-1 focus:ring-primary-500 placeholder:text-gray-600 text-xs sm:text-sm"
+              className="flex-1 min-w-0 px-2 sm:px-3 py-2 bg-gray-50 dark:bg-[#1e1e1e] border border-gray-300 dark:border-[#3c3c3c] text-gray-900 dark:text-gray-200 rounded focus:outline-none focus:ring-1 focus:ring-primary-500 placeholder:text-gray-500 dark:placeholder:text-gray-600 text-xs sm:text-sm transition-colors"
             />
           </div>
           
@@ -263,7 +263,7 @@ export default function RequestBuilder() {
                 }
                 setShowSaveModal(true)
               }}
-              className="flex-1 md:flex-none px-3 sm:px-4 py-2 bg-transparent border border-gray-600 text-gray-300 rounded hover:bg-gray-700 flex items-center justify-center gap-1 sm:gap-2 text-xs sm:text-sm"
+              className="flex-1 md:flex-none px-3 sm:px-4 py-2 bg-transparent border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center justify-center gap-1 sm:gap-2 text-xs sm:text-sm transition-colors"
               title="Save to Collection"
             >
               <Save className="w-3 h-3 sm:w-4 sm:h-4" />
@@ -282,7 +282,7 @@ export default function RequestBuilder() {
       </div>
 
       {/* Tabs for Params/Headers/Body/Authorization */}
-      <div className="border-b border-[#3c3c3c] px-2 sm:px-4">
+      <div className="border-b border-gray-200 dark:border-[#3c3c3c] px-2 sm:px-4 transition-colors">
         <div className="flex space-x-3 sm:space-x-6 overflow-x-auto scrollbar-hide">
           {[
             { key: 'params', label: 'Params' },
@@ -296,7 +296,7 @@ export default function RequestBuilder() {
               className={`px-2 py-2 sm:py-3 text-xs sm:text-sm font-medium border-b-2 transition-colors whitespace-nowrap ${
                 activeRequestTab === tab.key
                   ? 'text-white border-orange-500'
-                  : 'text-gray-400 hover:text-white border-transparent hover:border-orange-500'
+                  : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white border-transparent hover:border-orange-500 transition-colors'
               }`}
             >
               {tab.label}
@@ -310,7 +310,7 @@ export default function RequestBuilder() {
         {/* Params Tab */}
         {activeRequestTab === 'params' && (
           <div className="p-3 sm:p-4">
-            <h3 className="text-xs sm:text-sm font-medium text-gray-400 mb-3">Query Parameters</h3>
+            <h3 className="text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-400 mb-3 transition-colors">Query Parameters</h3>
             
             {/* Existing Params */}
             <div className="space-y-2 mb-4">
@@ -328,7 +328,7 @@ export default function RequestBuilder() {
                         type="text"
                         value={param.key}
                         readOnly
-                        className={`w-full px-2 sm:px-3 py-2 bg-[#1e1e1e] border border-[#3c3c3c] text-gray-200 rounded text-xs sm:text-sm ${
+                        className={`w-full px-2 sm:px-3 py-2 bg-gray-50 dark:bg-[#1e1e1e] border border-gray-300 dark:border-[#3c3c3c] text-gray-900 dark:text-gray-200 rounded text-xs sm:text-sm transition-colors ${
                           !param.enabled ? 'opacity-50' : ''
                         }`}
                       />
@@ -336,7 +336,7 @@ export default function RequestBuilder() {
                         type="text"
                         value={param.value}
                         readOnly
-                        className={`w-full px-2 sm:px-3 py-2 bg-[#1e1e1e] border border-[#3c3c3c] text-gray-200 rounded text-xs sm:text-sm ${
+                        className={`w-full px-2 sm:px-3 py-2 bg-gray-50 dark:bg-[#1e1e1e] border border-gray-300 dark:border-[#3c3c3c] text-gray-900 dark:text-gray-200 rounded text-xs sm:text-sm transition-colors ${
                           !param.enabled ? 'opacity-50' : ''
                         }`}
                       />
@@ -350,7 +350,7 @@ export default function RequestBuilder() {
                   </div>
                 ))
               ) : (
-                <div className="text-xs sm:text-sm text-gray-500 py-4 sm:py-6 text-center">
+                <div className="text-xs sm:text-sm text-gray-600 dark:text-gray-500 py-4 sm:py-6 text-center transition-colors">
                   <p>No query parameters yet</p>
                   <p className="text-xs mt-1">Add parameters below to build your query string</p>
                 </div>
@@ -366,19 +366,19 @@ export default function RequestBuilder() {
                   value={newParamKey}
                   onChange={(e) => setNewParamKey(e.target.value)}
                   placeholder="Key"
-                  className="w-full px-2 sm:px-3 py-2 bg-[#1e1e1e] border border-[#3c3c3c] text-gray-200 rounded focus:outline-none focus:ring-1 focus:ring-primary-500 placeholder:text-gray-600 text-xs sm:text-sm"
+                  className="w-full px-2 sm:px-3 py-2 bg-gray-50 dark:bg-[#1e1e1e] border border-gray-300 dark:border-[#3c3c3c] text-gray-900 dark:text-gray-200 rounded focus:outline-none focus:ring-1 focus:ring-primary-500 placeholder:text-gray-500 dark:placeholder:text-gray-600 text-xs sm:text-sm transition-colors"
                 />
                 <input
                   type="text"
                   value={newParamValue}
                   onChange={(e) => setNewParamValue(e.target.value)}
                   placeholder="Value"
-                  className="w-full px-2 sm:px-3 py-2 bg-[#1e1e1e] border border-[#3c3c3c] text-gray-200 rounded focus:outline-none focus:ring-1 focus:ring-primary-500 placeholder:text-gray-600 text-xs sm:text-sm"
+                  className="w-full px-2 sm:px-3 py-2 bg-gray-50 dark:bg-[#1e1e1e] border border-gray-300 dark:border-[#3c3c3c] text-gray-900 dark:text-gray-200 rounded focus:outline-none focus:ring-1 focus:ring-primary-500 placeholder:text-gray-500 dark:placeholder:text-gray-600 text-xs sm:text-sm transition-colors"
                 />
               </div>
               <button
                 onClick={addParam}
-                className="px-2 sm:px-3 py-2 bg-transparent border border-gray-600 text-gray-300 rounded hover:bg-gray-700 flex items-center justify-center gap-1 flex-shrink-0 text-xs sm:text-sm"
+                className="px-2 sm:px-3 py-2 bg-transparent border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center justify-center gap-1 flex-shrink-0 text-xs sm:text-sm transition-colors"
               >
                 <Plus className="w-3 h-3 sm:w-4 sm:h-4" />
                 <span className="hidden sm:inline">Add</span>
@@ -428,19 +428,19 @@ export default function RequestBuilder() {
                   value={newHeaderKey}
                   onChange={(e) => setNewHeaderKey(e.target.value)}
                   placeholder="Header name"
-                  className="w-full px-2 sm:px-3 py-2 bg-[#1e1e1e] border border-[#3c3c3c] text-gray-200 rounded focus:outline-none focus:ring-1 focus:ring-primary-500 placeholder:text-gray-600 text-xs sm:text-sm"
+                  className="w-full px-2 sm:px-3 py-2 bg-gray-50 dark:bg-[#1e1e1e] border border-gray-300 dark:border-[#3c3c3c] text-gray-900 dark:text-gray-200 rounded focus:outline-none focus:ring-1 focus:ring-primary-500 placeholder:text-gray-500 dark:placeholder:text-gray-600 text-xs sm:text-sm transition-colors"
                 />
                 <input
                   type="text"
                   value={newHeaderValue}
                   onChange={(e) => setNewHeaderValue(e.target.value)}
                   placeholder="Header value"
-                  className="w-full px-2 sm:px-3 py-2 bg-[#1e1e1e] border border-[#3c3c3c] text-gray-200 rounded focus:outline-none focus:ring-1 focus:ring-primary-500 placeholder:text-gray-600 text-xs sm:text-sm"
+                  className="w-full px-2 sm:px-3 py-2 bg-gray-50 dark:bg-[#1e1e1e] border border-gray-300 dark:border-[#3c3c3c] text-gray-900 dark:text-gray-200 rounded focus:outline-none focus:ring-1 focus:ring-primary-500 placeholder:text-gray-500 dark:placeholder:text-gray-600 text-xs sm:text-sm transition-colors"
                 />
               </div>
               <button
                 onClick={addHeader}
-                className="px-2 sm:px-3 py-2 bg-transparent border border-gray-600 text-gray-300 rounded hover:bg-gray-700 flex items-center justify-center gap-1 flex-shrink-0 text-xs sm:text-sm"
+                className="px-2 sm:px-3 py-2 bg-transparent border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center justify-center gap-1 flex-shrink-0 text-xs sm:text-sm transition-colors"
               >
                 <Plus className="w-3 h-3 sm:w-4 sm:h-4" />
                 <span className="hidden sm:inline">Add</span>
@@ -465,7 +465,7 @@ export default function RequestBuilder() {
         {activeRequestTab === 'body' && (
           <div className="p-3 sm:p-4">
             <div className="mb-3">
-              <label className="block text-xs sm:text-sm font-medium text-gray-400 mb-2">
+              <label className="block text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-400 mb-2 transition-colors">
                 Body Type
               </label>
               <div className="flex flex-wrap gap-3 sm:gap-4">
@@ -479,7 +479,7 @@ export default function RequestBuilder() {
                       onChange={(e) => handleBodyTypeChange(e.target.value as any)}
                       className="mr-2"
                     />
-                    <span className="text-xs sm:text-sm capitalize text-gray-300">{type}</span>
+                    <span className="text-xs sm:text-sm capitalize text-gray-700 dark:text-gray-300 transition-colors">{type}</span>
                   </label>
                 ))}
               </div>
@@ -494,7 +494,7 @@ export default function RequestBuilder() {
                   ? 'key1=value1\nkey2=value2'
                   : 'key1=value1&key2=value2'
               }
-              className="w-full h-48 sm:h-64 px-2 sm:px-3 py-2 bg-[#1e1e1e] border border-[#3c3c3c] text-gray-200 rounded focus:outline-none focus:ring-1 focus:ring-primary-500 font-mono text-xs sm:text-sm placeholder:text-gray-600 resize-y"
+              className="w-full h-48 sm:h-64 px-2 sm:px-3 py-2 bg-gray-50 dark:bg-[#1e1e1e] border border-gray-300 dark:border-[#3c3c3c] text-gray-900 dark:text-gray-200 rounded focus:outline-none focus:ring-1 focus:ring-primary-500 font-mono text-xs sm:text-sm placeholder:text-gray-500 dark:placeholder:text-gray-600 resize-y transition-colors"
             />
           </div>
         )}
@@ -503,14 +503,14 @@ export default function RequestBuilder() {
       {/* Save to Collection Modal */}
       {showSaveModal && (
         <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
-          <div className="bg-[#252525] border border-[#3c3c3c] rounded-lg p-4 sm:p-6 w-full max-w-md max-h-[90vh] overflow-y-auto">
-            <h3 className="text-base sm:text-lg font-semibold text-white mb-3 sm:mb-4">{currentTab.requestId ? (saveMode === 'update' ? 'Save Changes' : 'Save as New Request') : 'Save Request to Collection'}</h3>
+          <div className="bg-white dark:bg-[#252525] border border-gray-200 dark:border-[#3c3c3c] rounded-lg p-4 sm:p-6 w-full max-w-md max-h-[90vh] overflow-y-auto transition-colors">
+            <h3 className="text-base sm:text-lg font-semibold text-gray-900 dark:text-white mb-3 sm:mb-4 transition-colors">{currentTab.requestId ? (saveMode === 'update' ? 'Save Changes' : 'Save as New Request') : 'Save Request to Collection'}</h3>
             
             {/* Request Preview */}
             {currentTab && (
-              <div className="mb-3 sm:mb-4 p-2 sm:p-3 bg-[#1e1e1e] border border-[#3c3c3c] rounded-md">
-                <h4 className="text-xs sm:text-sm font-medium text-gray-300 mb-2">Request Preview:</h4>
-                <div className="space-y-1 text-xs sm:text-sm text-gray-300">
+              <div className="mb-3 sm:mb-4 p-2 sm:p-3 bg-gray-50 dark:bg-[#1e1e1e] border border-gray-200 dark:border-[#3c3c3c] rounded-md transition-colors">
+                <h4 className="text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 transition-colors">Request Preview:</h4>
+                <div className="space-y-1 text-xs sm:text-sm text-gray-700 dark:text-gray-300 transition-colors">
                   <div className="flex items-center space-x-2">
                     <span className="font-medium">Method:</span>
                     <span className={`px-2 py-1 rounded text-xs font-mono ${
@@ -566,7 +566,7 @@ export default function RequestBuilder() {
                   value={requestName}
                   onChange={(e) => setRequestName(e.target.value)}
                   placeholder="Enter request name"
-                  className="w-full px-2 sm:px-3 py-2 bg-[#1e1e1e] border border-[#3c3c3c] text-gray-200 rounded focus:outline-none focus:ring-1 focus:ring-primary-500 placeholder:text-gray-600 text-xs sm:text-sm"
+                  className="w-full px-2 sm:px-3 py-2 bg-gray-50 dark:bg-[#1e1e1e] border border-gray-300 dark:border-[#3c3c3c] text-gray-900 dark:text-gray-200 rounded focus:outline-none focus:ring-1 focus:ring-primary-500 placeholder:text-gray-500 dark:placeholder:text-gray-600 text-xs sm:text-sm transition-colors"
                 />
               </div>
               

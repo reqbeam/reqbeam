@@ -157,13 +157,13 @@ export default function AuthorizationTab({ auth, onChange }: AuthorizationTabPro
   return (
     <div className="p-4 space-y-4">
       <div>
-        <label className="block text-sm font-medium text-gray-300 mb-2">
+        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 transition-colors">
           Type
         </label>
         <select
           value={authType}
           onChange={(e) => setAuthType(e.target.value as AuthConfig['type'])}
-          className="w-full bg-[#1e1e1e] border border-[#3c3c3c] rounded px-3 py-2 text-gray-200 focus:outline-none focus:border-orange-500"
+          className="w-full bg-white dark:bg-[#1e1e1e] border border-gray-300 dark:border-[#3c3c3c] rounded px-3 py-2 text-gray-900 dark:text-gray-200 focus:outline-none focus:border-orange-500 transition-colors"
         >
           <option value="no-auth">No Auth</option>
           <option value="api-key">API Key</option>
@@ -176,7 +176,7 @@ export default function AuthorizationTab({ auth, onChange }: AuthorizationTabPro
       {authType === 'api-key' && (
         <div className="space-y-3">
           <div>
-            <label className="block text-sm font-medium text-gray-300 mb-2">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 transition-colors">
               Key
             </label>
             <input
@@ -184,11 +184,11 @@ export default function AuthorizationTab({ auth, onChange }: AuthorizationTabPro
               value={apiKey}
               onChange={(e) => setApiKey(e.target.value)}
               placeholder="API Key name"
-              className="w-full bg-[#1e1e1e] border border-[#3c3c3c] rounded px-3 py-2 text-gray-200 placeholder-gray-500 focus:outline-none focus:border-orange-500"
+              className="w-full bg-white dark:bg-[#1e1e1e] border border-gray-300 dark:border-[#3c3c3c] rounded px-3 py-2 text-gray-900 dark:text-gray-200 placeholder-gray-500 dark:placeholder-gray-500 focus:outline-none focus:border-orange-500 transition-colors"
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-300 mb-2">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 transition-colors">
               Value
             </label>
             <input
@@ -196,17 +196,17 @@ export default function AuthorizationTab({ auth, onChange }: AuthorizationTabPro
               value={apiValue}
               onChange={(e) => setApiValue(e.target.value)}
               placeholder="API Key value"
-              className="w-full bg-[#1e1e1e] border border-[#3c3c3c] rounded px-3 py-2 text-gray-200 placeholder-gray-500 focus:outline-none focus:border-orange-500"
+              className="w-full bg-white dark:bg-[#1e1e1e] border border-gray-300 dark:border-[#3c3c3c] rounded px-3 py-2 text-gray-900 dark:text-gray-200 placeholder-gray-500 dark:placeholder-gray-500 focus:outline-none focus:border-orange-500 transition-colors"
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-300 mb-2">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 transition-colors">
               Add to
             </label>
             <select
               value={apiAddTo}
               onChange={(e) => setApiAddTo(e.target.value as 'header' | 'query-params')}
-              className="w-full bg-[#1e1e1e] border border-[#3c3c3c] rounded px-3 py-2 text-gray-200 focus:outline-none focus:border-orange-500"
+              className="w-full bg-white dark:bg-[#1e1e1e] border border-gray-300 dark:border-[#3c3c3c] rounded px-3 py-2 text-gray-900 dark:text-gray-200 focus:outline-none focus:border-orange-500 transition-colors"
             >
               <option value="header">Header</option>
               <option value="query-params">Query Parameters</option>
@@ -214,7 +214,7 @@ export default function AuthorizationTab({ auth, onChange }: AuthorizationTabPro
           </div>
           {apiAddTo === 'header' && (
             <div>
-              <label className="block text-sm font-medium text-gray-300 mb-2">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 transition-colors">
                 Header Name
               </label>
               <input
@@ -222,7 +222,7 @@ export default function AuthorizationTab({ auth, onChange }: AuthorizationTabPro
                 value={apiHeaderKey}
                 onChange={(e) => setApiHeaderKey(e.target.value)}
                 placeholder="X-API-Key"
-                className="w-full bg-[#1e1e1e] border border-[#3c3c3c] rounded px-3 py-2 text-gray-200 placeholder-gray-500 focus:outline-none focus:border-orange-500"
+                className="w-full bg-white dark:bg-[#1e1e1e] border border-gray-300 dark:border-[#3c3c3c] rounded px-3 py-2 text-gray-900 dark:text-gray-200 placeholder-gray-500 dark:placeholder-gray-500 focus:outline-none focus:border-orange-500 transition-colors"
               />
             </div>
           )}
@@ -250,7 +250,7 @@ export default function AuthorizationTab({ auth, onChange }: AuthorizationTabPro
       {authType === 'basic-auth' && (
         <div className="space-y-3">
           <div>
-            <label className="block text-sm font-medium text-gray-300 mb-2">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 transition-colors">
               Username
             </label>
             <input
@@ -258,11 +258,11 @@ export default function AuthorizationTab({ auth, onChange }: AuthorizationTabPro
               value={basicUsername}
               onChange={(e) => setBasicUsername(e.target.value)}
               placeholder="Username"
-              className="w-full bg-[#1e1e1e] border border-[#3c3c3c] rounded px-3 py-2 text-gray-200 placeholder-gray-500 focus:outline-none focus:border-orange-500"
+              className="w-full bg-white dark:bg-[#1e1e1e] border border-gray-300 dark:border-[#3c3c3c] rounded px-3 py-2 text-gray-900 dark:text-gray-200 placeholder-gray-500 dark:placeholder-gray-500 focus:outline-none focus:border-orange-500 transition-colors"
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-300 mb-2">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 transition-colors">
               Password
             </label>
             <input
@@ -270,7 +270,7 @@ export default function AuthorizationTab({ auth, onChange }: AuthorizationTabPro
               value={basicPassword}
               onChange={(e) => setBasicPassword(e.target.value)}
               placeholder="Password"
-              className="w-full bg-[#1e1e1e] border border-[#3c3c3c] rounded px-3 py-2 text-gray-200 placeholder-gray-500 focus:outline-none focus:border-orange-500"
+              className="w-full bg-white dark:bg-[#1e1e1e] border border-gray-300 dark:border-[#3c3c3c] rounded px-3 py-2 text-gray-900 dark:text-gray-200 placeholder-gray-500 dark:placeholder-gray-500 focus:outline-none focus:border-orange-500 transition-colors"
             />
           </div>
           <p className="mt-2 text-xs text-gray-400">
@@ -282,7 +282,7 @@ export default function AuthorizationTab({ auth, onChange }: AuthorizationTabPro
       {authType === 'oauth2' && (
         <div className="space-y-3">
           <div>
-            <label className="block text-sm font-medium text-gray-300 mb-2">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 transition-colors">
               Access Token
             </label>
             <input
@@ -290,11 +290,11 @@ export default function AuthorizationTab({ auth, onChange }: AuthorizationTabPro
               value={oauthToken}
               onChange={(e) => setOauthToken(e.target.value)}
               placeholder="Enter OAuth 2.0 access token"
-              className="w-full bg-[#1e1e1e] border border-[#3c3c3c] rounded px-3 py-2 text-gray-200 placeholder-gray-500 focus:outline-none focus:border-orange-500"
+              className="w-full bg-white dark:bg-[#1e1e1e] border border-gray-300 dark:border-[#3c3c3c] rounded px-3 py-2 text-gray-900 dark:text-gray-200 placeholder-gray-500 dark:placeholder-gray-500 focus:outline-none focus:border-orange-500 transition-colors"
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-300 mb-2">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 transition-colors">
               Token Type
             </label>
             <input
@@ -302,7 +302,7 @@ export default function AuthorizationTab({ auth, onChange }: AuthorizationTabPro
               value={oauthTokenType}
               onChange={(e) => setOauthTokenType(e.target.value)}
               placeholder="Bearer"
-              className="w-full bg-[#1e1e1e] border border-[#3c3c3c] rounded px-3 py-2 text-gray-200 placeholder-gray-500 focus:outline-none focus:border-orange-500"
+              className="w-full bg-white dark:bg-[#1e1e1e] border border-gray-300 dark:border-[#3c3c3c] rounded px-3 py-2 text-gray-900 dark:text-gray-200 placeholder-gray-500 dark:placeholder-gray-500 focus:outline-none focus:border-orange-500 transition-colors"
             />
             <p className="mt-2 text-xs text-gray-400">
               Usually &quot;Bearer&quot; for OAuth 2.0

@@ -43,12 +43,12 @@ export default function WorkspaceList() {
   }
 
   return (
-    <div className="p-6 bg-[#1e1e1e] min-h-screen">
+    <div className="p-6 bg-white dark:bg-[#1e1e1e] min-h-screen transition-colors">
       <div className="max-w-6xl mx-auto">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-2xl font-bold text-white mb-2">Workspaces</h1>
-          <p className="text-gray-400">
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-2 transition-colors">Workspaces</h1>
+          <p className="text-gray-600 dark:text-gray-400 transition-colors">
             Organize your API projects, requests, and environments into separate workspaces
           </p>
         </div>
@@ -58,10 +58,10 @@ export default function WorkspaceList() {
           {workspaces.map((workspace) => (
             <div
               key={workspace.id}
-              className={`bg-[#252526] border rounded-lg p-5 hover:border-orange-500/50 transition-all ${
+              className={`bg-white dark:bg-[#252526] border rounded-lg p-5 hover:border-orange-500/50 transition-all ${
                 activeWorkspace?.id === workspace.id
                   ? 'border-orange-500 ring-2 ring-orange-500/20'
-                  : 'border-[#3c3c3c]'
+                  : 'border-gray-200 dark:border-[#3c3c3c]'
               }`}
             >
               {/* Header */}
@@ -71,7 +71,7 @@ export default function WorkspaceList() {
                     <Building2 className="w-5 h-5 text-orange-500" />
                   </div>
                   <div className="min-w-0 flex-1">
-                    <h3 className="text-lg font-semibold text-white truncate">
+                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white truncate transition-colors">
                       {workspace.name}
                     </h3>
                     {activeWorkspace?.id === workspace.id && (
@@ -85,22 +85,22 @@ export default function WorkspaceList() {
 
               {/* Description */}
               {workspace.description && (
-                <p className="text-sm text-gray-400 mb-4 line-clamp-2">
+                <p className="text-sm text-gray-600 dark:text-gray-400 mb-4 line-clamp-2 transition-colors">
                   {workspace.description}
                 </p>
               )}
 
               {/* Stats */}
               <div className="space-y-2 mb-4">
-                <div className="flex items-center gap-2 text-sm text-gray-400">
+                <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400 transition-colors">
                   <FolderOpen className="w-4 h-4" />
                   <span>{workspace._count?.collections || 0} Collections</span>
                 </div>
-                <div className="flex items-center gap-2 text-sm text-gray-400">
+                <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400 transition-colors">
                   <Globe className="w-4 h-4" />
                   <span>{workspace._count?.requests || 0} Requests</span>
                 </div>
-                <div className="flex items-center gap-2 text-sm text-gray-400">
+                <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400 transition-colors">
                   <Users className="w-4 h-4" />
                   <span>
                     {workspace.members.length + 1} Member
@@ -110,9 +110,9 @@ export default function WorkspaceList() {
               </div>
 
               {/* Owner Info */}
-              <div className="mb-4 pb-4 border-b border-[#3c3c3c]">
-                <div className="text-xs text-gray-500">Owner</div>
-                <div className="text-sm text-gray-300 truncate">
+              <div className="mb-4 pb-4 border-b border-gray-200 dark:border-[#3c3c3c] transition-colors">
+                <div className="text-xs text-gray-600 dark:text-gray-500 transition-colors">Owner</div>
+                <div className="text-sm text-gray-700 dark:text-gray-300 truncate transition-colors">
                   {workspace.owner.name || workspace.owner.email}
                 </div>
               </div>

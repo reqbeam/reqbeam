@@ -102,15 +102,15 @@ export default function EnvironmentModal({
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-[#1e1e1e] border border-[#3c3c3c] rounded-lg w-full max-w-2xl max-h-[90vh] overflow-hidden flex flex-col">
+      <div className="bg-white dark:bg-[#1e1e1e] border border-gray-200 dark:border-[#3c3c3c] rounded-lg w-full max-w-2xl max-h-[90vh] overflow-hidden flex flex-col transition-colors">
         {/* Header */}
-        <div className="flex items-center justify-between p-4 border-b border-[#3c3c3c]">
-          <h2 className="text-lg font-semibold text-gray-200">
+        <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-[#3c3c3c] transition-colors">
+          <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-200 transition-colors">
             {editingEnv ? 'Edit Environment' : 'Create Environment'}
           </h2>
           <button
             onClick={onClose}
-            className="text-gray-400 hover:text-gray-200 transition-colors"
+            className="text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200 transition-colors"
           >
             <X className="w-5 h-5" />
           </button>
@@ -121,7 +121,7 @@ export default function EnvironmentModal({
           <div className="space-y-4">
             {/* Environment Name */}
             <div>
-              <label className="block text-sm font-medium text-gray-300 mb-2">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 transition-colors">
                 Environment Name
               </label>
               <input
@@ -129,27 +129,27 @@ export default function EnvironmentModal({
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 placeholder="e.g., Development, Staging, Production"
-                className="w-full bg-[#1e1e1e] border border-[#3c3c3c] rounded px-3 py-2 text-gray-200 placeholder-gray-500 focus:outline-none focus:border-orange-500"
+                className="w-full bg-white dark:bg-[#1e1e1e] border border-gray-300 dark:border-[#3c3c3c] rounded px-3 py-2 text-gray-900 dark:text-gray-200 placeholder-gray-500 dark:placeholder-gray-500 focus:outline-none focus:border-orange-500 transition-colors"
                 required
               />
             </div>
 
             {/* Variables */}
             <div>
-              <label className="block text-sm font-medium text-gray-300 mb-2">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 transition-colors">
                 Variables
               </label>
 
               {/* Existing Variables Table */}
               {variables.length > 0 && (
-                <div className="mb-3 border border-[#3c3c3c] rounded overflow-hidden">
+                <div className="mb-3 border border-gray-200 dark:border-[#3c3c3c] rounded overflow-hidden transition-colors">
                   <table className="w-full">
-                    <thead className="bg-[#2a2a2a]">
+                    <thead className="bg-gray-100 dark:bg-[#2a2a2a] transition-colors">
                       <tr>
-                        <th className="px-3 py-2 text-left text-xs font-medium text-gray-400">
+                        <th className="px-3 py-2 text-left text-xs font-medium text-gray-700 dark:text-gray-400 transition-colors">
                           Key
                         </th>
-                        <th className="px-3 py-2 text-left text-xs font-medium text-gray-400">
+                        <th className="px-3 py-2 text-left text-xs font-medium text-gray-700 dark:text-gray-400 transition-colors">
                           Value
                         </th>
                         <th className="px-3 py-2 w-12"></th>
@@ -159,7 +159,7 @@ export default function EnvironmentModal({
                       {variables.map((variable, index) => (
                         <tr
                           key={index}
-                          className="border-t border-[#3c3c3c] hover:bg-[#2a2a2a]"
+                          className="border-t border-gray-200 dark:border-[#3c3c3c] hover:bg-gray-50 dark:hover:bg-[#2a2a2a] transition-colors"
                         >
                           <td className="px-3 py-2">
                             <input
@@ -168,7 +168,7 @@ export default function EnvironmentModal({
                               onChange={(e) =>
                                 handleUpdateVariable(index, 'key', e.target.value)
                               }
-                              className="w-full bg-transparent text-gray-200 text-sm focus:outline-none"
+                              className="w-full bg-transparent text-gray-900 dark:text-gray-200 text-sm focus:outline-none transition-colors"
                               placeholder="Variable name"
                             />
                           </td>
@@ -179,7 +179,7 @@ export default function EnvironmentModal({
                               onChange={(e) =>
                                 handleUpdateVariable(index, 'value', e.target.value)
                               }
-                              className="w-full bg-transparent text-gray-200 text-sm focus:outline-none"
+                              className="w-full bg-transparent text-gray-900 dark:text-gray-200 text-sm focus:outline-none transition-colors"
                               placeholder="Variable value"
                             />
                           </td>
@@ -187,7 +187,7 @@ export default function EnvironmentModal({
                             <button
                               type="button"
                               onClick={() => handleRemoveVariable(index)}
-                              className="text-gray-400 hover:text-red-400 transition-colors"
+                              className="text-gray-600 dark:text-gray-400 hover:text-red-600 dark:hover:text-red-400 transition-colors"
                             >
                               <Trash2 className="w-4 h-4" />
                             </button>
@@ -206,7 +206,7 @@ export default function EnvironmentModal({
                   value={newKey}
                   onChange={(e) => setNewKey(e.target.value)}
                   placeholder="Variable name (e.g., baseUrl)"
-                  className="flex-1 bg-[#1e1e1e] border border-[#3c3c3c] rounded px-3 py-2 text-gray-200 placeholder-gray-500 focus:outline-none focus:border-orange-500"
+                  className="flex-1 bg-white dark:bg-[#1e1e1e] border border-gray-300 dark:border-[#3c3c3c] rounded px-3 py-2 text-gray-900 dark:text-gray-200 placeholder-gray-500 dark:placeholder-gray-500 focus:outline-none focus:border-orange-500 transition-colors"
                   onKeyPress={(e) => {
                     if (e.key === 'Enter') {
                       e.preventDefault()
@@ -219,7 +219,7 @@ export default function EnvironmentModal({
                   value={newValue}
                   onChange={(e) => setNewValue(e.target.value)}
                   placeholder="Variable value (e.g., https://api.dev.com)"
-                  className="flex-1 bg-[#1e1e1e] border border-[#3c3c3c] rounded px-3 py-2 text-gray-200 placeholder-gray-500 focus:outline-none focus:border-orange-500"
+                  className="flex-1 bg-white dark:bg-[#1e1e1e] border border-gray-300 dark:border-[#3c3c3c] rounded px-3 py-2 text-gray-900 dark:text-gray-200 placeholder-gray-500 dark:placeholder-gray-500 focus:outline-none focus:border-orange-500 transition-colors"
                   onKeyPress={(e) => {
                     if (e.key === 'Enter') {
                       e.preventDefault()
@@ -237,7 +237,7 @@ export default function EnvironmentModal({
                 </button>
               </div>
 
-              <p className="mt-2 text-xs text-gray-500">
+              <p className="mt-2 text-xs text-gray-600 dark:text-gray-500 transition-colors">
                 Use variables in requests with {'{'} {'{'}
                 variableName {'}'} {'}'}
               </p>
@@ -246,10 +246,10 @@ export default function EnvironmentModal({
         </form>
 
         {/* Footer */}
-        <div className="flex items-center justify-end gap-2 p-4 border-t border-[#3c3c3c]">
+        <div className="flex items-center justify-end gap-2 p-4 border-t border-gray-200 dark:border-[#3c3c3c] transition-colors">
           <button
             onClick={onClose}
-            className="px-4 py-2 text-gray-400 hover:text-gray-200 transition-colors"
+            className="px-4 py-2 text-gray-700 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200 transition-colors"
           >
             Cancel
           </button>

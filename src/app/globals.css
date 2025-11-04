@@ -3,21 +3,44 @@
 @tailwind utilities;
 
 :root {
+  /* Light theme colors */
   --background: #ffffff;
   --foreground: #171717;
+  --card-bg: #ffffff;
+  --card-border: #e5e7eb;
+  --sidebar-bg: #f9fafb;
+  --sidebar-border: #e5e7eb;
+  --header-bg: #ffffff;
+  --header-border: #e5e7eb;
+  --input-bg: #ffffff;
+  --input-border: #d1d5db;
+  --text-primary: #111827;
+  --text-secondary: #6b7280;
+  --text-muted: #9ca3af;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+.dark {
+  /* Dark theme colors */
+  --background: #1e1e1e;
+  --foreground: #ededed;
+  --card-bg: #252525;
+  --card-border: #3c3c3c;
+  --sidebar-bg: #252526;
+  --sidebar-border: #3c3c3c;
+  --header-bg: #252525;
+  --header-border: #3c3c3c;
+  --input-bg: #1e1e1e;
+  --input-border: #3c3c3c;
+  --text-primary: #f3f4f6;
+  --text-secondary: #9ca3af;
+  --text-muted: #6b7280;
 }
 
 body {
   color: var(--foreground);
   background: var(--background);
   font-family: Arial, Helvetica, sans-serif;
+  transition: background-color 0.2s ease, color 0.2s ease;
 }
 
 @layer utilities {

@@ -59,7 +59,7 @@ export default function WorkspaceSwitcher({ onCreateNew, onManage }: WorkspaceSw
 
   if (!activeWorkspace) {
     return (
-      <div className="flex items-center gap-2 px-3 py-2 bg-[#2a2a2b] rounded text-gray-400 text-sm">
+      <div className="flex items-center gap-2 px-3 py-2 bg-gray-100 dark:bg-[#2a2a2b] rounded text-gray-600 dark:text-gray-400 text-sm transition-colors">
         <Building2 className="w-4 h-4" />
         <span>Loading...</span>
       </div>
@@ -71,7 +71,7 @@ export default function WorkspaceSwitcher({ onCreateNew, onManage }: WorkspaceSw
       {/* Workspace Switcher Button */}
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="flex items-center gap-2 px-3 py-2 bg-[#2a2a2b] hover:bg-[#3c3c3c] rounded transition-colors text-gray-300 text-sm border border-[#3c3c3c] min-w-[200px]"
+        className="flex items-center gap-2 px-3 py-2 bg-gray-100 dark:bg-[#2a2a2b] hover:bg-gray-200 dark:hover:bg-[#3c3c3c] rounded transition-colors text-gray-700 dark:text-gray-300 text-sm border border-gray-300 dark:border-[#3c3c3c] min-w-[200px]"
       >
         <Building2 className="w-4 h-4 flex-shrink-0 text-orange-500" />
         <div className="flex-1 text-left truncate">
@@ -82,30 +82,30 @@ export default function WorkspaceSwitcher({ onCreateNew, onManage }: WorkspaceSw
 
       {/* Dropdown Menu */}
       {isOpen && (
-        <div className="absolute top-full left-0 mt-2 w-full min-w-[280px] bg-[#252526] border border-[#3c3c3c] rounded-lg shadow-xl z-50 max-h-[400px] overflow-y-auto">
+        <div className="absolute top-full left-0 mt-2 w-full min-w-[280px] bg-white dark:bg-[#252526] border border-gray-200 dark:border-[#3c3c3c] rounded-lg shadow-xl z-50 max-h-[400px] overflow-y-auto transition-colors">
           {/* Workspaces List */}
           <div className="py-2">
-            <div className="px-3 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+            <div className="px-3 py-2 text-xs font-semibold text-gray-600 dark:text-gray-500 uppercase tracking-wider transition-colors">
               Your Workspaces
             </div>
             {workspaces.map((workspace) => (
               <button
                 key={workspace.id}
                 onClick={() => handleWorkspaceChange(workspace.id)}
-                className="w-full px-3 py-2 hover:bg-[#2a2a2b] transition-colors flex items-center gap-3 group"
+                className="w-full px-3 py-2 hover:bg-gray-100 dark:hover:bg-[#2a2a2b] transition-colors flex items-center gap-3 group"
               >
                 <Building2 className="w-4 h-4 text-orange-500 flex-shrink-0" />
                 <div className="flex-1 text-left min-w-0">
-                  <div className="text-sm font-medium text-gray-300 truncate">
+                  <div className="text-sm font-medium text-gray-700 dark:text-gray-300 truncate transition-colors">
                     {workspace.name}
                   </div>
                   {workspace.description && (
-                    <div className="text-xs text-gray-500 truncate">
+                    <div className="text-xs text-gray-600 dark:text-gray-500 truncate transition-colors">
                       {workspace.description}
                     </div>
                   )}
                   {workspace._count && (
-                    <div className="text-xs text-gray-600">
+                    <div className="text-xs text-gray-600 dark:text-gray-600 transition-colors">
                       {workspace._count.collections} collections · {workspace._count.requests} requests
                     </div>
                   )}
@@ -118,10 +118,10 @@ export default function WorkspaceSwitcher({ onCreateNew, onManage }: WorkspaceSw
           </div>
 
           {/* Actions */}
-          <div className="border-t border-[#3c3c3c] py-2">
+          <div className="border-t border-gray-200 dark:border-[#3c3c3c] py-2 transition-colors">
             <button
               onClick={handleCreateNew}
-              className="w-full px-3 py-2 hover:bg-[#2a2a2b] transition-colors flex items-center gap-3 text-sm text-gray-300"
+              className="w-full px-3 py-2 hover:bg-gray-100 dark:hover:bg-[#2a2a2b] transition-colors flex items-center gap-3 text-sm text-gray-700 dark:text-gray-300"
             >
               <Plus className="w-4 h-4 text-orange-500" />
               <span>Create New Workspace</span>
@@ -129,9 +129,9 @@ export default function WorkspaceSwitcher({ onCreateNew, onManage }: WorkspaceSw
             {onManage && (
               <button
                 onClick={handleManage}
-                className="w-full px-3 py-2 hover:bg-[#2a2a2b] transition-colors flex items-center gap-3 text-sm text-gray-300"
+                className="w-full px-3 py-2 hover:bg-gray-100 dark:hover:bg-[#2a2a2b] transition-colors flex items-center gap-3 text-sm text-gray-700 dark:text-gray-300"
               >
-                <Settings className="w-4 h-4 text-gray-500" />
+                <Settings className="w-4 h-4 text-gray-500 dark:text-gray-500" />
                 <span>Manage Workspaces</span>
               </button>
             )}

@@ -321,8 +321,8 @@ export default function Collections({ searchQuery = '' }: CollectionsProps) {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center py-8">
-        <Loader2 className="w-6 h-6 animate-spin text-gray-400" />
-        <span className="ml-2 text-gray-500">Loading...</span>
+        <Loader2 className="w-6 h-6 animate-spin text-gray-600 dark:text-gray-400 transition-colors" />
+        <span className="ml-2 text-gray-700 dark:text-gray-500 transition-colors">Loading...</span>
       </div>
     )
   }
@@ -330,7 +330,7 @@ export default function Collections({ searchQuery = '' }: CollectionsProps) {
   return (
     <div className="h-full flex flex-col">
       {/* Header with Create Button */}
-      <div className="p-3 border-b border-[#3c3c3c] flex-shrink-0">
+      <div className="p-3 border-b border-gray-200 dark:border-[#3c3c3c] flex-shrink-0 transition-colors">
         <button
           onClick={() => setShowCreateForm(true)}
           className="w-full flex items-center justify-center space-x-2 px-3 py-2 bg-orange-600 text-white rounded hover:bg-orange-700 text-sm font-medium transition-colors"
@@ -342,13 +342,13 @@ export default function Collections({ searchQuery = '' }: CollectionsProps) {
 
       {/* Create Collection Form */}
       {showCreateForm && (
-        <div className="p-3 bg-[#2a2a2b] border-b border-[#3c3c3c] flex-shrink-0">
+        <div className="p-3 bg-gray-100 dark:bg-[#2a2a2b] border-b border-gray-200 dark:border-[#3c3c3c] flex-shrink-0 transition-colors">
           <form onSubmit={createCollection} className="space-y-2">
             <input
               type="text"
               value={newCollectionName}
               onChange={(e) => setNewCollectionName(e.target.value)}
-              className="w-full px-3 py-2 bg-[#3c3c3c] text-gray-300 text-sm rounded border border-[#555] focus:outline-none focus:border-orange-500"
+              className="w-full px-3 py-2 bg-white dark:bg-[#3c3c3c] text-gray-900 dark:text-gray-300 text-sm rounded border border-gray-300 dark:border-[#555] focus:outline-none focus:border-orange-500 transition-colors"
               placeholder="Collection Name"
               required
               autoFocus
@@ -357,7 +357,7 @@ export default function Collections({ searchQuery = '' }: CollectionsProps) {
               type="text"
               value={newCollectionDescription}
               onChange={(e) => setNewCollectionDescription(e.target.value)}
-              className="w-full px-3 py-2 bg-[#3c3c3c] text-gray-300 text-sm rounded border border-[#555] focus:outline-none focus:border-orange-500"
+              className="w-full px-3 py-2 bg-white dark:bg-[#3c3c3c] text-gray-900 dark:text-gray-300 text-sm rounded border border-gray-300 dark:border-[#555] focus:outline-none focus:border-orange-500 transition-colors"
               placeholder="Description (optional)"
             />
             <div className="flex space-x-2">
@@ -374,7 +374,7 @@ export default function Collections({ searchQuery = '' }: CollectionsProps) {
                   setNewCollectionName('')
                   setNewCollectionDescription('')
                 }}
-                className="flex-1 px-3 py-1.5 bg-[#3c3c3c] text-gray-300 rounded hover:bg-[#555] text-xs font-medium"
+                className="flex-1 px-3 py-1.5 bg-gray-200 dark:bg-[#3c3c3c] text-gray-700 dark:text-gray-300 rounded hover:bg-gray-300 dark:hover:bg-[#555] text-xs font-medium transition-colors"
               >
                 Cancel
               </button>
@@ -387,9 +387,9 @@ export default function Collections({ searchQuery = '' }: CollectionsProps) {
       <div className="flex-1 overflow-y-auto">
         {filteredCollections.length === 0 ? (
           <div className="text-center py-12 px-4">
-            <Folder className="w-16 h-16 mx-auto mb-4 text-gray-600" />
-            <p className="text-gray-400 text-sm mb-1">No collections yet</p>
-            <p className="text-gray-600 text-xs">Create your first collection to organize requests</p>
+            <Folder className="w-16 h-16 mx-auto mb-4 text-gray-400 dark:text-gray-600 transition-colors" />
+            <p className="text-gray-600 dark:text-gray-400 text-sm mb-1 transition-colors">No collections yet</p>
+            <p className="text-gray-700 dark:text-gray-600 text-xs transition-colors">Create your first collection to organize requests</p>
           </div>
         ) : (
           <div className="py-1">
@@ -397,7 +397,7 @@ export default function Collections({ searchQuery = '' }: CollectionsProps) {
               <div key={collection.id} className="mb-1">
                 {/* Collection Header */}
                 <div
-                  className="flex items-center justify-between px-3 py-2 hover:bg-[#2a2a2b] cursor-pointer group"
+                  className="flex items-center justify-between px-3 py-2 hover:bg-gray-100 dark:hover:bg-[#2a2a2b] cursor-pointer group transition-colors"
                   onClick={() => toggleCollection(collection.id)}
                   onContextMenu={(e) => handleContextMenu(e, 'collection', collection.id)}
                 >
@@ -420,10 +420,10 @@ export default function Collections({ searchQuery = '' }: CollectionsProps) {
                           if (e.key === 'Escape') setEditingCollectionId(null)
                         }}
                         onClick={(e) => e.stopPropagation()}
-                        className="flex-1 px-2 py-1 bg-[#3c3c3c] text-gray-300 text-sm rounded border border-orange-500 focus:outline-none"
+                        className="flex-1 px-2 py-1 bg-white dark:bg-[#3c3c3c] text-gray-900 dark:text-gray-300 text-sm rounded border border-orange-500 focus:outline-none transition-colors"
                       />
                     ) : (
-                      <span className="text-sm text-gray-300 truncate">{collection.name}</span>
+                      <span className="text-sm text-gray-700 dark:text-gray-300 truncate transition-colors">{collection.name}</span>
                     )}
                   </div>
                   <div className="flex items-center space-x-1 opacity-0 group-hover:opacity-100">
@@ -432,7 +432,7 @@ export default function Collections({ searchQuery = '' }: CollectionsProps) {
                         e.stopPropagation()
                         setShowAddRequestForm(collection.id)
                       }}
-                      className="p-1 text-gray-500 hover:text-orange-500"
+                      className="p-1 text-gray-600 dark:text-gray-500 hover:text-orange-500 transition-colors"
                       title="Add request"
                     >
                       <Plus className="w-3.5 h-3.5" />
@@ -442,7 +442,7 @@ export default function Collections({ searchQuery = '' }: CollectionsProps) {
                         e.stopPropagation()
                         handleContextMenu(e, 'collection', collection.id)
                       }}
-                      className="p-1 text-gray-500 hover:text-gray-300"
+                      className="p-1 text-gray-600 dark:text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 transition-colors"
                       title="More options"
                     >
                       <MoreVertical className="w-3.5 h-3.5" />
@@ -452,20 +452,20 @@ export default function Collections({ searchQuery = '' }: CollectionsProps) {
 
                 {/* Add Request Form */}
                 {showAddRequestForm === collection.id && (
-                  <div className="ml-6 px-3 py-2 bg-[#2a2a2b]">
+                  <div className="ml-6 px-3 py-2 bg-gray-50 dark:bg-[#2a2a2b] transition-colors">
                     <div className="space-y-2">
                       <input
                         type="text"
                         value={newRequestName}
                         onChange={(e) => setNewRequestName(e.target.value)}
-                        className="w-full px-2 py-1.5 bg-[#3c3c3c] text-gray-300 text-sm rounded border border-[#555] focus:outline-none focus:border-orange-500"
+                        className="w-full px-2 py-1.5 bg-white dark:bg-[#3c3c3c] text-gray-900 dark:text-gray-300 text-sm rounded border border-gray-300 dark:border-[#555] focus:outline-none focus:border-orange-500 transition-colors"
                         placeholder="Request Name"
                         autoFocus
                       />
                       <select
                         value={newRequestMethod}
                         onChange={(e) => setNewRequestMethod(e.target.value)}
-                        className="w-full px-2 py-1.5 bg-[#3c3c3c] text-gray-300 text-sm rounded border border-[#555] focus:outline-none focus:border-orange-500"
+                        className="w-full px-2 py-1.5 bg-white dark:bg-[#3c3c3c] text-gray-900 dark:text-gray-300 text-sm rounded border border-gray-300 dark:border-[#555] focus:outline-none focus:border-orange-500 transition-colors"
                       >
                         <option value="GET">GET</option>
                         <option value="POST">POST</option>
@@ -486,7 +486,7 @@ export default function Collections({ searchQuery = '' }: CollectionsProps) {
                             setNewRequestName('')
                             setNewRequestMethod('GET')
                           }}
-                          className="flex-1 px-3 py-1.5 bg-[#3c3c3c] text-gray-300 rounded hover:bg-[#555] text-xs font-medium"
+                          className="flex-1 px-3 py-1.5 bg-gray-200 dark:bg-[#3c3c3c] text-gray-700 dark:text-gray-300 rounded hover:bg-gray-300 dark:hover:bg-[#555] text-xs font-medium transition-colors"
                         >
                           Cancel
                         </button>
@@ -499,14 +499,14 @@ export default function Collections({ searchQuery = '' }: CollectionsProps) {
                 {expandedCollections.has(collection.id) && (
                   <div className="ml-6">
                     {collection.requests.length === 0 ? (
-                      <div className="px-3 py-2 text-xs text-gray-600">
+                      <div className="px-3 py-2 text-xs text-gray-700 dark:text-gray-600 transition-colors">
                         No requests
                       </div>
                     ) : (
                       collection.requests.map((request) => (
                         <div
                           key={request.id}
-                          className="flex items-center justify-between px-3 py-2 hover:bg-[#2a2a2b] cursor-pointer group"
+                          className="flex items-center justify-between px-3 py-2 hover:bg-gray-100 dark:hover:bg-[#2a2a2b] cursor-pointer group transition-colors"
                           onClick={() => runRequest(request)}
                           onContextMenu={(e) => handleContextMenu(e, 'request', request.id, collection.id)}
                         >
@@ -534,10 +534,10 @@ export default function Collections({ searchQuery = '' }: CollectionsProps) {
                                   if (e.key === 'Escape') setEditingRequestId(null)
                                 }}
                                 onClick={(e) => e.stopPropagation()}
-                                className="flex-1 px-2 py-1 bg-[#3c3c3c] text-gray-300 text-sm rounded border border-orange-500 focus:outline-none"
+                                className="flex-1 px-2 py-1 bg-white dark:bg-[#3c3c3c] text-gray-900 dark:text-gray-300 text-sm rounded border border-orange-500 focus:outline-none transition-colors"
                               />
                             ) : (
-                              <span className="text-sm text-gray-400 truncate">{request.name}</span>
+                              <span className="text-sm text-gray-600 dark:text-gray-400 truncate transition-colors">{request.name}</span>
                             )}
                           </div>
                           <button
@@ -545,7 +545,7 @@ export default function Collections({ searchQuery = '' }: CollectionsProps) {
                               e.stopPropagation()
                               handleContextMenu(e, 'request', request.id, collection.id)
                             }}
-                            className="p-1 text-gray-500 hover:text-gray-300 opacity-0 group-hover:opacity-100"
+                            className="p-1 text-gray-600 dark:text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 opacity-0 group-hover:opacity-100 transition-colors"
                           >
                             <MoreVertical className="w-3.5 h-3.5" />
                           </button>
@@ -563,7 +563,7 @@ export default function Collections({ searchQuery = '' }: CollectionsProps) {
       {/* Context Menu */}
       {contextMenu && (
         <div
-          className="fixed bg-[#2a2a2b] border border-[#555] rounded shadow-lg py-1 z-50 min-w-[160px]"
+          className="fixed bg-white dark:bg-[#2a2a2b] border border-gray-200 dark:border-[#555] rounded shadow-lg py-1 z-50 min-w-[160px] transition-colors"
           style={{ left: contextMenu.x, top: contextMenu.y }}
           onClick={(e) => e.stopPropagation()}
         >
@@ -575,7 +575,7 @@ export default function Collections({ searchQuery = '' }: CollectionsProps) {
                   if (collection) startEditingCollection(collection)
                   setContextMenu(null)
                 }}
-                className="w-full px-3 py-2 text-left text-sm text-gray-300 hover:bg-[#3c3c3c] flex items-center space-x-2"
+                className="w-full px-3 py-2 text-left text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-[#3c3c3c] flex items-center space-x-2 transition-colors"
               >
                 <Edit className="w-3.5 h-3.5" />
                 <span>Rename</span>
@@ -585,7 +585,7 @@ export default function Collections({ searchQuery = '' }: CollectionsProps) {
                   setShowAddRequestForm(contextMenu.id)
                   setContextMenu(null)
                 }}
-                className="w-full px-3 py-2 text-left text-sm text-gray-300 hover:bg-[#3c3c3c] flex items-center space-x-2"
+                className="w-full px-3 py-2 text-left text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-[#3c3c3c] flex items-center space-x-2 transition-colors"
               >
                 <Plus className="w-3.5 h-3.5" />
                 <span>Add Request</span>
@@ -596,7 +596,7 @@ export default function Collections({ searchQuery = '' }: CollectionsProps) {
                   deleteCollection(contextMenu.id)
                   setContextMenu(null)
                 }}
-                className="w-full px-3 py-2 text-left text-sm text-red-400 hover:bg-[#3c3c3c] flex items-center space-x-2"
+                className="w-full px-3 py-2 text-left text-sm text-red-600 dark:text-red-400 hover:bg-gray-100 dark:hover:bg-[#3c3c3c] flex items-center space-x-2 transition-colors"
               >
                 <Trash2 className="w-3.5 h-3.5" />
                 <span>Delete</span>
@@ -611,7 +611,7 @@ export default function Collections({ searchQuery = '' }: CollectionsProps) {
                   if (request) startEditingRequest(request)
                   setContextMenu(null)
                 }}
-                className="w-full px-3 py-2 text-left text-sm text-gray-300 hover:bg-[#3c3c3c] flex items-center space-x-2"
+                className="w-full px-3 py-2 text-left text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-[#3c3c3c] flex items-center space-x-2 transition-colors"
               >
                 <Edit className="w-3.5 h-3.5" />
                 <span>Rename</span>
@@ -622,7 +622,7 @@ export default function Collections({ searchQuery = '' }: CollectionsProps) {
                   deleteRequest(contextMenu.id)
                   setContextMenu(null)
                 }}
-                className="w-full px-3 py-2 text-left text-sm text-red-400 hover:bg-[#3c3c3c] flex items-center space-x-2"
+                className="w-full px-3 py-2 text-left text-sm text-red-600 dark:text-red-400 hover:bg-gray-100 dark:hover:bg-[#3c3c3c] flex items-center space-x-2 transition-colors"
               >
                 <Trash2 className="w-3.5 h-3.5" />
                 <span>Delete</span>

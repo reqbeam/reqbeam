@@ -71,15 +71,15 @@ export default function WorkspaceModal({
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-      <div className="bg-[#252526] border border-[#3c3c3c] rounded-lg shadow-2xl w-full max-w-md">
+      <div className="bg-white dark:bg-[#252526] border border-gray-200 dark:border-[#3c3c3c] rounded-lg shadow-2xl w-full max-w-md transition-colors">
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-[#3c3c3c]">
-          <h2 className="text-lg font-semibold text-gray-200">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200 dark:border-[#3c3c3c] transition-colors">
+          <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-200 transition-colors">
             {mode === 'create' ? 'Create New Workspace' : 'Edit Workspace'}
           </h2>
           <button
             onClick={onClose}
-            className="text-gray-500 hover:text-gray-300 transition-colors"
+            className="text-gray-600 dark:text-gray-500 hover:text-gray-900 dark:hover:text-gray-300 transition-colors"
           >
             <X className="w-5 h-5" />
           </button>
@@ -89,15 +89,15 @@ export default function WorkspaceModal({
         <form onSubmit={handleSubmit} className="p-6 space-y-4">
           {/* Name Input */}
           <div>
-            <label htmlFor="workspace-name" className="block text-sm font-medium text-gray-300 mb-2">
-              Name <span className="text-red-400">*</span>
+            <label htmlFor="workspace-name" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 transition-colors">
+              Name <span className="text-red-600 dark:text-red-400">*</span>
             </label>
             <input
               id="workspace-name"
               type="text"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              className="w-full px-3 py-2 bg-[#3c3c3c] text-gray-300 rounded border border-[#555] focus:outline-none focus:border-orange-500 transition-colors"
+              className="w-full px-3 py-2 bg-white dark:bg-[#3c3c3c] text-gray-900 dark:text-gray-300 rounded border border-gray-300 dark:border-[#555] focus:outline-none focus:border-orange-500 transition-colors"
               placeholder="e.g., My API Projects"
               autoFocus
             />
@@ -105,14 +105,14 @@ export default function WorkspaceModal({
 
           {/* Description Input */}
           <div>
-            <label htmlFor="workspace-description" className="block text-sm font-medium text-gray-300 mb-2">
-              Description <span className="text-gray-500 text-xs">(optional)</span>
+            <label htmlFor="workspace-description" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 transition-colors">
+              Description <span className="text-gray-600 dark:text-gray-500 text-xs">(optional)</span>
             </label>
             <textarea
               id="workspace-description"
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              className="w-full px-3 py-2 bg-[#3c3c3c] text-gray-300 rounded border border-[#555] focus:outline-none focus:border-orange-500 transition-colors resize-none"
+              className="w-full px-3 py-2 bg-white dark:bg-[#3c3c3c] text-gray-900 dark:text-gray-300 rounded border border-gray-300 dark:border-[#555] focus:outline-none focus:border-orange-500 transition-colors resize-none"
               placeholder="e.g., Workspace for client API testing"
               rows={3}
             />
@@ -131,7 +131,7 @@ export default function WorkspaceModal({
               type="button"
               onClick={onClose}
               disabled={isSubmitting}
-              className="flex-1 px-4 py-2 bg-[#3c3c3c] text-gray-300 rounded hover:bg-[#555] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              className="flex-1 px-4 py-2 bg-gray-200 dark:bg-[#3c3c3c] text-gray-700 dark:text-gray-300 rounded hover:bg-gray-300 dark:hover:bg-[#555] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
               Cancel
             </button>
