@@ -4,6 +4,7 @@ import ora from 'ora';
 import { ApiStorageManager } from '../utils/apiStorage.js';
 import { RequestExecutor } from '../utils/request.js';
 import { Formatter } from '../utils/formatter.js';
+import { Logger } from '../utils/logger.js';
 import { RunOptions } from '../types.js';
 
 const runCommand = new Command('run');
@@ -73,6 +74,17 @@ runCommand
         error: result.error
       });
       
+      // Log to local log file
+      const logger = Logger.getInstance();
+      await logger.logRequest(
+        request.name,
+        result.status,
+        result.duration,
+        result.success,
+        environment?.name,
+        result
+      );
+      
       console.log(chalk.blue(`Execution completed in ${result.duration}ms`));
       
     } catch (error: any) {
@@ -124,6 +136,7 @@ runCommand
 
       console.log(chalk.bold(`Running collection '${collectionName}' (${requests.length} requests)...`));
       
+      const startTime = Date.now();
       const results: any[] = [];
       
       if (options.parallel) {
@@ -195,6 +208,32 @@ runCommand
       }
 
       console.log(Formatter.formatSummary(results));
+      
+      // Log collection execution
+      const totalDuration = Date.now() - startTime;
+      const passed = results.filter(r => r.success).length;
+      const failed = results.length - passed;
+      const collectionStatus = failed === 0 ? 200 : 500;
+      
+      const logger = Logger.getInstance();
+      await logger.logCollection(
+        collectionName,
+        collectionStatus,
+        totalDuration,
+        failed === 0,
+        environment?.name,
+        {
+          totalRequests: results.length,
+          passed,
+          failed,
+          results: results.map(r => ({
+            name: r.name,
+            status: r.status,
+            success: r.success,
+            duration: r.duration
+          }))
+        }
+      );
       
     } catch (error: any) {
       console.error(chalk.red('Error running collection:'), error.message);

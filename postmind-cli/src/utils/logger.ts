@@ -1,6 +1,5 @@
 import fs from 'fs-extra';
 import path from 'path';
-import os from 'os';
 import { createObjectCsvWriter } from 'csv-writer';
 import { LogEntry, LogSummary, ExportOptions } from '../types.js';
 
@@ -10,7 +9,8 @@ export class Logger {
   private logsDir: string;
 
   private constructor() {
-    this.logsDir = path.join(os.homedir(), '.postmind', 'logs');
+    // Store logs in ./logs/ directory relative to current working directory (project root)
+    this.logsDir = path.join(process.cwd(), 'logs');
     this.logsFile = path.join(this.logsDir, 'logs.json');
   }
 
