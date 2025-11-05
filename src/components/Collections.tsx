@@ -1,9 +1,11 @@
 'use client'
 
 import { useState, useEffect, useRef } from 'react'
-import { Plus, Folder, MoreVertical, Edit, Trash2, Play, Loader2, ChevronDown, ChevronRight, FileText, X, Check } from 'lucide-react'
+import { Plus, Folder, MoreVertical, Edit, Trash2, Play, Loader2, ChevronDown, ChevronRight, FileText, X, Check, Upload, Download } from 'lucide-react'
 import { useRequestStore } from '@/store/requestStore'
 import { useWorkspaceStore } from '@/store/workspaceStore'
+import { useToast } from './Toast'
+import ImportExportModal from './ImportExportModal'
 
 interface Collection {
   id: string
@@ -45,6 +47,11 @@ export default function Collections({ searchQuery = '' }: CollectionsProps) {
   const editInputRef = useRef<HTMLInputElement>(null)
   const { createTab, updateTab, tabs, setActiveTab } = useRequestStore()
   const { activeWorkspace } = useWorkspaceStore()
+  const toast = useToast()
+  const [importModalOpen, setImportModalOpen] = useState(false)
+  const [exportModalOpen, setExportModalOpen] = useState(false)
+  const [selectedCollectionId, setSelectedCollectionId] = useState<string | null>(null)
+  const [selectedCollectionName, setSelectedCollectionName] = useState<string>('')
 
   useEffect(() => {
     fetchCollections()
@@ -329,8 +336,8 @@ export default function Collections({ searchQuery = '' }: CollectionsProps) {
 
   return (
     <div className="h-full flex flex-col">
-      {/* Header with Create Button */}
-      <div className="p-3 border-b border-gray-200 dark:border-[#3c3c3c] flex-shrink-0 transition-colors">
+      {/* Header with Create, Import, Export Buttons */}
+      <div className="p-3 border-b border-gray-200 dark:border-[#3c3c3c] flex-shrink-0 transition-colors space-y-2">
         <button
           onClick={() => setShowCreateForm(true)}
           className="w-full flex items-center justify-center space-x-2 px-3 py-2 bg-orange-600 text-white rounded hover:bg-orange-700 text-sm font-medium transition-colors"
@@ -338,6 +345,38 @@ export default function Collections({ searchQuery = '' }: CollectionsProps) {
           <Plus className="w-4 h-4" />
           <span>New Collection</span>
         </button>
+        <div className="grid grid-cols-2 gap-2">
+          <button
+            onClick={() => setImportModalOpen(true)}
+            className="flex items-center justify-center space-x-2 px-3 py-2 bg-gray-100 dark:bg-[#2a2a2b] text-gray-700 dark:text-gray-300 rounded hover:bg-gray-200 dark:hover:bg-[#3c3c3c] text-xs font-medium transition-colors"
+          >
+            <Upload className="w-3.5 h-3.5" />
+            <span>Import</span>
+          </button>
+          <button
+            onClick={() => {
+              // Show collection selector for export
+              if (collections.length === 0) {
+                toast.error('No collections to export')
+                return
+              }
+              // For now, export the first collection or show a selector
+              // In a full implementation, you'd show a dropdown to select which collection to export
+              if (collections.length === 1) {
+                setSelectedCollectionId(collections[0].id)
+                setSelectedCollectionName(collections[0].name)
+                setExportModalOpen(true)
+              } else {
+                // Show a simple prompt - in production, use a proper selector
+                toast.info('Right-click on a collection and select "Export" to export it')
+              }
+            }}
+            className="flex items-center justify-center space-x-2 px-3 py-2 bg-gray-100 dark:bg-[#2a2a2b] text-gray-700 dark:text-gray-300 rounded hover:bg-gray-200 dark:hover:bg-[#3c3c3c] text-xs font-medium transition-colors"
+          >
+            <Download className="w-3.5 h-3.5" />
+            <span>Export</span>
+          </button>
+        </div>
       </div>
 
       {/* Create Collection Form */}
@@ -590,6 +629,21 @@ export default function Collections({ searchQuery = '' }: CollectionsProps) {
                 <Plus className="w-3.5 h-3.5" />
                 <span>Add Request</span>
               </button>
+              <button
+                onClick={() => {
+                  const collection = collections.find(c => c.id === contextMenu.id)
+                  if (collection) {
+                    setSelectedCollectionId(collection.id)
+                    setSelectedCollectionName(collection.name)
+                    setExportModalOpen(true)
+                  }
+                  setContextMenu(null)
+                }}
+                className="w-full px-3 py-2 text-left text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-[#3c3c3c] flex items-center space-x-2 transition-colors"
+              >
+                <Download className="w-3.5 h-3.5" />
+                <span>Export</span>
+              </button>
               <div className="border-t border-[#555] my-1"></div>
               <button
                 onClick={() => {
@@ -631,6 +685,34 @@ export default function Collections({ searchQuery = '' }: CollectionsProps) {
           )}
         </div>
       )}
+
+      {/* Import/Export Modals */}
+      <ImportExportModal
+        isOpen={importModalOpen}
+        onClose={() => setImportModalOpen(false)}
+        type="collection"
+        mode="import"
+        workspaceId={activeWorkspace?.id}
+        onSuccess={(message) => {
+          toast.success(message)
+          fetchCollections()
+        }}
+        onError={(error) => toast.error(error)}
+      />
+      <ImportExportModal
+        isOpen={exportModalOpen}
+        onClose={() => {
+          setExportModalOpen(false)
+          setSelectedCollectionId(null)
+          setSelectedCollectionName('')
+        }}
+        type="collection"
+        mode="export"
+        collectionId={selectedCollectionId || undefined}
+        collectionName={selectedCollectionName}
+        onSuccess={(message) => toast.success(message)}
+        onError={(error) => toast.error(error)}
+      />
     </div>
   )
 }

@@ -2,8 +2,10 @@
 
 import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
-import { ChevronDown, Plus, Building2, Check, Settings } from 'lucide-react'
+import { ChevronDown, Plus, Building2, Check, Settings, Upload, Download } from 'lucide-react'
 import { useWorkspaceStore } from '@/store/workspaceStore'
+import { useToast } from './Toast'
+import ImportExportModal from './ImportExportModal'
 
 interface WorkspaceSwitcherProps {
   onCreateNew?: () => void
@@ -15,6 +17,9 @@ export default function WorkspaceSwitcher({ onCreateNew, onManage }: WorkspaceSw
   const router = useRouter()
   const dropdownRef = useRef<HTMLDivElement>(null)
   const { workspaces, activeWorkspace, setActiveWorkspace, fetchWorkspaces, isInitialized } = useWorkspaceStore()
+  const toast = useToast()
+  const [importModalOpen, setImportModalOpen] = useState(false)
+  const [exportModalOpen, setExportModalOpen] = useState(false)
 
   // Fetch workspaces on mount
   useEffect(() => {
@@ -126,6 +131,24 @@ export default function WorkspaceSwitcher({ onCreateNew, onManage }: WorkspaceSw
               <Plus className="w-4 h-4 text-orange-500" />
               <span>Create New Workspace</span>
             </button>
+            {activeWorkspace && (
+              <>
+                <button
+                  onClick={() => setImportModalOpen(true)}
+                  className="w-full px-3 py-2 hover:bg-gray-100 dark:hover:bg-[#2a2a2b] transition-colors flex items-center gap-3 text-sm text-gray-700 dark:text-gray-300"
+                >
+                  <Upload className="w-4 h-4 text-gray-500 dark:text-gray-500" />
+                  <span>Import Workspace</span>
+                </button>
+                <button
+                  onClick={() => setExportModalOpen(true)}
+                  className="w-full px-3 py-2 hover:bg-gray-100 dark:hover:bg-[#2a2a2b] transition-colors flex items-center gap-3 text-sm text-gray-700 dark:text-gray-300"
+                >
+                  <Download className="w-4 h-4 text-gray-500 dark:text-gray-500" />
+                  <span>Export Workspace</span>
+                </button>
+              </>
+            )}
             {onManage && (
               <button
                 onClick={handleManage}
@@ -138,6 +161,31 @@ export default function WorkspaceSwitcher({ onCreateNew, onManage }: WorkspaceSw
           </div>
         </div>
       )}
+
+      {/* Import/Export Modals */}
+      <ImportExportModal
+        isOpen={importModalOpen}
+        onClose={() => setImportModalOpen(false)}
+        type="workspace"
+        mode="import"
+        onSuccess={(message) => {
+          toast.success(message)
+          fetchWorkspaces()
+          // Refresh page to show new workspace
+          setTimeout(() => window.location.reload(), 1000)
+        }}
+        onError={(error) => toast.error(error)}
+      />
+      <ImportExportModal
+        isOpen={exportModalOpen}
+        onClose={() => setExportModalOpen(false)}
+        type="workspace"
+        mode="export"
+        workspaceId={activeWorkspace?.id}
+        workspaceName={activeWorkspace?.name}
+        onSuccess={(message) => toast.success(message)}
+        onError={(error) => toast.error(error)}
+      />
     </div>
   )
 }
