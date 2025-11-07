@@ -12,6 +12,7 @@ import ThemeSwitcher from './ThemeSwitcher'
 import { useRequestStore } from '@/store/requestStore'
 import { useWorkspaceStore } from '@/store/workspaceStore'
 import { Plus, Loader2 } from 'lucide-react'
+import { useKeyboardShortcuts } from '@/hooks/useKeyboardShortcuts'
 
 interface DashboardProps {
   workspaceId?: string
@@ -72,6 +73,28 @@ export default function Dashboard({ workspaceId }: DashboardProps) {
     setIsWorkspaceModalOpen(true)
   }
 
+  // Keyboard shortcuts
+  useKeyboardShortcuts([
+    {
+      key: 'n',
+      ctrlKey: true,
+      shiftKey: true,
+      handler: () => {
+        handleNewRequest()
+      },
+    },
+    {
+      key: 'w',
+      ctrlKey: true,
+      shiftKey: true,
+      handler: () => {
+        if (activeTab) {
+          handleCloseTab(activeTab)
+        }
+      },
+    },
+  ])
+
   if (isLoading) {
     return (
       <div className="h-screen flex items-center justify-center bg-white dark:bg-[#1e1e1e] transition-colors">
@@ -100,6 +123,7 @@ export default function Dashboard({ workspaceId }: DashboardProps) {
             <button
               onClick={handleNewRequest}
               className="px-3 sm:px-4 py-1.5 text-xs sm:text-sm bg-transparent border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors flex items-center gap-1 sm:gap-2"
+              title="New Request (Ctrl+Shift+N)"
             >
               <Plus className="w-3 h-3 sm:w-4 sm:h-4" />
               <span className="hidden sm:inline">New</span>

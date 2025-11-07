@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { Clock, FileText, AlertCircle, CheckCircle, XCircle } from 'lucide-react'
+import { Clock, FileText, AlertCircle, CheckCircle, XCircle, X } from 'lucide-react'
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter'
 import { tomorrow } from 'react-syntax-highlighter/dist/esm/styles/prism'
 import { coy } from 'react-syntax-highlighter/dist/esm/styles/prism'
@@ -9,9 +9,13 @@ import { useRequestStore } from '@/store/requestStore'
 import { useThemeStore } from '@/store/themeStore'
 
 export default function ResponseViewer() {
-  const { response, isLoading } = useRequestStore()
+  const { response, isLoading, setResponse } = useRequestStore()
   const { theme } = useThemeStore()
   const [activeTab, setActiveTab] = useState<'body' | 'headers' | 'cookies'>('body')
+
+  const clearResponse = () => {
+    setResponse(null)
+  }
   
   // Use light theme for syntax highlighting in light mode, dark theme in dark mode
   const syntaxStyle = theme === 'dark' ? tomorrow : coy
@@ -85,19 +89,28 @@ export default function ResponseViewer() {
               {response.status ? `${response.status} ${response.statusText}` : 'Error'}
             </span>
           </div>
-          <div className="flex items-center space-x-4 text-sm text-gray-600 dark:text-gray-400 transition-colors">
-            <div className="flex items-center space-x-1">
-              <span className="text-xs">TIME</span>
-              {response.duration && (
-                <span className="font-medium">{response.duration}ms</span>
-              )}
+          <div className="flex items-center space-x-4">
+            <div className="flex items-center space-x-4 text-sm text-gray-600 dark:text-gray-400 transition-colors">
+              <div className="flex items-center space-x-1">
+                <span className="text-xs">TIME</span>
+                {response.duration && (
+                  <span className="font-medium">{response.duration}ms</span>
+                )}
+              </div>
+              <div className="flex items-center space-x-1">
+                <span className="text-xs">SIZE</span>
+                {response.size && (
+                  <span className="font-medium">{response.size}B</span>
+                )}
+              </div>
             </div>
-            <div className="flex items-center space-x-1">
-              <span className="text-xs">SIZE</span>
-              {response.size && (
-                <span className="font-medium">{response.size}B</span>
-              )}
-            </div>
+            <button
+              onClick={clearResponse}
+              className="p-1.5 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-[#3c3c3c] rounded transition-colors"
+              title="Clear Response"
+            >
+              <X className="w-4 h-4" />
+            </button>
           </div>
         </div>
 

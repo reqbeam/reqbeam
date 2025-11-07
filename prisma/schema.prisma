@@ -26,6 +26,7 @@ model User {
   ownedWorkspaces   Workspace[]       @relation("WorkspaceOwner")
   workspaceMembers  WorkspaceMember[]
   apiHistory        ApiHistory[]
+  mockServers       MockServer[]
 
   @@map("users")
 }
@@ -43,6 +44,7 @@ model Collection {
   user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
   workspace Workspace? @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
   requests  Request[]
+  mockServers MockServer[]
 
   @@map("collections")
 }
@@ -145,6 +147,7 @@ model Workspace {
   tabs             Tab[]
   apiHistory       ApiHistory[]
   requestHistories RequestHistory[]
+  mockServers      MockServer[]
 
   @@map("workspaces")
 }
@@ -186,4 +189,48 @@ model ApiHistory {
   @@index([source])
   @@index([workspaceId])
   @@index([userId])
+}
+
+model MockServer {
+  id              String         @id @default(cuid())
+  name            String
+  baseUrl         String?        // Generated base URL (e.g., /api/mock/<mock_id>)
+  collectionId    String?
+  userId          String
+  workspaceId     String?
+  isRunning       Boolean        @default(false)
+  responseDelay   Int            @default(0) // Delay in milliseconds
+  defaultStatusCode Int          @default(200)
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+
+  // Relations
+  user        User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  workspace   Workspace?    @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  collection  Collection?   @relation(fields: [collectionId], references: [id], onDelete: SetNull)
+  endpoints   MockEndpoint[]
+
+  @@map("mock_servers")
+  @@index([userId])
+  @@index([workspaceId])
+  @@index([collectionId])
+}
+
+model MockEndpoint {
+  id            String      @id @default(cuid())
+  mockServerId  String
+  method        String      // GET, POST, PUT, DELETE, PATCH, etc.
+  path          String      // URL path (e.g., /users/:id)
+  response      String?     // Response body (JSON/YAML)
+  statusCode    Int         @default(200)
+  headers       String?     // Response headers as JSON string
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+
+  // Relations
+  mockServer MockServer @relation(fields: [mockServerId], references: [id], onDelete: Cascade)
+
+  @@map("mock_endpoints")
+  @@index([mockServerId])
+  @@index([method, path])
 }

@@ -6,6 +6,7 @@ import { useRequestStore } from '@/store/requestStore'
 import { useWorkspaceStore } from '@/store/workspaceStore'
 import { useToast } from './Toast'
 import ImportExportModal from './ImportExportModal'
+import { highlightAllMatches } from '@/utils/highlightText'
 
 interface Collection {
   id: string
@@ -28,9 +29,17 @@ interface Request {
 
 interface CollectionsProps {
   searchQuery?: string
+  filters?: {
+    method?: string
+    collectionId?: string
+  }
 }
 
-export default function Collections({ searchQuery = '' }: CollectionsProps) {
+interface FilteredCollection extends Collection {
+  filteredRequests: Request[]
+}
+
+export default function Collections({ searchQuery = '', filters = {} }: CollectionsProps) {
   const [collections, setCollections] = useState<Collection[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [showCreateForm, setShowCreateForm] = useState(false)
@@ -56,6 +65,13 @@ export default function Collections({ searchQuery = '' }: CollectionsProps) {
   useEffect(() => {
     fetchCollections()
   }, [activeWorkspace])
+
+  // Auto-expand collections when filtered by collectionId
+  useEffect(() => {
+    if (filters.collectionId) {
+      setExpandedCollections(new Set([filters.collectionId]))
+    }
+  }, [filters.collectionId])
 
   const fetchCollections = async () => {
     try {
@@ -313,17 +329,50 @@ export default function Collections({ searchQuery = '' }: CollectionsProps) {
     }
   }, [editingCollectionId, editingRequestId])
 
-  // Filter collections based on search query
-  const filteredCollections = collections.filter(collection => {
-    if (!searchQuery) return true
-    const query = searchQuery.toLowerCase()
-    const matchesCollection = collection.name.toLowerCase().includes(query)
-    const matchesRequest = collection.requests.some(req => 
-      req.name.toLowerCase().includes(query) || 
-      req.url.toLowerCase().includes(query)
-    )
-    return matchesCollection || matchesRequest
-  })
+  // Filter collections based on search query and filters
+  const filteredCollections: FilteredCollection[] = collections.map(collection => {
+    // Apply collection filter
+    if (filters.collectionId && collection.id !== filters.collectionId) {
+      return null
+    }
+
+    // Filter requests by method and search query
+    let filteredRequests = collection.requests
+
+    // Apply method filter
+    if (filters.method) {
+      filteredRequests = filteredRequests.filter(req => req.method.toUpperCase() === filters.method?.toUpperCase())
+    }
+
+    // Apply search query filter
+    if (searchQuery) {
+      const query = searchQuery.toLowerCase()
+      const matchesCollection = collection.name.toLowerCase().includes(query)
+      const searchFilteredRequests = filteredRequests.filter(req => 
+        req.name.toLowerCase().includes(query) || 
+        req.url.toLowerCase().includes(query)
+      )
+      
+      // If collection name matches, show all filtered requests, otherwise only matching requests
+      filteredRequests = matchesCollection ? filteredRequests : searchFilteredRequests
+      
+      // Include collection if it matches or has matching requests
+      if (!matchesCollection && searchFilteredRequests.length === 0) {
+        return null
+      }
+    }
+
+    // Include collection if it has requests after filtering
+    if (filteredRequests.length === 0 && !searchQuery) {
+      // If no search query, only hide if method filter is applied and no requests match
+      if (filters.method) {
+        return null
+      }
+      // Otherwise show collection even if empty (for collection-level filtering)
+    }
+
+    return { ...collection, filteredRequests }
+  }).filter((collection): collection is FilteredCollection => collection !== null)
 
   if (isLoading) {
     return (
@@ -462,7 +511,9 @@ export default function Collections({ searchQuery = '' }: CollectionsProps) {
                         className="flex-1 px-2 py-1 bg-white dark:bg-[#3c3c3c] text-gray-900 dark:text-gray-300 text-sm rounded border border-orange-500 focus:outline-none transition-colors"
                       />
                     ) : (
-                      <span className="text-sm text-gray-700 dark:text-gray-300 truncate transition-colors">{collection.name}</span>
+                      <span className="text-sm text-gray-700 dark:text-gray-300 truncate transition-colors">
+                        {searchQuery ? highlightAllMatches(collection.name, searchQuery) : collection.name}
+                      </span>
                     )}
                   </div>
                   <div className="flex items-center space-x-1 opacity-0 group-hover:opacity-100">
@@ -537,12 +588,12 @@ export default function Collections({ searchQuery = '' }: CollectionsProps) {
                 {/* Requests List */}
                 {expandedCollections.has(collection.id) && (
                   <div className="ml-6">
-                    {collection.requests.length === 0 ? (
+                    {collection.filteredRequests.length === 0 ? (
                       <div className="px-3 py-2 text-xs text-gray-700 dark:text-gray-600 transition-colors">
                         No requests
                       </div>
                     ) : (
-                      collection.requests.map((request) => (
+                      collection.filteredRequests.map((request) => (
                         <div
                           key={request.id}
                           className="flex items-center justify-between px-3 py-2 hover:bg-gray-100 dark:hover:bg-[#2a2a2b] cursor-pointer group transition-colors"
@@ -576,7 +627,9 @@ export default function Collections({ searchQuery = '' }: CollectionsProps) {
                                 className="flex-1 px-2 py-1 bg-white dark:bg-[#3c3c3c] text-gray-900 dark:text-gray-300 text-sm rounded border border-orange-500 focus:outline-none transition-colors"
                               />
                             ) : (
-                              <span className="text-sm text-gray-600 dark:text-gray-400 truncate transition-colors">{request.name}</span>
+                              <span className="text-sm text-gray-600 dark:text-gray-400 truncate transition-colors">
+                                {searchQuery ? highlightAllMatches(request.name, searchQuery) : request.name}
+                              </span>
                             )}
                           </div>
                           <button

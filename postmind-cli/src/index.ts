@@ -12,6 +12,7 @@ import { runCommand } from './commands/run.js';
 import { testCommand } from './commands/test.js';
 import { logsCommand } from './commands/logs.js';
 import { authCommand } from './commands/auth.js';
+import { helpCommand } from './commands/help.js';
 import { Scheduler } from './utils/scheduler.js';
 import { AuthManager } from './utils/auth.js';
 
@@ -36,17 +37,19 @@ program.addCommand(collectionCommand);
 program.addCommand(runCommand);
 program.addCommand(testCommand);
 program.addCommand(logsCommand);
+program.addCommand(helpCommand);
 
-// Add authentication middleware to all commands except auth
+// Add authentication middleware to all commands except auth and help
 program.hook('preAction', async (thisCommand, actionCommand) => {
   const authManager = AuthManager.getInstance();
   const commandName = actionCommand.name() || thisCommand.name();
   
-  // Skip auth check for auth commands by checking the command path
+  // Skip auth check for auth and help commands by checking the command path
   const fullCommand = process.argv.slice(2).join(' ');
   const isAuthCommand = fullCommand.startsWith('auth') || fullCommand === 'auth';
+  const isHelpCommand = fullCommand.startsWith('help') || fullCommand === 'help' || fullCommand === '';
   
-  if (isAuthCommand) {
+  if (isAuthCommand || isHelpCommand) {
     return;
   }
   

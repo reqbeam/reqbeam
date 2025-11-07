@@ -5,6 +5,7 @@ import { Send, Plus, Trash2, Save, Folder } from 'lucide-react'
 import { useRequestStore } from '@/store/requestStore'
 import { useToast } from './Toast'
 import AuthorizationTab from './AuthorizationTab'
+import { useKeyboardShortcuts } from '@/hooks/useKeyboardShortcuts'
 
 const HTTP_METHODS = ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'HEAD', 'OPTIONS']
 
@@ -25,6 +26,39 @@ export default function RequestBuilder() {
   useEffect(() => {
     fetchCollections()
   }, [])
+
+  const currentTab = tabs.find((tab) => tab.id === activeTab)
+
+  const handleSendRequest = () => {
+    if (currentTab) {
+      sendRequest(currentTab.id)
+    }
+  }
+
+  // Keyboard shortcuts
+  useKeyboardShortcuts([
+    {
+      key: 'Enter',
+      ctrlKey: true,
+      handler: () => {
+        if (currentTab && currentTab.url && !isLoading) {
+          handleSendRequest()
+        }
+      },
+    },
+    {
+      key: 's',
+      ctrlKey: true,
+      handler: () => {
+        if (currentTab) {
+          setRequestName(currentTab.name || '')
+          setSelectedCollection((currentTab.collectionId as any) || '')
+          setSaveMode(currentTab.requestId ? 'update' : 'new')
+          setShowSaveModal(true)
+        }
+      },
+    },
+  ], !!currentTab)
 
   const fetchCollections = async () => {
     try {
@@ -121,8 +155,6 @@ export default function RequestBuilder() {
     }
   }
 
-  const currentTab = tabs.find(tab => tab.id === activeTab)
-
   if (!currentTab) {
     return (
       <div className="flex-1 flex items-center justify-center bg-white dark:bg-[#252525] transition-colors">
@@ -215,10 +247,6 @@ export default function RequestBuilder() {
     updateTab(currentTab.id, { url: `${baseUrl}?${queryString}` })
   }
 
-  const handleSendRequest = () => {
-    sendRequest(currentTab.id)
-  }
-
   return (
     <div className="flex-1 flex flex-col bg-white dark:bg-[#252525] transition-colors">
       {/* Request URL and Method */}
@@ -264,7 +292,7 @@ export default function RequestBuilder() {
                 setShowSaveModal(true)
               }}
               className="flex-1 md:flex-none px-3 sm:px-4 py-2 bg-transparent border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center justify-center gap-1 sm:gap-2 text-xs sm:text-sm transition-colors"
-              title="Save to Collection"
+              title="Save to Collection (Ctrl+S)"
             >
               <Save className="w-3 h-3 sm:w-4 sm:h-4" />
               <span className="hidden sm:inline">Save</span>
@@ -273,6 +301,7 @@ export default function RequestBuilder() {
               onClick={handleSendRequest}
               disabled={isLoading || !currentTab.url}
               className="flex-1 md:flex-none px-4 sm:px-6 py-2 bg-[#ff6c37] text-white rounded hover:bg-[#ff8c5a] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 font-medium text-xs sm:text-sm"
+              title="Send Request (Ctrl+Enter)"
             >
               <Send className="w-3 h-3 sm:w-4 sm:h-4" />
               <span>{isLoading ? 'Sending...' : 'Send'}</span>
