@@ -1,26 +1,18 @@
 import { NextRequest, NextResponse } from 'next/server'
-import bcrypt from 'bcryptjs'
 import { prisma } from '@/lib/prisma'
-import { validatePassword } from '@/utils/passwordValidation'
 
 const AUTH_SERVER_URL = process.env.AUTH_SERVER_URL || 'http://localhost:4000'
 
+/**
+ * OAuth signup endpoint for syncing OAuth users
+ */
 export async function POST(request: NextRequest) {
   try {
-    const { name, email, password } = await request.json()
+    const { email, name, provider } = await request.json()
 
-    if (!name || !email || !password) {
+    if (!email) {
       return NextResponse.json(
-        { message: 'Missing required fields' },
-        { status: 400 }
-      )
-    }
-
-    // Validate password strength
-    const passwordValidation = validatePassword(password)
-    if (!passwordValidation.isValid) {
-      return NextResponse.json(
-        { message: 'Password validation failed', errors: passwordValidation.errors },
+        { message: 'Email is required' },
         { status: 400 }
       )
     }
@@ -33,7 +25,7 @@ export async function POST(request: NextRequest) {
       where: { email },
     })
 
-    // If user exists and this is a sync call, return success (user already synced)
+    // If user exists and this is a sync call, return success
     if (existingUser && isSyncCall) {
       return NextResponse.json(
         { message: 'User already exists (synced)' },
@@ -48,33 +40,28 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Hash password
-    const hashedPassword = await bcrypt.hash(password, 12)
-
-    // Create user in main database
+    // Create OAuth user (no password)
     const user = await prisma.user.create({
       data: {
-        name,
         email,
-        password: hashedPassword,
+        name: name || email.split('@')[0],
+        password: null, // OAuth users don't have passwords
       },
     })
 
-    // Also create user in auth server database (skip if this is a sync call from auth server)
+    // Also sync to auth server
     if (!isSyncCall) {
       try {
-        await fetch(`${AUTH_SERVER_URL}/api/auth/signup`, {
+        await fetch(`${AUTH_SERVER_URL}/api/auth/oauth/signup`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
             'x-sync-from': 'main-app',
           },
-          body: JSON.stringify({ name, email, password }),
+          body: JSON.stringify({ email, name, provider }),
         })
-        // Note: We don't fail if auth server is unavailable, user is already created in main DB
       } catch (authServerError) {
-        console.warn('Failed to sync user to auth server:', authServerError)
-        // Continue anyway - user is created in main database
+        console.warn('Failed to sync OAuth user to auth server:', authServerError)
       }
     }
 
@@ -83,10 +70,11 @@ export async function POST(request: NextRequest) {
       { status: 201 }
     )
   } catch (error) {
-    console.error('Signup error:', error)
+    console.error('OAuth signup error:', error)
     return NextResponse.json(
       { message: 'Internal server error' },
       { status: 500 }
     )
   }
 }
+

@@ -1,12 +1,13 @@
 // This is your Prisma schema file
 // Learn more: https://pris.ly/d/prisma-schema
+// This schema is shared with the main application
 
 generator client {
   provider = "prisma-client-js"
 }
 
 datasource db {
-  provider = "sqlite"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
@@ -234,3 +235,6 @@ model MockEndpoint {
   @@index([mockServerId])
   @@index([method, path])
 }
+
+
+

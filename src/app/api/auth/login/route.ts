@@ -24,6 +24,14 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    // Check if user has a password (OAuth users don't have passwords)
+    if (!user.password) {
+      return NextResponse.json(
+        { message: 'This account uses OAuth login. Please use Google sign in.' },
+        { status: 401 }
+      )
+    }
+
     // Verify password using bcrypt
     const bcrypt = await import('bcryptjs')
     const isPasswordValid = await bcrypt.default.compare(password, user.password)
@@ -55,4 +63,3 @@ export async function POST(request: NextRequest) {
     )
   }
 }
-
