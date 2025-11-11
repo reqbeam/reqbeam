@@ -53,14 +53,9 @@ COPY --from=builder /app/.next/static ./.next/static
 # Copy Prisma schema and package.json for regeneration
 COPY --from=builder /app/prisma ./prisma
 COPY --from=builder /app/package.json ./package.json
-# Copy Prisma packages
+# Copy Prisma packages (already generated in builder stage with correct platform)
 COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
 COPY --from=builder /app/node_modules/@prisma ./node_modules/@prisma
-COPY --from=builder /app/node_modules/prisma ./node_modules/prisma
-
-# Regenerate Prisma Client for the correct platform (Debian/glibc)
-# This ensures we get libquery_engine-linux-glibc-libssl.so.node instead of musl version
-RUN npx prisma generate
 
 # Set correct permissions
 RUN chown -R nextjs:nodejs /app
