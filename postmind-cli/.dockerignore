@@ -1,0 +1,31 @@
+# Dependencies
+node_modules
+npm-debug.log*
+
+# Build artifacts
+dist
+*.tsbuildinfo
+
+# Environment files
+.env
+.env.local
+
+# Testing
+coverage
+
+# Misc
+.DS_Store
+*.pem
+
+# IDE
+.vscode
+.idea
+
+# Git
+.git
+.gitignore
+
+# Documentation
+*.md
+!README.md
+
