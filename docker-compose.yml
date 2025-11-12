@@ -42,6 +42,7 @@ services:
     container_name: postmind-cli
     environment:
       - NODE_ENV=production
+      - POSTMIND_API_URL=http://postmind-web:3000
     volumes:
       # Mount workspace directory
       - ./workspace:/workspace
@@ -49,10 +50,10 @@ services:
       - cli-config:/root/.postmind
     networks:
       - postmind-network
-    # Override entrypoint to allow running any CLI command
-    entrypoint: ["postmind"]
-    # Default command shows help, but can be overridden
-    command: ["--help"]
+    # Use shell entrypoint to keep container running for interactive use
+    entrypoint: ["/bin/sh"]
+    # Keep container alive - users can exec into it to run CLI commands
+    command: ["-c", "tail -f /dev/null"]
     # Keep container running for interactive use
     stdin_open: true
     tty: true

@@ -32,13 +32,19 @@ COPY --from=builder /app/bin ./bin
 # Make CLI executable
 RUN chmod +x ./bin/postmind.js ./bin/pm.js
 
-# Create a symlink for global access
-RUN ln -s /app/bin/postmind.js /usr/local/bin/postmind && \
-    ln -s /app/bin/pm.js /usr/local/bin/pm
+# Create shell wrapper scripts for global access (more reliable than symlinks)
+RUN echo '#!/bin/sh' > /usr/local/bin/postmind && \
+    echo 'exec node /app/bin/postmind.js "$@"' >> /usr/local/bin/postmind && \
+    chmod +x /usr/local/bin/postmind && \
+    echo '#!/bin/sh' > /usr/local/bin/pm && \
+    echo 'exec node /app/bin/pm.js "$@"' >> /usr/local/bin/pm && \
+    chmod +x /usr/local/bin/pm
 
 # Set working directory to home for CLI operations
 WORKDIR /workspace
 
-ENTRYPOINT ["postmind"]
+# Default entrypoint - can be overridden in docker-compose
+ENTRYPOINT ["node", "/app/bin/postmind.js"]
+# Default to help if no command provided, but docker-compose will override this
 CMD ["--help"]
 

@@ -80,6 +80,18 @@ docker-compose run --rm cli auth login
 docker-compose run --rm cli collection list
 ```
 
+### CLI to Web API Communication
+
+The CLI container automatically connects to the web container's APIs using Docker's internal networking:
+
+- **Automatic Configuration**: The CLI container is configured with `POSTMIND_API_URL=http://postmind-web:3000` environment variable
+- **Container Networking**: Both containers are on the same `postmind-network`, allowing them to communicate using container names
+- **Default Behavior**: When you run `auth login` from the CLI container, it will automatically use `http://postmind-web:3000` as the default API URL
+- **Manual Override**: You can still override the API URL using the `-u` or `--url` flag if needed:
+  ```bash
+  docker-compose run --rm cli auth login -u http://postmind-web:3000
+  ```
+
 ## Environment Variables
 
 ### Required Variables
@@ -107,9 +119,12 @@ docker-compose run --rm cli collection list
 ### CLI Service
 
 - **Entrypoint**: `postmind`
+- **Environment Variables**:
+  - `POSTMIND_API_URL`: Default API URL for connecting to web service (default: `http://postmind-web:3000`)
 - **Volumes**:
   - `./workspace`: Working directory for CLI operations
   - `cli-config`: CLI configuration and auth tokens
+- **Network**: Connected to `postmind-network` for communication with web service
 
 ## Common Commands
 
@@ -216,9 +231,39 @@ docker-compose exec web npx prisma db push
 
 If CLI authentication fails:
 
-1. Check auth server is running: `curl http://localhost:4000/api/auth/verify`
-2. Verify `AUTH_SERVER_URL` in `.env.docker`
-3. Try logging in again: `docker-compose run --rm cli auth login`
+1. Check web service is running: `docker-compose ps web`
+2. Verify web service is accessible from CLI container:
+   ```bash
+   docker-compose exec cli wget -O- http://postmind-web:3000/api/health
+   ```
+3. Check auth server is running: `curl http://localhost:4000/api/auth/verify`
+4. Verify `AUTH_SERVER_URL` in `.env.docker`
+5. Try logging in again: `docker-compose run --rm cli auth login`
+
+### CLI Cannot Connect to Web APIs
+
+If the CLI cannot reach the web container's APIs:
+
+1. **Verify both containers are on the same network:**
+   ```bash
+   docker network inspect oss-main_postmind-network
+   ```
+
+2. **Check container names match:**
+   - Web container should be named `postmind-web`
+   - CLI container should be named `postmind-cli`
+
+3. **Test connectivity from CLI container:**
+   ```bash
+   docker-compose exec cli ping -c 2 postmind-web
+   docker-compose exec cli wget -O- http://postmind-web:3000/api/health
+   ```
+
+4. **Verify environment variable is set:**
+   ```bash
+   docker-compose exec cli env | grep POSTMIND_API_URL
+   ```
+   Should show: `POSTMIND_API_URL=http://postmind-web:3000`
 
 ## Production Deployment
 
@@ -251,6 +296,7 @@ For production:
 - **Database**: SQLite database is persisted in `./prisma` directory
 - **CLI Config**: CLI authentication is stored in Docker volume `cli-config`
 - **Networking**: Services communicate via `postmind-network` bridge network
+- **CLI to Web Communication**: The CLI container uses `http://postmind-web:3000` to access web APIs via Docker's internal DNS resolution
 
 ## Support
 
