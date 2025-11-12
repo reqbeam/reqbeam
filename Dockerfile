@@ -6,6 +6,7 @@ FROM node:20-slim AS base
 FROM base AS deps
 RUN apt-get update && apt-get install -y \
     libc6 \
+    openssl \
     && rm -rf /var/lib/apt/lists/*
 WORKDIR /app
 
@@ -15,13 +16,23 @@ RUN npm ci
 
 # Rebuild the source code only when needed
 FROM base AS builder
+# Install OpenSSL for Prisma generation
+RUN apt-get update && apt-get install -y \
+    openssl \
+    && rm -rf /var/lib/apt/lists/*
 WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
 # Generate Prisma Client for the correct platform (Debian/glibc)
 # This ensures we get the correct binary for Debian, not Alpine/musl
+# Force regeneration by removing any existing Prisma client
+RUN rm -rf node_modules/.prisma node_modules/@prisma/client || true
+# Set environment variable to ensure correct binary target
+ENV PRISMA_CLI_BINARY_TARGETS=debian-openssl-3.0.x
 RUN npx prisma generate
+# Verify the correct binary was generated (should see debian-openssl, not musl)
+RUN ls -la node_modules/.prisma/client/ | grep -E "(debian|query_engine)" || echo "Warning: Binary verification failed"
 
 # Build Next.js application
 ENV NEXT_TELEMETRY_DISABLED 1
@@ -36,10 +47,11 @@ ENV NEXT_TELEMETRY_DISABLED 1
 
 # Install required libraries for Prisma and health check
 # Install Prisma CLI and OpenSSL libraries
+# Note: libssl3 is for Debian 12 (Bookworm), which node:20-slim uses
 RUN apt-get update && apt-get install -y \
     wget \
     openssl \
-    libssl-dev \
+    libssl3 \
     ca-certificates \
     && rm -rf /var/lib/apt/lists/*
 
@@ -54,18 +66,25 @@ COPY --from=builder /app/.next/static ./.next/static
 COPY --from=builder /app/prisma ./prisma
 COPY --from=builder /app/package.json ./package.json
 # Copy Prisma packages (already generated in builder stage with correct platform)
+# Only copy the Debian binary, exclude any musl binaries
 COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
 COPY --from=builder /app/node_modules/@prisma ./node_modules/@prisma
+# Remove any musl binaries if they exist and verify Debian binary is present
+RUN find node_modules/.prisma -name "*musl*" -delete || true
+RUN ls -la node_modules/.prisma/client/ | grep -E "(debian|query_engine)" || echo "Warning: Debian binary not found"
+
+# Copy entrypoint script
+COPY docker-entrypoint.sh /usr/local/bin/
+RUN chmod +x /usr/local/bin/docker-entrypoint.sh
 
 # Set correct permissions
 RUN chown -R nextjs:nodejs /app
-
-USER nextjs
 
 EXPOSE 3000
 
 ENV PORT 3000
 ENV HOSTNAME "0.0.0.0"
 
+ENTRYPOINT ["docker-entrypoint.sh"]
 CMD ["node", "server.js"]
 
