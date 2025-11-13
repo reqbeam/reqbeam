@@ -73,9 +73,13 @@ COPY --from=builder /app/node_modules/@prisma ./node_modules/@prisma
 RUN find node_modules/.prisma -name "*musl*" -delete || true
 RUN ls -la node_modules/.prisma/client/ | grep -E "(debian|query_engine)" || echo "Warning: Debian binary not found"
 
-# Copy entrypoint script
-COPY docker-entrypoint.sh /usr/local/bin/
-RUN chmod +x /usr/local/bin/docker-entrypoint.sh
+# Copy entrypoint script and fix line endings (Windows CRLF to Unix LF)
+COPY docker-entrypoint.sh /tmp/docker-entrypoint.sh
+RUN sed -i 's/\r$//' /tmp/docker-entrypoint.sh && \
+    mv /tmp/docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh && \
+    chmod +x /usr/local/bin/docker-entrypoint.sh && \
+    ls -la /usr/local/bin/docker-entrypoint.sh && \
+    head -n 1 /usr/local/bin/docker-entrypoint.sh | od -c
 
 # Set correct permissions
 RUN chown -R nextjs:nodejs /app
@@ -85,6 +89,6 @@ EXPOSE 3000
 ENV PORT 3000
 ENV HOSTNAME "0.0.0.0"
 
-ENTRYPOINT ["docker-entrypoint.sh"]
+ENTRYPOINT ["/usr/local/bin/docker-entrypoint.sh"]
 CMD ["node", "server.js"]
 
