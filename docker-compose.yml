@@ -11,7 +11,7 @@ services:
       - "3000:3000"
     environment:
       - NODE_ENV=production
-      - DATABASE_URL=file:./prisma/dev.db
+      - DATABASE_URL=file:/app/prisma/dev.db
       - NEXTAUTH_URL=${NEXTAUTH_URL:-http://localhost:3000}
       - NEXTAUTH_SECRET=${NEXTAUTH_SECRET:-change-this-secret-in-production}
       - AUTH_SERVER_URL=${AUTH_SERVER_URL:-http://host.docker.internal:4000}

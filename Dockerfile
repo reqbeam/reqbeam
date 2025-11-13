@@ -30,7 +30,11 @@ COPY . .
 RUN rm -rf node_modules/.prisma node_modules/@prisma/client || true
 # Set environment variable to ensure correct binary target
 ENV PRISMA_CLI_BINARY_TARGETS=debian-openssl-3.0.x
+ENV DATABASE_URL=file:/app/prisma/dev.db
+RUN npm run db:generate
+RUN npm run db:push
 RUN npx prisma generate
+
 # Verify the correct binary was generated (should see debian-openssl, not musl)
 RUN ls -la node_modules/.prisma/client/ | grep -E "(debian|query_engine)" || echo "Warning: Binary verification failed"
 
