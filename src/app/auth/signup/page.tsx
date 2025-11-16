@@ -7,6 +7,10 @@ import Link from 'next/link'
 import ThemeSwitcher from '@/components/ThemeSwitcher'
 import { validatePassword, getPasswordStrength, getPasswordStrengthColor } from '@/utils/passwordValidation'
 
+// Prevent static generation since this uses client-side context
+export const dynamic = 'force-dynamic'
+export const revalidate = 0
+
 export default function SignUp() {
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')

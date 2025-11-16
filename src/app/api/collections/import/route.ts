@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { prisma } from '@/lib/prisma'
+import { WorkspaceService, CollectionService, RequestService } from '@shared/index'
 import { getAuthenticatedUser } from '@/lib/apiAuth'
 import { normalizeCollection } from '@/lib/importExportService'
 
@@ -38,22 +38,9 @@ export async function POST(request: NextRequest) {
     }
 
     // Verify workspace access if workspaceId is provided
+    const workspaceService = new WorkspaceService()
     if (workspaceId) {
-      const workspace = await prisma.workspace.findFirst({
-        where: {
-          id: workspaceId,
-          OR: [
-            { ownerId: user.id },
-            {
-              members: {
-                some: {
-                  userId: user.id
-                }
-              }
-            }
-          ]
-        }
-      })
+      const workspace = await workspaceService.getWorkspace(workspaceId, user.id)
 
       if (!workspace) {
         return NextResponse.json(
@@ -64,36 +51,34 @@ export async function POST(request: NextRequest) {
     }
 
     // Create collection
-    const collection = await prisma.collection.create({
-      data: {
-        name: normalizedCollection.name,
-        description: normalizedCollection.description || null,
-        userId: user.id,
-        workspaceId: workspaceId || null,
-      },
+    const collectionService = new CollectionService()
+    const collection = await collectionService.createCollection({
+      name: normalizedCollection.name,
+      description: normalizedCollection.description || undefined,
+      userId: user.id,
+      workspaceId: workspaceId || undefined,
     })
 
     // Create requests
+    const requestService = new RequestService()
     const createdRequests = []
     for (const request of normalizedCollection.requests) {
       try {
-        const createdRequest = await prisma.request.create({
-          data: {
-            name: request.name,
-            method: request.method,
-            url: request.url,
-            headers: request.headers
-              ? (typeof request.headers === 'string' ? request.headers : JSON.stringify(request.headers))
-              : null,
-            body: request.body || null,
-            bodyType: request.bodyType || 'json',
-            auth: request.auth
-              ? (typeof request.auth === 'string' ? request.auth : JSON.stringify(request.auth))
-              : null,
-            collectionId: collection.id,
-            userId: user.id,
-            workspaceId: workspaceId || null,
-          },
+        const createdRequest = await requestService.createRequest({
+          name: request.name,
+          method: request.method,
+          url: request.url,
+          headers: request.headers
+            ? (typeof request.headers === 'string' ? request.headers : JSON.stringify(request.headers))
+            : undefined,
+          body: request.body || undefined,
+          bodyType: request.bodyType || 'json',
+          auth: request.auth
+            ? (typeof request.auth === 'string' ? request.auth : JSON.stringify(request.auth))
+            : undefined,
+          collectionId: collection.id,
+          userId: user.id,
+          workspaceId: workspaceId || undefined,
         })
         createdRequests.push(createdRequest)
       } catch (error) {

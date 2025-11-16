@@ -1,6 +1,6 @@
 import { Command } from 'commander';
 import chalk from 'chalk';
-import { ApiStorageManager } from '../utils/apiStorage.js';
+import { DbStorageManager } from '../utils/dbStorage.js';
 
 const projectCommand = new Command('project');
 
@@ -17,7 +17,7 @@ projectCommand
     console.log(chalk.cyan('  postmind workspace list\n'));
     
     try {
-      const storage = ApiStorageManager.getInstance();
+      const storage = DbStorageManager.getInstance();
       const workspaces = await storage.listWorkspaces();
       
       if (workspaces.length === 0) {
@@ -51,7 +51,7 @@ projectCommand
     console.log(chalk.cyan(`  postmind workspace switch "${name}"\n`));
     
     try {
-      const storage = ApiStorageManager.getInstance();
+      const storage = DbStorageManager.getInstance();
       
       let workspace = await storage.findWorkspaceByName(name);
       if (!workspace) {
@@ -85,7 +85,7 @@ projectCommand
     console.log(chalk.cyan(`  postmind workspace delete "${name}"\n`));
     
     try {
-      const storage = ApiStorageManager.getInstance();
+      const storage = DbStorageManager.getInstance();
       
       let workspace = await storage.findWorkspaceByName(name);
       if (!workspace) {

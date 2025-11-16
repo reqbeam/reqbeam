@@ -1,7 +1,7 @@
 import { Command } from 'commander';
 import chalk from 'chalk';
 import inquirer from 'inquirer';
-import { ApiStorageManager } from '../utils/apiStorage.js';
+import { DbStorageManager } from '../utils/dbStorage.js';
 import { ContextManager } from '../utils/context.js';
 import { Formatter } from '../utils/formatter.js';
 
@@ -18,7 +18,7 @@ collectionCommand
   .option('-d, --description <description>', 'Collection description')
   .action(async (name: string, options: { description?: string }) => {
     try {
-      const storage = ApiStorageManager.getInstance();
+      const storage = DbStorageManager.getInstance();
       
       // Check if collection already exists
       const collections = await storage.listCollections();
@@ -51,7 +51,7 @@ collectionCommand
   .description('List all collections')
   .action(async () => {
     try {
-      const storage = ApiStorageManager.getInstance();
+      const storage = DbStorageManager.getInstance();
       const collections = await storage.listCollections();
       
       if (collections.length === 0) {
@@ -87,7 +87,7 @@ collectionCommand
   .description('Add an existing request to a collection')
   .action(async (collectionName: string, requestName: string) => {
     try {
-      const storage = ApiStorageManager.getInstance();
+      const storage = DbStorageManager.getInstance();
       const ctx = ContextManager.getInstance();
       
       // Find collection
@@ -135,7 +135,7 @@ collectionCommand
   .description('Remove a request from a collection')
   .action(async (collectionName: string, requestName: string) => {
     try {
-      const storage = ApiStorageManager.getInstance();
+      const storage = DbStorageManager.getInstance();
       
       // Find collection
       const collections = await storage.listCollections();
@@ -180,7 +180,7 @@ collectionCommand
   .option('-f, --force', 'Force deletion without confirmation')
   .action(async (name: string, options: { force?: boolean }) => {
     try {
-      const storage = ApiStorageManager.getInstance();
+      const storage = DbStorageManager.getInstance();
       
       // Find collection
       const collections = await storage.listCollections();
@@ -233,7 +233,7 @@ collectionCommand
   .option('-d, --description <description>', 'New description')
   .action(async (name: string, options: { newName?: string; description?: string }) => {
     try {
-      const storage = ApiStorageManager.getInstance();
+      const storage = DbStorageManager.getInstance();
       
       // Find collection
       const collections = await storage.listCollections();
@@ -272,7 +272,7 @@ collectionCommand
   .description('Select a collection to work on (affects request defaults)')
   .action(async (name: string) => {
     try {
-      const storage = ApiStorageManager.getInstance();
+      const storage = DbStorageManager.getInstance();
       const collections = await storage.listCollections();
       const collection = collections.find(c => c.name === name || c.id === name);
       if (!collection) {

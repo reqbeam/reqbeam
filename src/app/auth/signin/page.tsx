@@ -7,6 +7,10 @@ import Link from 'next/link'
 import ThemeSwitcher from '@/components/ThemeSwitcher'
 import { storeAuthToken } from '@/utils/authToken'
 
+// Prevent static generation since this uses client-side context
+export const dynamic = 'force-dynamic'
+export const revalidate = 0
+
 export default function SignIn() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')

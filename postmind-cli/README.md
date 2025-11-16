@@ -23,17 +23,56 @@ A TypeScript-based CLI tool for managing API projects, environments, requests, a
 ```bash
 # Clone the repository
 git clone <repository-url>
-cd postmind-cli
+cd oss-main/postmind-cli
 
 # Install dependencies
 npm install
 
-# Build the project
+# Set up database connection
+# Create .env file in the root directory (oss-main/.env) with:
+# DATABASE_URL="file:./prisma/dev.db"  # for SQLite
+# or
+# DATABASE_URL="postgresql://user:password@localhost:5432/postmind?schema=public"  # for PostgreSQL
+
+# Generate Prisma client (from root directory)
+cd ..
+npm run db:generate
+
+# Build the CLI project
+cd postmind-cli
 npm run build
 
 # Link globally (optional)
 npm link
 ```
+
+## 🗄️ Database Configuration
+
+**Important**: The CLI uses the shared library which connects directly to the database. The database connection is centralized in `oss-main/shared/prisma.ts`.
+
+### Setup Steps:
+
+1. **Set DATABASE_URL** in the root `.env` file (`oss-main/.env`):
+   ```env
+   # For SQLite (development)
+   DATABASE_URL="file:./prisma/dev.db"
+   
+   # For PostgreSQL (production)
+   DATABASE_URL="postgresql://user:password@localhost:5432/postmind?schema=public"
+   ```
+
+2. **Generate Prisma Client** (from root directory):
+   ```bash
+   cd oss-main
+   npm run db:generate
+   ```
+
+3. **Push Schema** (if needed):
+   ```bash
+   npm run db:push
+   ```
+
+**Note**: The database connection is initialized **only** in the shared library. Both CLI and Web use the same connection. You don't need to configure DATABASE_URL separately for each component.
 
 ## 🏗️ Architecture
 

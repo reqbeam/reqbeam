@@ -1,7 +1,7 @@
 import { Command } from 'commander';
 import chalk from 'chalk';
 import inquirer from 'inquirer';
-import { ApiStorageManager } from '../utils/apiStorage.js';
+import { DbStorageManager } from '../utils/dbStorage.js';
 import { ContextManager } from '../utils/context.js';
 import { Formatter } from '../utils/formatter.js';
 
@@ -31,7 +31,7 @@ requestCommand
     interactive?: boolean;
   }) => {
     try {
-      const storage = ApiStorageManager.getInstance();
+      const storage = DbStorageManager.getInstance();
       
       let requestData: any = {};
 
@@ -160,7 +160,7 @@ requestCommand
   .option('-c, --collection <collection>', 'Filter by collection name')
   .action(async (options: { collection?: string }) => {
     try {
-      const storage = ApiStorageManager.getInstance();
+      const storage = DbStorageManager.getInstance();
       const ctx = ContextManager.getInstance();
       
       let requests;
@@ -223,7 +223,7 @@ requestCommand
     collection?: string;
   }) => {
     try {
-      const storage = ApiStorageManager.getInstance();
+      const storage = DbStorageManager.getInstance();
       
       // Find request
       const request = await storage.findRequestByName(name);
@@ -275,7 +275,7 @@ requestCommand
   .option('-f, --force', 'Force deletion without confirmation')
   .action(async (name: string, options: { force?: boolean }) => {
     try {
-      const storage = ApiStorageManager.getInstance();
+      const storage = DbStorageManager.getInstance();
       
       // Find request
       const request = await storage.findRequestByName(name);

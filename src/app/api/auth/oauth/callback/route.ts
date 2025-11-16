@@ -5,6 +5,9 @@ import { storeAuthToken } from '@/utils/authToken'
 
 const AUTH_SERVER_URL = process.env.AUTH_SERVER_URL || 'http://localhost:4000'
 
+// Mark as dynamic since it uses request headers/URL
+export const dynamic = 'force-dynamic'
+
 /**
  * OAuth callback handler that gets JWT token from auth server
  * This is called after successful OAuth login

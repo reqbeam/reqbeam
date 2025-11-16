@@ -1,7 +1,7 @@
 import { NextRequest } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from './auth';
-import { prisma } from './prisma';
+import { UserService } from '@shared/index';
 
 /**
  * Unified authentication helper for API routes
@@ -41,10 +41,8 @@ export async function getAuthenticatedUser(request?: NextRequest): Promise<{ id:
         }
         
         // Verify user exists
-        const user = await prisma.user.findUnique({
-          where: { id: userId },
-          select: { id: true, email: true, name: true }
-        });
+        const userService = new UserService()
+        const user = await userService.findByIdForAuth(userId)
         
         return user;
       } catch (error) {

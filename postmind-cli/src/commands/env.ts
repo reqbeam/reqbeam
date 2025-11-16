@@ -1,7 +1,7 @@
 import { Command } from 'commander';
 import chalk from 'chalk';
 import inquirer from 'inquirer';
-import { ApiStorageManager } from '../utils/apiStorage.js';
+import { DbStorageManager } from '../utils/dbStorage.js';
 import { Formatter } from '../utils/formatter.js';
 
 const envCommand = new Command('env');
@@ -15,7 +15,7 @@ envCommand
   .description('List all environments')
   .action(async () => {
     try {
-      const storage = ApiStorageManager.getInstance();
+      const storage = DbStorageManager.getInstance();
       const environments = await storage.listEnvironments();
       
       if (environments.length === 0) {
@@ -41,7 +41,7 @@ envCommand
   .option('-i, --interactive', 'Add variables interactively')
   .action(async (name: string, options: { interactive?: boolean }) => {
     try {
-      const storage = ApiStorageManager.getInstance();
+      const storage = DbStorageManager.getInstance();
       
       // Check if environment already exists
       const existingEnv = await storage.findEnvironmentByName(name);
@@ -101,7 +101,7 @@ envCommand
   .option('-f, --force', 'Force removal without confirmation')
   .action(async (name: string, options: { force?: boolean }) => {
     try {
-      const storage = ApiStorageManager.getInstance();
+      const storage = DbStorageManager.getInstance();
       
       // Find environment
       const environment = await storage.findEnvironmentByName(name);
@@ -150,7 +150,7 @@ envCommand
   .description('Switch to a different environment (activate it)')
   .action(async (name: string) => {
     try {
-      const storage = ApiStorageManager.getInstance();
+      const storage = DbStorageManager.getInstance();
       
       // Find environment
       const environment = await storage.findEnvironmentByName(name);
@@ -184,7 +184,7 @@ envCommand
   .option('-r, --remove <keys>', 'Remove variables by keys (comma-separated)')
   .action(async (name: string, options: { add?: string; remove?: string }) => {
     try {
-      const storage = ApiStorageManager.getInstance();
+      const storage = DbStorageManager.getInstance();
       
       // Find environment
       const environment = await storage.findEnvironmentByName(name);

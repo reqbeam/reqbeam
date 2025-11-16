@@ -1,7 +1,7 @@
 import { Command } from 'commander';
 import chalk from 'chalk';
 import inquirer from 'inquirer';
-import { ApiStorageManager } from '../utils/apiStorage.js';
+import { DbStorageManager } from '../utils/dbStorage.js';
 import { ContextManager } from '../utils/context.js';
 
 const workspaceCommand = new Command('workspace');
@@ -15,7 +15,7 @@ workspaceCommand
   .description('List all workspaces')
   .action(async () => {
     try {
-      const storage = ApiStorageManager.getInstance();
+      const storage = DbStorageManager.getInstance();
       const workspaces = await storage.listWorkspaces();
       
       if (workspaces.length === 0) {
@@ -70,7 +70,7 @@ workspaceCommand
   .description('Create a new workspace')
   .action(async (name?: string, options?: { description?: string; interactive?: boolean }) => {
     try {
-      const storage = ApiStorageManager.getInstance();
+      const storage = DbStorageManager.getInstance();
       
       let workspaceName = name;
       let description = options?.description;
@@ -134,7 +134,7 @@ workspaceCommand
   .description('Switch to a workspace')
   .action(async (name: string) => {
     try {
-      const storage = ApiStorageManager.getInstance();
+      const storage = DbStorageManager.getInstance();
       
       // Try to find by name first
       let workspace = await storage.findWorkspaceByName(name);
@@ -190,7 +190,7 @@ workspaceCommand
   .description('Delete a workspace')
   .action(async (name: string, options?: { force?: boolean }) => {
     try {
-      const storage = ApiStorageManager.getInstance();
+      const storage = DbStorageManager.getInstance();
       
       // Try to find by name first
       let workspace = await storage.findWorkspaceByName(name);
@@ -264,7 +264,7 @@ workspaceCommand
   .action(async (name: string) => {
     // Reuse the switch command logic
     try {
-      const storage = ApiStorageManager.getInstance();
+      const storage = DbStorageManager.getInstance();
       
       let workspace = await storage.findWorkspaceByName(name);
       
@@ -301,7 +301,7 @@ workspaceCommand
   .description('Select a workspace to work on (persists locally and activates on server)')
   .action(async (name: string) => {
     try {
-      const storage = ApiStorageManager.getInstance();
+      const storage = DbStorageManager.getInstance();
       let workspace = await storage.findWorkspaceByName(name);
       if (!workspace) {
         workspace = await storage.getWorkspace(name);

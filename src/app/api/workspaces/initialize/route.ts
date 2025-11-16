@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { prisma } from '@/lib/prisma'
+import { UserService, WorkspaceService } from '@shared/index'
 import { getAuthenticatedUser } from '@/lib/apiAuth'
 
 // POST /api/workspaces/initialize - Initialize default workspace for user
@@ -11,98 +11,35 @@ export async function POST(request: NextRequest) {
     }
 
     // Verify user exists in database
-    const dbUser = await prisma.user.findUnique({
-      where: { id: user.id },
-    })
+    const userService = new UserService()
+    const dbUser = await userService.findById(user.id)
     
     if (!dbUser) {
       return NextResponse.json({ error: 'User not found in database' }, { status: 404 })
     }
 
     // Check if user already has workspaces
-    const existingWorkspace = await prisma.workspace.findFirst({
-      where: {
-        ownerId: user.id,
-      },
-    })
+    const workspaceService = new WorkspaceService()
+    const hasWorkspaces = await workspaceService.hasWorkspaces(user.id)
 
-    if (existingWorkspace) {
+    if (hasWorkspaces) {
+      const workspaces = await workspaceService.getWorkspaces(user.id)
       return NextResponse.json(
-        { message: 'User already has workspaces', workspace: existingWorkspace },
+        { message: 'User already has workspaces', workspace: workspaces[0] },
         { status: 200 }
       )
     }
 
     // Create default workspace
     console.log('Initializing workspace for userId:', user.id)
-    const defaultWorkspace = await prisma.workspace.create({
-      data: {
-        name: 'My Workspace',
-        description: 'Default workspace',
-        owner: { connect: { id: user.id } },
-      },
-      include: {
-        owner: {
-          select: {
-            id: true,
-            name: true,
-            email: true,
-          },
-        },
-        members: true,
-        _count: {
-          select: {
-            collections: true,
-            requests: true,
-            environments: true,
-          },
-        },
-      },
+    const defaultWorkspace = await workspaceService.createWorkspace({
+      name: 'My Workspace',
+      description: 'Default workspace',
+      ownerId: user.id,
     })
 
     // Migrate existing data to default workspace
-    await prisma.$transaction([
-      // Update collections
-      prisma.collection.updateMany({
-        where: {
-          userId: user.id,
-          workspaceId: null,
-        },
-        data: {
-          workspaceId: defaultWorkspace.id,
-        },
-      }),
-      // Update requests
-      prisma.request.updateMany({
-        where: {
-          userId: user.id,
-          workspaceId: null,
-        },
-        data: {
-          workspaceId: defaultWorkspace.id,
-        },
-      }),
-      // Update environments
-      prisma.environment.updateMany({
-        where: {
-          userId: user.id,
-          workspaceId: null,
-        },
-        data: {
-          workspaceId: defaultWorkspace.id,
-        },
-      }),
-      // Update tabs
-      prisma.tab.updateMany({
-        where: {
-          userId: user.id,
-          workspaceId: null,
-        },
-        data: {
-          workspaceId: defaultWorkspace.id,
-        },
-      }),
-    ])
+    await workspaceService.migrateDataToWorkspace(user.id, defaultWorkspace.id)
 
     return NextResponse.json(
       { message: 'Default workspace created', workspace: defaultWorkspace },

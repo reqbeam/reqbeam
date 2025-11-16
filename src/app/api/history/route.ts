@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { prisma } from '@/lib/prisma'
+import { HistoryService } from '@shared/index'
 import { getAuthenticatedUser } from '@/lib/apiAuth'
 
 // GET /api/history - Fetch all history entries
@@ -15,30 +15,8 @@ export async function GET(request: NextRequest) {
     const workspaceId = searchParams.get('workspaceId') || request.headers.get('x-workspace-id')
     const limit = parseInt(searchParams.get('limit') || '100')
 
-    const where: any = {
-      userId: user.id,
-    }
-
-    if (source) {
-      where.source = source
-    }
-
-    // Filter by workspace if provided
-    // Include both workspace-specific entries AND legacy entries (workspaceId: null)
-    if (workspaceId) {
-      where.OR = [
-        { workspaceId: workspaceId },
-        { workspaceId: null }  // Include legacy entries without workspace
-      ]
-    }
-
-    const history = await prisma.apiHistory.findMany({
-      where,
-      orderBy: {
-        createdAt: 'desc',
-      },
-      take: limit,
-    })
+    const historyService = new HistoryService()
+    const history = await historyService.getHistory(user.id, workspaceId || undefined, source || undefined, limit)
 
     return NextResponse.json(history)
   } catch (error) {
@@ -78,17 +56,16 @@ export async function POST(request: NextRequest) {
     }
 
     // Create history entry
-    const historyEntry = await prisma.apiHistory.create({
-      data: {
-        method: method.toUpperCase(),
-        url,
-        statusCode: statusCode || null,
-        source,
-        duration: duration || null,
-        error: error || null,
-        userId: user.id,
-        workspaceId: workspaceId || null,
-      },
+    const historyService = new HistoryService()
+    const historyEntry = await historyService.createApiHistory({
+      method: method.toUpperCase(),
+      url,
+      statusCode: statusCode || null,
+      source,
+      duration: duration || null,
+      error: error || null,
+      userId: user.id,
+      workspaceId: workspaceId || null,
     })
 
     return NextResponse.json(historyEntry, { status: 201 })
@@ -112,16 +89,8 @@ export async function DELETE(request: NextRequest) {
     const { searchParams } = new URL(request.url)
     const workspaceId = searchParams.get('workspaceId')
 
-    const where: any = {
-      userId: user.id,
-    }
-
-    // If workspaceId provided, only delete history for that workspace
-    if (workspaceId) {
-      where.workspaceId = workspaceId
-    }
-
-    await prisma.apiHistory.deleteMany({ where })
+    const historyService = new HistoryService()
+    await historyService.clearHistory(user.id, workspaceId || undefined)
     
     return NextResponse.json({ 
       message: workspaceId 

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { prisma } from '@/lib/prisma'
+import { WorkspaceService } from '@shared/index'
 import { getAuthenticatedUser } from '@/lib/apiAuth'
 
 // POST /api/workspaces/:id/activate - Set active workspace
@@ -15,48 +15,8 @@ export async function POST(
 
     // Verify user has access to this workspace
     const { id } = await params
-    const workspace = await prisma.workspace.findFirst({
-      where: {
-        id: id,
-        OR: [
-          { ownerId: user.id },
-          {
-            members: {
-              some: {
-                userId: user.id,
-              },
-            },
-          },
-        ],
-      },
-      include: {
-        owner: {
-          select: {
-            id: true,
-            name: true,
-            email: true,
-          },
-        },
-        members: {
-          include: {
-            user: {
-              select: {
-                id: true,
-                name: true,
-                email: true,
-              },
-            },
-          },
-        },
-        _count: {
-          select: {
-            collections: true,
-            requests: true,
-            environments: true,
-          },
-        },
-      },
-    })
+    const workspaceService = new WorkspaceService()
+    const workspace = await workspaceService.getWorkspace(id, user.id)
 
     if (!workspace) {
       return NextResponse.json(

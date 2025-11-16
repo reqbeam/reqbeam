@@ -7,6 +7,10 @@ import { useWorkspaceStore } from '@/store/workspaceStore'
 import EnvironmentModal from '@/components/EnvironmentModal'
 import EnvironmentTable from '@/components/EnvironmentTable'
 
+// Prevent static generation since this uses client-side context
+export const dynamic = 'force-dynamic'
+export const revalidate = 0
+
 export default function EnvironmentsPage() {
   const {
     environments,

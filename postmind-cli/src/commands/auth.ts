@@ -37,9 +37,7 @@ authCommand
       // Prompt for credentials if not provided
       let email = options.email;
       let password = options.password;
-      // Use environment variable if available (for Docker), otherwise default to localhost
-      const defaultApiUrl = process.env.POSTMIND_API_URL || 'http://localhost:3000';
-      let apiUrl = options.url || defaultApiUrl;
+      let apiUrl = options.url || 'http://localhost:3000';
 
       if (!email || !password) {
         console.log(chalk.bold('Postmind Authentication'));
@@ -50,7 +48,7 @@ authCommand
             type: 'input',
             name: 'apiUrl',
             message: 'API URL:',
-            default: defaultApiUrl,
+            default: 'http://localhost:3000',
             when: !options.url,
           },
           {

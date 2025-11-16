@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { prisma } from '@/lib/prisma'
+import { UserService } from '@shared/index'
 
 const AUTH_SERVER_URL = process.env.AUTH_SERVER_URL || 'http://localhost:4000'
 
@@ -21,9 +21,8 @@ export async function POST(request: NextRequest) {
     const isSyncCall = request.headers.get('x-sync-from') === 'auth-server'
 
     // Check if user already exists
-    const existingUser = await prisma.user.findUnique({
-      where: { email },
-    })
+    const userService = new UserService()
+    const existingUser = await userService.findByEmail(email)
 
     // If user exists and this is a sync call, return success
     if (existingUser && isSyncCall) {
@@ -41,12 +40,10 @@ export async function POST(request: NextRequest) {
     }
 
     // Create OAuth user (no password)
-    const user = await prisma.user.create({
-      data: {
-        email,
-        name: name || email.split('@')[0],
-        password: null, // OAuth users don't have passwords
-      },
+    const user = await userService.create({
+      email,
+      name: name || email.split('@')[0],
+      password: null, // OAuth users don't have passwords
     })
 
     // Also sync to auth server

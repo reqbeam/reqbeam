@@ -92,8 +92,10 @@ cp env.example .env
 Then edit the `.env` file with your configuration:
 
 ```env
-# Database
-DATABASE_URL="postgresql://username:password@localhost:5432/postman_clone?schema=public"
+# Database (Required - used by shared library, CLI, Web, and Auth Server)
+DATABASE_URL="file:./prisma/dev.db"  # For SQLite (development)
+# or
+DATABASE_URL="postgresql://username:password@localhost:5432/postman_clone?schema=public"  # For PostgreSQL
 
 # NextAuth
 NEXTAUTH_URL="http://localhost:3000"
@@ -105,7 +107,7 @@ NEXT_PUBLIC_APP_NAME="OSS"
 
 **Configuration Details:**
 
-- **DATABASE_URL**: Your PostgreSQL connection string
+- **DATABASE_URL**: Database connection string (SQLite or PostgreSQL). This is used by the **shared library** which provides database access to CLI, Web, and Auth Server. See [SETUP_DATABASE.md](./SETUP_DATABASE.md) for details.
   - Replace `username` with your PostgreSQL username
   - Replace `password` with your PostgreSQL password
   - Replace `postman_clone` with your database name (or create it)
@@ -121,7 +123,23 @@ NEXT_PUBLIC_APP_NAME="OSS"
 
 ### 4. Set Up the Database
 
-#### Create PostgreSQL Database
+**Important**: The database connection is centralized in the shared library (`shared/prisma.ts`). All components (CLI, Web, Auth Server) use this single connection. See [SETUP_DATABASE.md](./SETUP_DATABASE.md) for detailed information.
+
+#### Generate Prisma Client
+
+```bash
+npm run db:generate
+```
+
+This generates the Prisma Client used by the shared library.
+
+#### Push Schema to Database
+
+```bash
+npm run db:push
+```
+
+#### Create PostgreSQL Database (if using PostgreSQL)
 
 ```bash
 # Login to PostgreSQL

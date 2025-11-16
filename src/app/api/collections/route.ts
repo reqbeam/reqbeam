@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { prisma } from '@/lib/prisma'
+import { CollectionService } from '@shared/index'
 import { getAuthenticatedUser } from '@/lib/apiAuth'
 
 export async function GET(request: NextRequest) {
@@ -11,37 +11,10 @@ export async function GET(request: NextRequest) {
 
     // Get workspaceId from query params or header
     const { searchParams } = new URL(request.url)
-    const workspaceId = searchParams.get('workspaceId') || request.headers.get('x-workspace-id')
+    const workspaceId = searchParams.get('workspaceId') || request.headers.get('x-workspace-id') || undefined
 
-    const whereClause: any = {
-      userId: user.id,
-    }
-
-    // Filter by workspace if workspaceId is provided
-    if (workspaceId) {
-      whereClause.workspaceId = workspaceId
-    }
-
-    const collections = await prisma.collection.findMany({
-      where: whereClause,
-      include: {
-        requests: {
-          select: {
-            id: true,
-            name: true,
-            method: true,
-            url: true,
-            headers: true,
-            body: true,
-            bodyType: true,
-            auth: true,
-          },
-        },
-      },
-      orderBy: {
-        createdAt: 'desc',
-      },
-    })
+    const collectionService = new CollectionService()
+    const collections = await collectionService.getCollections(user.id, workspaceId)
 
     return NextResponse.json(collections)
   } catch (error) {
@@ -63,6 +36,10 @@ export async function POST(request: NextRequest) {
     const body = await request.json()
     const { name, description, collectionId, workspaceId, request: requestData } = body
 
+    const collectionService = new CollectionService()
+    const { RequestService } = await import('../../../../shared/index.js')
+    const requestService = new RequestService()
+
     // If saving a request to a collection
     if (collectionId && requestData) {
       if (!requestData.name || !requestData.method || !requestData.url) {
@@ -72,14 +49,8 @@ export async function POST(request: NextRequest) {
         )
       }
 
-      // Verify the collection belongs to the user
-      const collection = await prisma.collection.findFirst({
-        where: {
-          id: collectionId,
-          userId: user.id,
-        },
-      })
-
+      // Get collection to get workspaceId
+      const collection = await collectionService.getCollection(collectionId, user.id)
       if (!collection) {
         return NextResponse.json(
           { error: 'Collection not found' },
@@ -87,26 +58,18 @@ export async function POST(request: NextRequest) {
         )
       }
 
-      // Create the request with workspaceId from collection
-      const newRequest = await prisma.request.create({
-        data: {
-          name: requestData.name,
-          method: requestData.method,
-          url: requestData.url,
-          headers: requestData.headers
-            ? (typeof requestData.headers === 'string' ? requestData.headers : JSON.stringify(requestData.headers))
-            : null,
-          body: requestData.body
-            ? (typeof requestData.body === 'string' ? requestData.body : JSON.stringify(requestData.body))
-            : null,
-          bodyType: requestData.bodyType || 'json',
-          auth: requestData.auth
-            ? (typeof requestData.auth === 'string' ? requestData.auth : JSON.stringify(requestData.auth))
-            : null,
-          collectionId: collectionId,
-          userId: user.id,
-          workspaceId: collection.workspaceId,
-        },
+      // Create the request
+      const newRequest = await requestService.createRequest({
+        name: requestData.name,
+        method: requestData.method,
+        url: requestData.url,
+        headers: requestData.headers,
+        body: requestData.body,
+        bodyType: requestData.bodyType || 'json',
+        auth: requestData.auth,
+        collectionId: collectionId,
+        userId: user.id,
+        workspaceId: collection.workspaceId || undefined,
       })
 
       return NextResponse.json(newRequest, { status: 201 })
@@ -120,13 +83,11 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const collection = await prisma.collection.create({
-      data: {
-        name,
-        description,
-        userId: user.id,
-        workspaceId: workspaceId || null,
-      },
+    const collection = await collectionService.createCollection({
+      name,
+      description,
+      userId: user.id,
+      workspaceId: workspaceId || undefined,
     })
 
     return NextResponse.json(collection, { status: 201 })

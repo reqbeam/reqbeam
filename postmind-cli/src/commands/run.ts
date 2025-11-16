@@ -1,7 +1,7 @@
 import { Command } from 'commander';
 import chalk from 'chalk';
 import ora from 'ora';
-import { ApiStorageManager } from '../utils/apiStorage.js';
+import { DbStorageManager } from '../utils/dbStorage.js';
 import { RequestExecutor } from '../utils/request.js';
 import { Formatter } from '../utils/formatter.js';
 import { Logger } from '../utils/logger.js';
@@ -21,7 +21,7 @@ runCommand
   .option('-v, --verbose', 'Verbose output')
   .action(async (requestName: string, options: RunOptions) => {
     try {
-      const storage = ApiStorageManager.getInstance();
+      const storage = DbStorageManager.getInstance();
       
       // Find request
       const request = await storage.findRequestByName(requestName);
@@ -103,7 +103,7 @@ runCommand
   .option('-v, --verbose', 'Verbose output')
   .action(async (collectionName: string, options: RunOptions) => {
     try {
-      const storage = ApiStorageManager.getInstance();
+      const storage = DbStorageManager.getInstance();
       
       // Find collection
       const collections = await storage.listCollections();

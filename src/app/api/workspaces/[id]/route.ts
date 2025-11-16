@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { prisma } from '@/lib/prisma'
+import { WorkspaceService } from '@shared/index'
 import { getAuthenticatedUser } from '@/lib/apiAuth'
 
 // GET /api/workspaces/:id - Get specific workspace
@@ -14,48 +14,8 @@ export async function GET(
     }
 
     const { id } = await params
-    const workspace = await prisma.workspace.findFirst({
-      where: {
-        id: id,
-        OR: [
-          { ownerId: user.id },
-          {
-            members: {
-              some: {
-                userId: user.id,
-              },
-            },
-          },
-        ],
-      },
-      include: {
-        owner: {
-          select: {
-            id: true,
-            name: true,
-            email: true,
-          },
-        },
-        members: {
-          include: {
-            user: {
-              select: {
-                id: true,
-                name: true,
-                email: true,
-              },
-            },
-          },
-        },
-        _count: {
-          select: {
-            collections: true,
-            requests: true,
-            environments: true,
-          },
-        },
-      },
-    })
+    const workspaceService = new WorkspaceService()
+    const workspace = await workspaceService.getWorkspace(id, user.id)
 
     if (!workspace) {
       return NextResponse.json(
@@ -89,32 +49,8 @@ export async function PUT(
     const body = await request.json()
     const { name, description } = body
 
-    // Verify ownership or editor permission
-    const workspace = await prisma.workspace.findFirst({
-      where: {
-        id: id,
-        OR: [
-          { ownerId: user.id },
-          {
-            members: {
-              some: {
-                userId: user.id,
-                role: { in: ['owner', 'editor'] },
-              },
-            },
-          },
-        ],
-      },
-    })
-
-    if (!workspace) {
-      return NextResponse.json(
-        { error: 'Workspace not found or insufficient permissions' },
-        { status: 404 }
-      )
-    }
-
-    const updateData: any = {}
+    const workspaceService = new WorkspaceService()
+    
     if (name !== undefined) {
       if (typeof name !== 'string' || name.trim().length === 0) {
         return NextResponse.json(
@@ -122,42 +58,11 @@ export async function PUT(
           { status: 400 }
         )
       }
-      updateData.name = name.trim()
-    }
-    if (description !== undefined) {
-      updateData.description = description?.trim() || null
     }
 
-    const updatedWorkspace = await prisma.workspace.update({
-      where: { id: id },
-      data: updateData,
-      include: {
-        owner: {
-          select: {
-            id: true,
-            name: true,
-            email: true,
-          },
-        },
-        members: {
-          include: {
-            user: {
-              select: {
-                id: true,
-                name: true,
-                email: true,
-              },
-            },
-          },
-        },
-        _count: {
-          select: {
-            collections: true,
-            requests: true,
-            environments: true,
-          },
-        },
-      },
+    const updatedWorkspace = await workspaceService.updateWorkspace(id, user.id, {
+      name: name !== undefined ? name.trim() : undefined,
+      description: description !== undefined ? description?.trim() || null : undefined,
     })
 
     return NextResponse.json(updatedWorkspace)
@@ -183,23 +88,8 @@ export async function DELETE(
 
     // Verify ownership (only owner can delete)
     const { id } = await params
-    const workspace = await prisma.workspace.findFirst({
-      where: {
-        id: id,
-        ownerId: user.id,
-      },
-    })
-
-    if (!workspace) {
-      return NextResponse.json(
-        { error: 'Workspace not found or insufficient permissions' },
-        { status: 404 }
-      )
-    }
-
-    await prisma.workspace.delete({
-      where: { id: id },
-    })
+    const workspaceService = new WorkspaceService()
+    await workspaceService.deleteWorkspace(id, user.id)
 
     return NextResponse.json({ success: true })
   } catch (error) {

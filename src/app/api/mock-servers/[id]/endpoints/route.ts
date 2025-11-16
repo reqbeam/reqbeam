@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { prisma } from '@/lib/prisma'
+import { MockServerService } from '@shared/index'
 import { getAuthenticatedUser } from '@/lib/apiAuth'
 
 export async function GET(
@@ -14,30 +14,8 @@ export async function GET(
 
     const { id } = await params
 
-    // Verify mock server belongs to user
-    const mockServer = await prisma.mockServer.findFirst({
-      where: {
-        id,
-        userId: user.id,
-      },
-    })
-
-    if (!mockServer) {
-      return NextResponse.json(
-        { error: 'Mock server not found' },
-        { status: 404 }
-      )
-    }
-
-    const endpoints = await prisma.mockEndpoint.findMany({
-      where: {
-        mockServerId: id,
-      },
-      orderBy: [
-        { method: 'asc' },
-        { path: 'asc' },
-      ],
-    })
+    const mockServerService = new MockServerService()
+    const endpoints = await mockServerService.getEndpoints(id, user.id)
 
     return NextResponse.json(endpoints)
   } catch (error) {
@@ -76,34 +54,26 @@ export async function POST(
       )
     }
 
-    // Verify mock server belongs to user
-    const mockServer = await prisma.mockServer.findFirst({
-      where: {
-        id,
-        userId: user.id,
-      },
-    })
-
-    if (!mockServer) {
-      return NextResponse.json(
-        { error: 'Mock server not found' },
-        { status: 404 }
-      )
-    }
-
-    // Create endpoint
-    const endpoint = await prisma.mockEndpoint.create({
-      data: {
+    const mockServerService = new MockServerService()
+    try {
+      const endpoint = await mockServerService.createEndpoint(id, user.id, {
         mockServerId: id,
         method: method.toUpperCase(),
         path,
         response: response || null,
         statusCode,
         headers: headers ? JSON.stringify(headers) : JSON.stringify({ 'Content-Type': 'application/json' }),
-      },
-    })
-
-    return NextResponse.json(endpoint, { status: 201 })
+      })
+      return NextResponse.json(endpoint, { status: 201 })
+    } catch (error: any) {
+      if (error.message === 'Mock server not found') {
+        return NextResponse.json(
+          { error: 'Mock server not found' },
+          { status: 404 }
+        )
+      }
+      throw error
+    }
   } catch (error) {
     console.error('Error creating mock endpoint:', error)
     return NextResponse.json(

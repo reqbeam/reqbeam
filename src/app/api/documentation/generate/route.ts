@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
-import { prisma } from '@/lib/prisma'
+import { CollectionService, RequestService } from '@shared/index'
 
 export async function POST(request: NextRequest) {
   try {
@@ -20,21 +20,15 @@ export async function POST(request: NextRequest) {
     }
 
     // Fetch collection with requests
-    const collection = await prisma.collection.findFirst({
-      where: {
-        id: collectionId,
-        userId: session.user.id,
-      },
-      include: {
-        requests: {
-          orderBy: {
-            createdAt: 'asc',
-          },
-        },
-      },
-    })
+    const collectionService = new CollectionService()
+    const collection = await collectionService.getCollection(collectionId, session.user.id)
+    const requestService = new RequestService()
+    const requests = await requestService.getRequests(session.user.id, collectionId)
+    
+    // Combine collection with requests for compatibility
+    const collectionWithRequests = collection ? { ...collection, requests } : null
 
-    if (!collection) {
+    if (!collectionWithRequests) {
       return NextResponse.json(
         { error: 'Collection not found' },
         { status: 404 }
@@ -44,9 +38,9 @@ export async function POST(request: NextRequest) {
     let documentation: string
 
     if (format === 'markdown') {
-      documentation = generateMarkdownDoc(collection)
+      documentation = generateMarkdownDoc(collectionWithRequests)
     } else {
-      documentation = generateJsonDoc(collection)
+      documentation = generateJsonDoc(collectionWithRequests)
     }
 
     return NextResponse.json({ documentation })

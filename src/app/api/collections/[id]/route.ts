@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { prisma } from '@/lib/prisma'
+import { CollectionService } from '@shared/index'
 import { getAuthenticatedUser } from '@/lib/apiAuth'
 
 export async function DELETE(
@@ -14,27 +14,8 @@ export async function DELETE(
 
     const { id: collectionId } = await params
 
-    // Check if collection belongs to user
-    const collection = await prisma.collection.findFirst({
-      where: {
-        id: collectionId,
-        userId: user.id,
-      },
-    })
-
-    if (!collection) {
-      return NextResponse.json(
-        { error: 'Collection not found' },
-        { status: 404 }
-      )
-    }
-
-    // Delete collection (cascade will delete associated requests)
-    await prisma.collection.delete({
-      where: {
-        id: collectionId,
-      },
-    })
+    const collectionService = new CollectionService()
+    await collectionService.deleteCollection(collectionId, user.id)
 
     return NextResponse.json({ message: 'Collection deleted successfully' })
   } catch (error) {
@@ -60,31 +41,8 @@ export async function PUT(
     const body = await request.json()
     const { name, description } = body
 
-    // Check if collection belongs to user
-    const collection = await prisma.collection.findFirst({
-      where: {
-        id: collectionId,
-        userId: user.id,
-      },
-    })
-
-    if (!collection) {
-      return NextResponse.json(
-        { error: 'Collection not found' },
-        { status: 404 }
-      )
-    }
-
-    // Update collection
-    const updatedCollection = await prisma.collection.update({
-      where: {
-        id: collectionId,
-      },
-      data: {
-        ...(name && { name }),
-        ...(description !== undefined && { description }),
-      },
-    })
+    const collectionService = new CollectionService()
+    const updatedCollection = await collectionService.updateCollection(collectionId, user.id, { name, description })
 
     return NextResponse.json(updatedCollection)
   } catch (error) {

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { prisma } from '@/lib/prisma'
+import { WorkspaceService } from '@shared/index'
 import { getAuthenticatedUser } from '@/lib/apiAuth'
 
 // GET /api/workspaces - List all user workspaces
@@ -10,90 +10,10 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    // Get workspaces where user is the owner or a member
-    const ownedWorkspaces = await prisma.workspace.findMany({
-      where: {
-        ownerId: user.id,
-      },
-      include: {
-        owner: {
-          select: {
-            id: true,
-            name: true,
-            email: true,
-          },
-        },
-        members: {
-          include: {
-            user: {
-              select: {
-                id: true,
-                name: true,
-                email: true,
-              },
-            },
-          },
-        },
-        _count: {
-          select: {
-            collections: true,
-            requests: true,
-            environments: true,
-          },
-        },
-      },
-      orderBy: {
-        createdAt: 'desc',
-      },
-    })
+    const workspaceService = new WorkspaceService()
+    const workspaces = await workspaceService.getWorkspaces(user.id)
 
-    const memberWorkspaces = await prisma.workspace.findMany({
-      where: {
-        members: {
-          some: {
-            userId: user.id,
-          },
-        },
-      },
-      include: {
-        owner: {
-          select: {
-            id: true,
-            name: true,
-            email: true,
-          },
-        },
-        members: {
-          include: {
-            user: {
-              select: {
-                id: true,
-                name: true,
-                email: true,
-              },
-            },
-          },
-        },
-        _count: {
-          select: {
-            collections: true,
-            requests: true,
-            environments: true,
-          },
-        },
-      },
-      orderBy: {
-        createdAt: 'desc',
-      },
-    })
-
-    // Combine and deduplicate workspaces
-    const allWorkspaces = [...ownedWorkspaces, ...memberWorkspaces]
-    const uniqueWorkspaces = Array.from(
-      new Map(allWorkspaces.map(w => [w.id, w])).values()
-    )
-
-    return NextResponse.json(uniqueWorkspaces)
+    return NextResponse.json(workspaces)
   } catch (error) {
     console.error('Error fetching workspaces:', error)
     return NextResponse.json(
@@ -114,37 +34,11 @@ export async function POST(request: NextRequest) {
     const body = await request.json()
     const { name, description } = body
 
-    if (!name || typeof name !== 'string' || name.trim().length === 0) {
-      return NextResponse.json(
-        { error: 'Workspace name is required' },
-        { status: 400 }
-      )
-    }
-
-    // Create workspace
-    const workspace = await prisma.workspace.create({
-      data: {
-        name: name.trim(),
-        description: description?.trim() || null,
-        ownerId: user.id,
-      },
-      include: {
-        owner: {
-          select: {
-            id: true,
-            name: true,
-            email: true,
-          },
-        },
-        members: true,
-        _count: {
-          select: {
-            collections: true,
-            requests: true,
-            environments: true,
-          },
-        },
-      },
+    const workspaceService = new WorkspaceService()
+    const workspace = await workspaceService.createWorkspace({
+      name,
+      description,
+      ownerId: user.id,
     })
 
     return NextResponse.json(workspace, { status: 201 })

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { prisma } from '@/lib/prisma'
+import { CollectionService, RequestService } from '@shared/index'
 import { getAuthenticatedUser } from '@/lib/apiAuth'
 import { exportCollection } from '@/lib/importExportService'
 
@@ -18,28 +18,15 @@ export async function GET(
     const format = (searchParams.get('format') || 'json') as 'json' | 'yaml'
 
     // Verify collection belongs to user
-    const collection = await prisma.collection.findFirst({
-      where: {
-        id: collectionId,
-        userId: user.id,
-      },
-      include: {
-        requests: {
-          select: {
-            id: true,
-            name: true,
-            method: true,
-            url: true,
-            headers: true,
-            body: true,
-            bodyType: true,
-            auth: true,
-          },
-        },
-      },
-    })
+    const collectionService = new CollectionService()
+    const collection = await collectionService.getCollection(collectionId, user.id)
+    const requestService = new RequestService()
+    const requests = await requestService.getRequests(user.id, collectionId)
+    
+    // Combine for compatibility
+    const collectionWithRequests = collection ? { ...collection, requests } : null
 
-    if (!collection) {
+    if (!collectionWithRequests) {
       return NextResponse.json(
         { error: 'Collection not found' },
         { status: 404 }
@@ -48,9 +35,9 @@ export async function GET(
 
     // Convert to export format
     const exportData = {
-      name: collection.name,
-      description: collection.description || undefined,
-      requests: collection.requests.map(req => ({
+      name: collectionWithRequests.name,
+      description: collectionWithRequests.description || undefined,
+      requests: collectionWithRequests.requests.map(req => ({
         name: req.name,
         method: req.method,
         url: req.url,
@@ -66,7 +53,7 @@ export async function GET(
     // Return file with appropriate headers
     const contentType = format === 'yaml' ? 'application/x-yaml' : 'application/json'
     const extension = format === 'yaml' ? 'yaml' : 'json'
-    const filename = `${collection.name.replace(/[^a-zA-Z0-9]/g, '_')}.${extension}`
+    const filename = `${collectionWithRequests.name.replace(/[^a-zA-Z0-9]/g, '_')}.${extension}`
 
     return new NextResponse(exportedContent, {
       headers: {

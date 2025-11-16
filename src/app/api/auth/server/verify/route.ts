@@ -2,6 +2,9 @@ import { NextRequest, NextResponse } from 'next/server'
 
 const AUTH_SERVER_URL = process.env.AUTH_SERVER_URL || 'http://localhost:4000'
 
+// Mark as dynamic since it uses request headers
+export const dynamic = 'force-dynamic'
+
 /**
  * Token verification endpoint that uses the auth server on port 4000
  * Use this to verify JWT tokens issued by the auth server

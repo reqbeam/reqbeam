@@ -1,5 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { prisma } from '@/lib/prisma'
+import { UserService } from '@shared/index'
+
+// Mark as dynamic since it uses request headers
+export const dynamic = 'force-dynamic'
 
 export async function GET(request: NextRequest) {
   try {
@@ -19,10 +22,8 @@ export async function GET(request: NextRequest) {
     const [userId] = decoded.split(':')
     
     // Verify user exists
-    const user = await prisma.user.findUnique({
-      where: { id: userId },
-      select: { id: true, email: true, name: true }
-    })
+    const userService = new UserService()
+    const user = await userService.findByIdForAuth(userId)
 
     if (!user) {
       return NextResponse.json(
