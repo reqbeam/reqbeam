@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { prisma } from '@/lib/prisma'
+import { prisma, CollectionService, RequestService } from '@postmind/db'
 import { getAuthenticatedUser } from '@/lib/apiAuth'
 
 export async function GET(request: NextRequest) {
@@ -13,34 +13,9 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url)
     const workspaceId = searchParams.get('workspaceId') || request.headers.get('x-workspace-id')
 
-    const whereClause: any = {
-      userId: user.id,
-    }
-
-    // Filter by workspace if workspaceId is provided
-    if (workspaceId) {
-      whereClause.workspaceId = workspaceId
-    }
-
-    const collections = await prisma.collection.findMany({
-      where: whereClause,
-      include: {
-        requests: {
-          select: {
-            id: true,
-            name: true,
-            method: true,
-            url: true,
-            headers: true,
-            body: true,
-            bodyType: true,
-            auth: true,
-          },
-        },
-      },
-      orderBy: {
-        createdAt: 'desc',
-      },
+    const collectionService = new CollectionService(prisma)
+    const collections = await collectionService.getCollections(user.id, {
+      workspaceId: workspaceId || undefined,
     })
 
     return NextResponse.json(collections)
@@ -72,41 +47,17 @@ export async function POST(request: NextRequest) {
         )
       }
 
-      // Verify the collection belongs to the user
-      const collection = await prisma.collection.findFirst({
-        where: {
-          id: collectionId,
-          userId: user.id,
-        },
-      })
-
-      if (!collection) {
-        return NextResponse.json(
-          { error: 'Collection not found' },
-          { status: 404 }
-        )
-      }
-
-      // Create the request with workspaceId from collection
-      const newRequest = await prisma.request.create({
-        data: {
-          name: requestData.name,
-          method: requestData.method,
-          url: requestData.url,
-          headers: requestData.headers
-            ? (typeof requestData.headers === 'string' ? requestData.headers : JSON.stringify(requestData.headers))
-            : null,
-          body: requestData.body
-            ? (typeof requestData.body === 'string' ? requestData.body : JSON.stringify(requestData.body))
-            : null,
-          bodyType: requestData.bodyType || 'json',
-          auth: requestData.auth
-            ? (typeof requestData.auth === 'string' ? requestData.auth : JSON.stringify(requestData.auth))
-            : null,
-          collectionId: collectionId,
-          userId: user.id,
-          workspaceId: collection.workspaceId,
-        },
+      const requestService = new RequestService(prisma)
+      const newRequest = await requestService.createRequest(user.id, {
+        name: requestData.name,
+        method: requestData.method,
+        url: requestData.url,
+        headers: requestData.headers,
+        body: requestData.body,
+        bodyType: requestData.bodyType,
+        auth: requestData.auth,
+        collectionId: collectionId,
+        workspaceId: workspaceId,
       })
 
       return NextResponse.json(newRequest, { status: 201 })
@@ -120,18 +71,22 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const collection = await prisma.collection.create({
-      data: {
-        name,
-        description,
-        userId: user.id,
-        workspaceId: workspaceId || null,
-      },
+    const collectionService = new CollectionService(prisma)
+    const collection = await collectionService.createCollection(user.id, {
+      name,
+      description,
+      workspaceId: workspaceId || undefined,
     })
 
     return NextResponse.json(collection, { status: 201 })
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error creating collection or request:', error)
+    if (error.message) {
+      return NextResponse.json(
+        { error: error.message },
+        { status: error.message.includes('not found') ? 404 : 400 }
+      )
+    }
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }

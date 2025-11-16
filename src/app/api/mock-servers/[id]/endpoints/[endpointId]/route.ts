@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { prisma } from '@/lib/prisma'
+import { prisma, MockServerService } from '@postmind/db'
 import { getAuthenticatedUser } from '@/lib/apiAuth'
 
 export async function PUT(
@@ -22,48 +22,14 @@ export async function PUT(
       headers,
     } = body
 
-    // Verify mock server belongs to user
-    const mockServer = await prisma.mockServer.findFirst({
-      where: {
-        id,
-        userId: user.id,
-      },
-    })
-
-    if (!mockServer) {
-      return NextResponse.json(
-        { error: 'Mock server not found' },
-        { status: 404 }
-      )
-    }
-
-    // Verify endpoint belongs to mock server
-    const existingEndpoint = await prisma.mockEndpoint.findFirst({
-      where: {
-        id: endpointId,
-        mockServerId: id,
-      },
-    })
-
-    if (!existingEndpoint) {
-      return NextResponse.json(
-        { error: 'Endpoint not found' },
-        { status: 404 }
-      )
-    }
-
-    // Update endpoint
-    const updatedEndpoint = await prisma.mockEndpoint.update({
-      where: {
-        id: endpointId,
-      },
-      data: {
-        ...(method && { method: method.toUpperCase() }),
-        ...(path && { path }),
-        ...(response !== undefined && { response }),
-        ...(statusCode !== undefined && { statusCode }),
-        ...(headers !== undefined && { headers: headers ? JSON.stringify(headers) : null }),
-      },
+    // Update endpoint using service
+    const mockServerService = new MockServerService(prisma)
+    const updatedEndpoint = await mockServerService.updateMockEndpoint(id, endpointId, user.id, {
+      method: method ? method.toUpperCase() : undefined,
+      path,
+      response,
+      statusCode,
+      headers: headers !== undefined ? (headers ? JSON.stringify(headers) : null) : undefined,
     })
 
     return NextResponse.json(updatedEndpoint)
@@ -88,42 +54,9 @@ export async function DELETE(
 
     const { id, endpointId } = await params
 
-    // Verify mock server belongs to user
-    const mockServer = await prisma.mockServer.findFirst({
-      where: {
-        id,
-        userId: user.id,
-      },
-    })
-
-    if (!mockServer) {
-      return NextResponse.json(
-        { error: 'Mock server not found' },
-        { status: 404 }
-      )
-    }
-
-    // Verify endpoint belongs to mock server
-    const existingEndpoint = await prisma.mockEndpoint.findFirst({
-      where: {
-        id: endpointId,
-        mockServerId: id,
-      },
-    })
-
-    if (!existingEndpoint) {
-      return NextResponse.json(
-        { error: 'Endpoint not found' },
-        { status: 404 }
-      )
-    }
-
-    // Delete endpoint
-    await prisma.mockEndpoint.delete({
-      where: {
-        id: endpointId,
-      },
-    })
+    // Delete endpoint using service
+    const mockServerService = new MockServerService(prisma)
+    await mockServerService.deleteMockEndpoint(id, endpointId, user.id)
 
     return NextResponse.json({ message: 'Endpoint deleted successfully' })
   } catch (error) {

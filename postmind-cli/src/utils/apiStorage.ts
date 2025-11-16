@@ -1,17 +1,28 @@
-import { ApiClient, Collection, Request, Environment, Workspace } from './apiClient.js';
+import {
+  CollectionService,
+  RequestService,
+  EnvironmentService,
+  WorkspaceService,
+  HistoryService,
+  Collection,
+  Request,
+  Environment,
+  Workspace,
+} from '@postmind/db';
+import { DatabaseManager } from './db.js';
 import { ContextManager } from './context.js';
 import chalk from 'chalk';
 
 /**
- * API-based Storage Manager
- * Replaces file-based storage with API calls to the web UI database
+ * Database-based Storage Manager
+ * Uses the shared @postmind/db package for direct database access
  */
 export class ApiStorageManager {
   private static instance: ApiStorageManager;
-  private apiClient: ApiClient;
+  private dbManager: DatabaseManager;
 
   private constructor() {
-    this.apiClient = ApiClient.getInstance();
+    this.dbManager = DatabaseManager.getInstance();
   }
 
   public static getInstance(): ApiStorageManager {
@@ -21,11 +32,22 @@ export class ApiStorageManager {
     return ApiStorageManager.instance;
   }
 
+  // Helper to get user ID and workspace context
+  private async getContext() {
+    const userId = await this.dbManager.getCurrentUserId();
+    const ctx = ContextManager.getInstance();
+    const activeWorkspace = await ctx.getActiveWorkspace();
+    return { userId, workspaceId: activeWorkspace?.id };
+  }
+
   // ===== Workspaces =====
 
   async listWorkspaces(): Promise<Workspace[]> {
     try {
-      return await this.apiClient.getWorkspaces();
+      const prisma = await this.dbManager.getPrisma();
+      const userId = await this.dbManager.getCurrentUserId();
+      const workspaceService = new WorkspaceService(prisma);
+      return await workspaceService.getWorkspaces(userId);
     } catch (error: any) {
       console.error(chalk.red('Error fetching workspaces:'), error.message);
       return [];
@@ -34,7 +56,10 @@ export class ApiStorageManager {
 
   async getWorkspace(id: string): Promise<Workspace | null> {
     try {
-      return await this.apiClient.getWorkspace(id);
+      const prisma = await this.dbManager.getPrisma();
+      const userId = await this.dbManager.getCurrentUserId();
+      const workspaceService = new WorkspaceService(prisma);
+      return await workspaceService.getWorkspace(id, userId);
     } catch (error: any) {
       console.error(chalk.red('Error fetching workspace:'), error.message);
       return null;
@@ -48,7 +73,10 @@ export class ApiStorageManager {
 
   async createWorkspace(name: string, description?: string): Promise<Workspace | null> {
     try {
-      return await this.apiClient.createWorkspace({ name, description });
+      const prisma = await this.dbManager.getPrisma();
+      const userId = await this.dbManager.getCurrentUserId();
+      const workspaceService = new WorkspaceService(prisma);
+      return await workspaceService.createWorkspace(userId, { name, description });
     } catch (error: any) {
       console.error(chalk.red('Error creating workspace:'), error.message);
       return null;
@@ -57,7 +85,10 @@ export class ApiStorageManager {
 
   async updateWorkspace(id: string, name?: string, description?: string): Promise<Workspace | null> {
     try {
-      return await this.apiClient.updateWorkspace(id, { name, description });
+      const prisma = await this.dbManager.getPrisma();
+      const userId = await this.dbManager.getCurrentUserId();
+      const workspaceService = new WorkspaceService(prisma);
+      return await workspaceService.updateWorkspace(id, userId, { name, description });
     } catch (error: any) {
       console.error(chalk.red('Error updating workspace:'), error.message);
       return null;
@@ -66,7 +97,10 @@ export class ApiStorageManager {
 
   async deleteWorkspace(id: string): Promise<boolean> {
     try {
-      await this.apiClient.deleteWorkspace(id);
+      const prisma = await this.dbManager.getPrisma();
+      const userId = await this.dbManager.getCurrentUserId();
+      const workspaceService = new WorkspaceService(prisma);
+      await workspaceService.deleteWorkspace(id, userId);
       return true;
     } catch (error: any) {
       console.error(chalk.red('Error deleting workspace:'), error.message);
@@ -75,19 +109,31 @@ export class ApiStorageManager {
   }
 
   async activateWorkspace(id: string): Promise<Workspace | null> {
+    // Workspace activation is just setting it as active in context
+    // The actual activation logic is handled by the workspace service
     try {
-      return await this.apiClient.activateWorkspace(id);
+      const workspace = await this.getWorkspace(id);
+      if (workspace) {
+        const ctx = ContextManager.getInstance();
+        await ctx.setActiveWorkspace({ id: workspace.id, name: workspace.name });
+      }
+      return workspace;
     } catch (error: any) {
       console.error(chalk.red('Error activating workspace:'), error.message);
       return null;
     }
   }
 
-  // ===== Collections (replaces Projects) =====
+  // ===== Collections =====
 
   async listCollections(): Promise<Collection[]> {
     try {
-      return await this.apiClient.getCollections();
+      const prisma = await this.dbManager.getPrisma();
+      const { userId, workspaceId } = await this.getContext();
+      const collectionService = new CollectionService(prisma);
+      return await collectionService.getCollections(userId, {
+        workspaceId: workspaceId || undefined,
+      });
     } catch (error: any) {
       console.error(chalk.red('Error fetching collections:'), error.message);
       return [];
@@ -96,7 +142,10 @@ export class ApiStorageManager {
 
   async getCollection(id: string): Promise<Collection | null> {
     try {
-      return await this.apiClient.getCollection(id);
+      const prisma = await this.dbManager.getPrisma();
+      const userId = await this.dbManager.getCurrentUserId();
+      const collectionService = new CollectionService(prisma);
+      return await collectionService.getCollection(id, userId);
     } catch (error: any) {
       console.error(chalk.red('Error fetching collection:'), error.message);
       return null;
@@ -105,10 +154,14 @@ export class ApiStorageManager {
 
   async createCollection(name: string, description?: string): Promise<Collection | null> {
     try {
-      // Attach selected workspace if present
-      const ctx = ContextManager.getInstance();
-      const activeWorkspace = await ctx.getActiveWorkspace();
-      return await this.apiClient.createCollection({ name, description, ...(activeWorkspace ? { workspaceId: activeWorkspace.id } as any : {}) });
+      const prisma = await this.dbManager.getPrisma();
+      const { userId, workspaceId } = await this.getContext();
+      const collectionService = new CollectionService(prisma);
+      return await collectionService.createCollection(userId, {
+        name,
+        description,
+        workspaceId: workspaceId || undefined,
+      });
     } catch (error: any) {
       console.error(chalk.red('Error creating collection:'), error.message);
       return null;
@@ -117,7 +170,10 @@ export class ApiStorageManager {
 
   async updateCollection(id: string, name?: string, description?: string): Promise<Collection | null> {
     try {
-      return await this.apiClient.updateCollection(id, { name, description });
+      const prisma = await this.dbManager.getPrisma();
+      const userId = await this.dbManager.getCurrentUserId();
+      const collectionService = new CollectionService(prisma);
+      return await collectionService.updateCollection(id, userId, { name, description });
     } catch (error: any) {
       console.error(chalk.red('Error updating collection:'), error.message);
       return null;
@@ -126,7 +182,10 @@ export class ApiStorageManager {
 
   async deleteCollection(id: string): Promise<boolean> {
     try {
-      await this.apiClient.deleteCollection(id);
+      const prisma = await this.dbManager.getPrisma();
+      const userId = await this.dbManager.getCurrentUserId();
+      const collectionService = new CollectionService(prisma);
+      await collectionService.deleteCollection(id, userId);
       return true;
     } catch (error: any) {
       console.error(chalk.red('Error deleting collection:'), error.message);
@@ -138,7 +197,13 @@ export class ApiStorageManager {
 
   async listRequests(collectionId?: string): Promise<Request[]> {
     try {
-      return await this.apiClient.getRequests(collectionId);
+      const prisma = await this.dbManager.getPrisma();
+      const { userId, workspaceId } = await this.getContext();
+      const requestService = new RequestService(prisma);
+      return await requestService.getRequests(userId, {
+        workspaceId: workspaceId || undefined,
+        collectionId,
+      });
     } catch (error: any) {
       console.error(chalk.red('Error fetching requests:'), error.message);
       return [];
@@ -147,7 +212,10 @@ export class ApiStorageManager {
 
   async getRequest(id: string): Promise<Request | null> {
     try {
-      return await this.apiClient.getRequest(id);
+      const prisma = await this.dbManager.getPrisma();
+      const userId = await this.dbManager.getCurrentUserId();
+      const requestService = new RequestService(prisma);
+      return await requestService.getRequest(id, userId);
     } catch (error: any) {
       console.error(chalk.red('Error fetching request:'), error.message);
       return null;
@@ -169,9 +237,13 @@ export class ApiStorageManager {
     collectionId?: string;
   }): Promise<Request | null> {
     try {
-      const ctx = ContextManager.getInstance();
-      const activeWorkspace = await ctx.getActiveWorkspace();
-      return await this.apiClient.createRequest({ ...data, ...(activeWorkspace ? { workspaceId: activeWorkspace.id } as any : {}) });
+      const prisma = await this.dbManager.getPrisma();
+      const { userId, workspaceId } = await this.getContext();
+      const requestService = new RequestService(prisma);
+      return await requestService.createRequest(userId, {
+        ...data,
+        workspaceId: workspaceId || undefined,
+      });
     } catch (error: any) {
       console.error(chalk.red('Error creating request:'), error.message);
       return null;
@@ -188,7 +260,10 @@ export class ApiStorageManager {
     collectionId?: string;
   }): Promise<Request | null> {
     try {
-      return await this.apiClient.updateRequest(id, data);
+      const prisma = await this.dbManager.getPrisma();
+      const userId = await this.dbManager.getCurrentUserId();
+      const requestService = new RequestService(prisma);
+      return await requestService.updateRequest(id, userId, data);
     } catch (error: any) {
       console.error(chalk.red('Error updating request:'), error.message);
       return null;
@@ -197,7 +272,10 @@ export class ApiStorageManager {
 
   async deleteRequest(id: string): Promise<boolean> {
     try {
-      await this.apiClient.deleteRequest(id);
+      const prisma = await this.dbManager.getPrisma();
+      const userId = await this.dbManager.getCurrentUserId();
+      const requestService = new RequestService(prisma);
+      await requestService.deleteRequest(id, userId);
       return true;
     } catch (error: any) {
       console.error(chalk.red('Error deleting request:'), error.message);
@@ -209,7 +287,12 @@ export class ApiStorageManager {
 
   async listEnvironments(): Promise<Environment[]> {
     try {
-      return await this.apiClient.getEnvironments();
+      const prisma = await this.dbManager.getPrisma();
+      const { userId, workspaceId } = await this.getContext();
+      const environmentService = new EnvironmentService(prisma);
+      return await environmentService.getEnvironments(userId, {
+        workspaceId: workspaceId || undefined,
+      });
     } catch (error: any) {
       console.error(chalk.red('Error fetching environments:'), error.message);
       return [];
@@ -218,7 +301,10 @@ export class ApiStorageManager {
 
   async getEnvironment(id: string): Promise<Environment | null> {
     try {
-      return await this.apiClient.getEnvironment(id);
+      const prisma = await this.dbManager.getPrisma();
+      const userId = await this.dbManager.getCurrentUserId();
+      const environmentService = new EnvironmentService(prisma);
+      return await environmentService.getEnvironment(id, userId);
     } catch (error: any) {
       console.error(chalk.red('Error fetching environment:'), error.message);
       return null;
@@ -237,7 +323,14 @@ export class ApiStorageManager {
 
   async createEnvironment(name: string, variables: Record<string, string>): Promise<Environment | null> {
     try {
-      return await this.apiClient.createEnvironment({ name, variables });
+      const prisma = await this.dbManager.getPrisma();
+      const { userId, workspaceId } = await this.getContext();
+      const environmentService = new EnvironmentService(prisma);
+      return await environmentService.createEnvironment(userId, {
+        name,
+        variables,
+        workspaceId: workspaceId || undefined,
+      });
     } catch (error: any) {
       console.error(chalk.red('Error creating environment:'), error.message);
       return null;
@@ -246,7 +339,10 @@ export class ApiStorageManager {
 
   async updateEnvironment(id: string, name?: string, variables?: Record<string, string>): Promise<Environment | null> {
     try {
-      return await this.apiClient.updateEnvironment(id, { name, variables });
+      const prisma = await this.dbManager.getPrisma();
+      const userId = await this.dbManager.getCurrentUserId();
+      const environmentService = new EnvironmentService(prisma);
+      return await environmentService.updateEnvironment(id, userId, { name, variables });
     } catch (error: any) {
       console.error(chalk.red('Error updating environment:'), error.message);
       return null;
@@ -255,7 +351,10 @@ export class ApiStorageManager {
 
   async deleteEnvironment(id: string): Promise<boolean> {
     try {
-      await this.apiClient.deleteEnvironment(id);
+      const prisma = await this.dbManager.getPrisma();
+      const userId = await this.dbManager.getCurrentUserId();
+      const environmentService = new EnvironmentService(prisma);
+      await environmentService.deleteEnvironment(id, userId);
       return true;
     } catch (error: any) {
       console.error(chalk.red('Error deleting environment:'), error.message);
@@ -265,7 +364,10 @@ export class ApiStorageManager {
 
   async activateEnvironment(id: string): Promise<Environment | null> {
     try {
-      return await this.apiClient.activateEnvironment(id);
+      const prisma = await this.dbManager.getPrisma();
+      const userId = await this.dbManager.getCurrentUserId();
+      const environmentService = new EnvironmentService(prisma);
+      return await environmentService.activateEnvironment(id, userId);
     } catch (error: any) {
       console.error(chalk.red('Error activating environment:'), error.message);
       return null;
@@ -276,7 +378,12 @@ export class ApiStorageManager {
 
   async getHistory(): Promise<any[]> {
     try {
-      return await this.apiClient.getHistory();
+      const prisma = await this.dbManager.getPrisma();
+      const { userId, workspaceId } = await this.getContext();
+      const historyService = new HistoryService(prisma);
+      return await historyService.getApiHistory(userId, {
+        workspaceId: workspaceId || undefined,
+      });
     } catch (error: any) {
       console.error(chalk.red('Error fetching history:'), error.message);
       return [];
@@ -285,7 +392,10 @@ export class ApiStorageManager {
 
   async clearHistory(): Promise<boolean> {
     try {
-      await this.apiClient.clearHistory();
+      const prisma = await this.dbManager.getPrisma();
+      const { userId, workspaceId } = await this.getContext();
+      const historyService = new HistoryService(prisma);
+      await historyService.clearApiHistory(userId, workspaceId || undefined);
       return true;
     } catch (error: any) {
       console.error(chalk.red('Error clearing history:'), error.message);
@@ -294,6 +404,7 @@ export class ApiStorageManager {
   }
 
   // ===== Request Execution =====
+  // Note: This is kept for backward compatibility but should use RequestExecutor directly
 
   async sendRequest(data: {
     method: string;
@@ -302,12 +413,9 @@ export class ApiStorageManager {
     body?: string;
     bodyType?: string;
   }): Promise<any> {
-    try {
-      return await this.apiClient.sendRequest(data);
-    } catch (error: any) {
-      console.error(chalk.red('Error sending request:'), error.message);
-      throw error;
-    }
+    // This method is kept for compatibility but request execution
+    // should be done using RequestExecutor directly
+    throw new Error('sendRequest should be replaced with RequestExecutor.executeRequest');
   }
 
   // ===== History Logging =====
@@ -320,11 +428,21 @@ export class ApiStorageManager {
     error?: string;
   }): Promise<void> {
     try {
-      await this.apiClient.saveHistory(data);
+      const prisma = await this.dbManager.getPrisma();
+      const { userId, workspaceId } = await this.getContext();
+      const historyService = new HistoryService(prisma);
+      await historyService.createApiHistory(userId, {
+        method: data.method,
+        url: data.url,
+        statusCode: data.statusCode,
+        duration: data.duration,
+        error: data.error,
+        source: 'CLI',
+        workspaceId: workspaceId || undefined,
+      });
     } catch (error: any) {
       // Silently fail - history logging is not critical
       console.error(chalk.gray('Warning: Failed to save to history'));
     }
   }
 }
-

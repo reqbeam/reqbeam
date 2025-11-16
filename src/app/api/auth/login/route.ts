@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { prisma } from '@/lib/prisma'
+import { prisma, UserService } from '@postmind/db'
 
 export async function POST(request: NextRequest) {
   try {
@@ -13,9 +13,8 @@ export async function POST(request: NextRequest) {
     }
 
     // Find user
-    const user = await prisma.user.findUnique({
-      where: { email },
-    })
+    const userService = new UserService(prisma)
+    const user = await userService.getUserByEmail(email)
 
     if (!user) {
       return NextResponse.json(

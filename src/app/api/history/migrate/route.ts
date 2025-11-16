@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { prisma } from '@/lib/prisma'
+import { prisma, WorkspaceService, HistoryService } from '@postmind/db'
 import { getAuthenticatedUser } from '@/lib/apiAuth'
 
 // POST /api/history/migrate - Migrate history entries to workspace
@@ -21,21 +21,8 @@ export async function POST(request: NextRequest) {
     }
 
     // Verify workspace belongs to user
-    const workspace = await prisma.workspace.findFirst({
-      where: {
-        id: workspaceId,
-        OR: [
-          { ownerId: user.id },
-          {
-            members: {
-              some: {
-                userId: user.id,
-              },
-            },
-          },
-        ],
-      },
-    })
+    const workspaceService = new WorkspaceService(prisma)
+    const workspace = await workspaceService.getWorkspace(workspaceId, user.id)
 
     if (!workspace) {
       return NextResponse.json(
@@ -44,20 +31,13 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Migrate history entries without workspace to this workspace
-    const result = await prisma.apiHistory.updateMany({
-      where: {
-        userId: user.id,
-        workspaceId: null,
-      },
-      data: {
-        workspaceId: workspaceId,
-      },
-    })
+    // Migrate history entries using service
+    const historyService = new HistoryService(prisma)
+    const migratedCount = await historyService.migrateHistoryToWorkspace(user.id, workspaceId)
 
     return NextResponse.json({
       message: 'History migrated successfully',
-      migratedCount: result.count,
+      migratedCount,
     })
   } catch (error) {
     console.error('Error migrating history:', error)

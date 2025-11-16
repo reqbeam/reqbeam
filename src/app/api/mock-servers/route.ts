@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { prisma } from '@/lib/prisma'
+import { prisma, MockServerService, CollectionService } from '@postmind/db'
 import { getAuthenticatedUser } from '@/lib/apiAuth'
 
 export async function GET(request: NextRequest) {
@@ -13,41 +13,9 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url)
     const workspaceId = searchParams.get('workspaceId') || request.headers.get('x-workspace-id')
 
-    const whereClause: any = {
-      userId: user.id,
-    }
-
-    // Filter by workspace if workspaceId is provided
-    if (workspaceId) {
-      whereClause.workspaceId = workspaceId
-    }
-
-    const mockServers = await prisma.mockServer.findMany({
-      where: whereClause,
-      include: {
-        collection: {
-          select: {
-            id: true,
-            name: true,
-          },
-        },
-        endpoints: {
-          select: {
-            id: true,
-            method: true,
-            path: true,
-            statusCode: true,
-          },
-        },
-        _count: {
-          select: {
-            endpoints: true,
-          },
-        },
-      },
-      orderBy: {
-        createdAt: 'desc',
-      },
+    const mockServerService = new MockServerService(prisma)
+    const mockServers = await mockServerService.getMockServers(user.id, {
+      workspaceId: workspaceId || undefined,
     })
 
     return NextResponse.json(mockServers)
@@ -87,12 +55,8 @@ export async function POST(request: NextRequest) {
     // Verify collection belongs to user if provided
     let finalWorkspaceId = workspaceId
     if (collectionId) {
-      const collection = await prisma.collection.findFirst({
-        where: {
-          id: collectionId,
-          userId: user.id,
-        },
-      })
+      const collectionService = new CollectionService(prisma)
+      const collection = await collectionService.getCollection(collectionId, user.id)
 
       if (!collection) {
         return NextResponse.json(
@@ -101,49 +65,34 @@ export async function POST(request: NextRequest) {
         )
       }
 
-      finalWorkspaceId = finalWorkspaceId || collection.workspaceId
+      finalWorkspaceId = finalWorkspaceId || collection.workspaceId || null
     }
 
     // Generate base URL with a unique mock ID
     const mockId = crypto.randomUUID().replace(/-/g, '').substring(0, 12)
     const baseUrl = `/api/mock/${mockId}`
 
-    // Create mock server
-    const mockServer = await prisma.mockServer.create({
-      data: {
+    // Create mock server using service
+    const mockServerService = new MockServerService(prisma)
+    const mockServer = await mockServerService.createMockServer(
+      user.id,
+      {
         name,
-        baseUrl,
         collectionId: collectionId || null,
-        userId: user.id,
         workspaceId: finalWorkspaceId || null,
         responseDelay,
         defaultStatusCode,
         isRunning: false,
       },
-      include: {
-        collection: {
-          select: {
-            id: true,
-            name: true,
-          },
-        },
-        endpoints: true,
-      },
-    })
+      baseUrl
+    )
 
     // Auto-generate endpoints from collection if requested
     if (autoGenerateEndpoints && collectionId) {
-      const collection = await prisma.collection.findFirst({
-        where: {
-          id: collectionId,
-          userId: user.id,
-        },
-        include: {
-          requests: true,
-        },
-      })
+      const collectionService = new CollectionService(prisma)
+      const collection = await collectionService.getCollection(collectionId, user.id)
 
-      if (collection && collection.requests.length > 0) {
+      if (collection && collection.requests && collection.requests.length > 0) {
         const endpoints = collection.requests.map((req) => {
           // Extract path from URL (remove domain if present)
           let path = req.url
@@ -185,23 +134,10 @@ export async function POST(request: NextRequest) {
           }
         })
 
-        await prisma.mockEndpoint.createMany({
-          data: endpoints,
-        })
+        await mockServerService.createMockEndpoints(endpoints)
 
         // Reload mock server with endpoints
-        const updatedMockServer = await prisma.mockServer.findUnique({
-          where: { id: mockServer.id },
-          include: {
-            collection: {
-              select: {
-                id: true,
-                name: true,
-              },
-            },
-            endpoints: true,
-          },
-        })
+        const updatedMockServer = await mockServerService.getMockServer(mockServer.id, user.id)
 
         return NextResponse.json(updatedMockServer, { status: 201 })
       }

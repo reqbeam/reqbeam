@@ -1,11 +1,14 @@
-import { PrismaClient } from '@prisma/client'
+/**
+ * @deprecated This file is deprecated. Use `prisma` from `@postmind/db` instead.
+ * 
+ * This file is kept for backward compatibility but will be removed in a future version.
+ * 
+ * Migration guide:
+ * - Old: import { prisma } from '@/lib/prisma'
+ * - New: import { prisma } from '@postmind/db'
+ * 
+ * All routes have been migrated to use the shared @postmind/db package.
+ */
 
-const globalForPrisma = globalThis as unknown as {
-  prisma: PrismaClient | undefined
-}
-
-export const prisma = globalForPrisma.prisma ?? new PrismaClient()
-
-if (process.env.NODE_ENV !== 'production') globalForPrisma.prisma = prisma
-
-
+// Re-export from @postmind/db for backward compatibility
+export { prisma } from '@postmind/db';

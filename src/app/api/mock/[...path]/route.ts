@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { prisma } from '@/lib/prisma'
+import { prisma, MockServerService } from '@postmind/db'
 
 // This route handles all HTTP methods for mock endpoints
 export async function GET(
@@ -71,18 +71,9 @@ async function handleMockRequest(
     const mockId = pathArray[0]
     const requestPath = pathArray.length > 1 ? '/' + pathArray.slice(1).join('/') : '/'
 
-    // Find mock server by baseUrl (format: /api/mock/{mockId})
-    const mockServer = await prisma.mockServer.findFirst({
-      where: {
-        baseUrl: {
-          equals: `/api/mock/${mockId}`,
-        },
-        isRunning: true,
-      },
-      include: {
-        endpoints: true,
-      },
-    })
+    // Find mock server by baseUrl using service
+    const mockServerService = new MockServerService(prisma)
+    const mockServer = await mockServerService.getMockServerByBaseUrl(`/api/mock/${mockId}`)
 
     if (!mockServer) {
       return NextResponse.json(

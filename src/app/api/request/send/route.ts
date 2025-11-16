@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { prisma } from '@/lib/prisma'
+import { prisma, EnvironmentService, HistoryService } from '@postmind/db'
 import { getAuthenticatedUser } from '@/lib/apiAuth'
 import {
   resolveEnvironmentVariables,
@@ -29,19 +29,11 @@ export async function POST(request: NextRequest) {
     let envVars: Record<string, string> = {}
     if (user && workspaceId) {
       try {
-        const activeEnv = await prisma.environment.findFirst({
-          where: {
-            userId: user.id,
-            workspaceId: workspaceId,
-            isActive: true,
-          },
-        })
+        const environmentService = new EnvironmentService(prisma)
+        const environments = await environmentService.getEnvironments(user.id, { workspaceId })
+        const activeEnv = environments.find(env => env.isActive)
         if (activeEnv) {
-          try {
-            envVars = activeEnv.variables ? JSON.parse(activeEnv.variables) : {}
-          } catch {
-            envVars = {}
-          }
+          envVars = activeEnv.variables || {}
         }
       } catch (err) {
         console.warn('Failed to load environment variables:', err)
@@ -116,16 +108,14 @@ export async function POST(request: NextRequest) {
 
     // Log to history (async, don't wait)
     if (user) {
-      prisma.apiHistory.create({
-        data: {
-          method: method.toUpperCase(),
-          url,
-          statusCode,
-          source: 'WEB',
-          duration,
-          userId: user.id,
-          workspaceId: workspaceId || null,
-        },
+      const historyService = new HistoryService(prisma)
+      historyService.createApiHistory(user.id, {
+        method: method.toUpperCase(),
+        url,
+        statusCode: statusCode || null,
+        source: 'WEB',
+        duration,
+        workspaceId: workspaceId || null,
       }).catch((err) => console.error('Failed to log history:', err))
     }
 
@@ -142,17 +132,15 @@ export async function POST(request: NextRequest) {
 
     // Log error to history (async, don't wait)
     if (user) {
-      prisma.apiHistory.create({
-        data: {
-          method: 'GET', // Default if we don't have the method
-          url: 'unknown',
-          statusCode,
-          source: 'WEB',
-          duration,
-          error: errorMessage,
-          userId: user.id,
-          workspaceId: null,
-        },
+      const historyService = new HistoryService(prisma)
+      historyService.createApiHistory(user.id, {
+        method: 'GET', // Default if we don't have the method
+        url: 'unknown',
+        statusCode: statusCode || null,
+        source: 'WEB',
+        duration,
+        error: errorMessage,
+        workspaceId: null,
       }).catch((err) => console.error('Failed to log history:', err))
     }
 

@@ -2,8 +2,8 @@
 // Learn more: https://pris.ly/d/prisma-schema
 
 generator client {
-  provider = "prisma-client-js"
-  binaryTargets = ["debian-openssl-3.0.x"]
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "windows"]
 }
 
 datasource db {
@@ -235,3 +235,4 @@ model MockEndpoint {
   @@index([mockServerId])
   @@index([method, path])
 }
+

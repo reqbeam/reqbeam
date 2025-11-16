@@ -2,8 +2,9 @@ import os from 'os';
 import path from 'path';
 import fs from 'fs-extra';
 import chalk from 'chalk';
-import axios from 'axios';
-import { Logger } from './logger.js';
+import bcrypt from 'bcryptjs';
+import { UserService } from '@postmind/db';
+import { DatabaseManager } from './db.js';
 
 export interface AuthConfig {
   token: string;
@@ -12,7 +13,7 @@ export interface AuthConfig {
     email: string;
     name: string;
   };
-  apiUrl: string;
+  apiUrl?: string; // Deprecated, kept for backward compatibility
   expiresAt: string;
 }
 
@@ -71,29 +72,56 @@ export class AuthManager {
   }
 
   /**
-   * Login with credentials
+   * Login with credentials using direct database access
    */
-  public async login(email: string, password: string, apiUrl: string): Promise<AuthConfig> {
+  public async login(email: string, password: string, apiUrl?: string): Promise<AuthConfig> {
     try {
-      const response = await axios.post(`${apiUrl}/api/auth/login`, {
-        email,
-        password,
-      });
+      const dbManager = DatabaseManager.getInstance();
+      const prisma = await dbManager.getPrisma();
+      const userService = new UserService(prisma);
+
+      // Get user from database
+      const user = await userService.getUserByEmail(email);
+
+      if (!user) {
+        throw new Error('Invalid email or password');
+      }
+
+      // Check if user has a password (OAuth users don't have passwords)
+      if (!user.password) {
+        throw new Error('This account uses OAuth login. Please use the web interface.');
+      }
+
+      // Verify password
+      const isPasswordValid = await bcrypt.compare(password, user.password);
+
+      if (!isPasswordValid) {
+        throw new Error('Invalid email or password');
+      }
+
+      // Generate a simple token (user ID for validation)
+      // Since we're using direct DB access, we don't need complex JWT tokens
+      const token = Buffer.from(`${user.id}:${Date.now()}`).toString('base64');
+      const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(); // 7 days
 
       const config: AuthConfig = {
-        token: response.data.token,
-        user: response.data.user,
-        apiUrl,
-        expiresAt: response.data.expiresAt,
+        token,
+        user: {
+          id: user.id,
+          email: user.email,
+          name: user.name || email.split('@')[0],
+        },
+        apiUrl: apiUrl || 'local', // Not used anymore, but kept for backward compatibility
+        expiresAt,
       };
 
       await this.saveConfig(config);
       return config;
     } catch (error: any) {
-      if (error.response?.status === 401) {
-        throw new Error('Invalid email or password');
+      if (error.message.includes('Invalid') || error.message.includes('OAuth')) {
+        throw error;
       }
-      throw new Error(error.response?.data?.message || 'Login failed');
+      throw new Error(error.message || 'Login failed');
     }
   }
 
@@ -195,17 +223,25 @@ export class AuthManager {
   }
 
   /**
-   * Validate token with server
+   * Validate token by checking if user exists in database
    */
   public async validateToken(): Promise<boolean> {
     try {
       const config = await this.loadConfig();
       if (!config) return false;
 
-      const headers = await this.getAuthHeaders();
-      const response = await axios.get(`${config.apiUrl}/api/auth/token`, { headers });
+      // Check if token is expired
+      if (config.expiresAt && new Date(config.expiresAt) < new Date()) {
+        return false;
+      }
 
-      return response.status === 200;
+      // Validate user exists in database
+      const dbManager = DatabaseManager.getInstance();
+      const prisma = await dbManager.getPrisma();
+      const userService = new UserService(prisma);
+      const user = await userService.getUserById(config.user.id);
+
+      return user !== null;
     } catch (error) {
       return false;
     }

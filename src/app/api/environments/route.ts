@@ -1,15 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { prisma } from '@/lib/prisma'
+import { prisma, EnvironmentService } from '@postmind/db'
 import { getAuthenticatedUser } from '@/lib/apiAuth'
-
-// Helper to parse variables JSON string to object
-function parseVariables(variables: string): Record<string, string> {
-  try {
-    return variables ? JSON.parse(variables) : {}
-  } catch {
-    return {}
-  }
-}
 
 export async function GET(request: NextRequest) {
   try {
@@ -22,29 +13,12 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url)
     const workspaceId = searchParams.get('workspaceId') || request.headers.get('x-workspace-id')
 
-    const whereClause: any = {
-      userId: user.id,
-    }
-
-    // Filter by workspace if workspaceId is provided
-    if (workspaceId) {
-      whereClause.workspaceId = workspaceId
-    }
-
-    const environments = await prisma.environment.findMany({
-      where: whereClause,
-      orderBy: {
-        createdAt: 'desc',
-      },
+    const environmentService = new EnvironmentService(prisma)
+    const environments = await environmentService.getEnvironments(user.id, {
+      workspaceId: workspaceId || undefined,
     })
 
-    // Parse variables from JSON string to object
-    const parsedEnvironments = environments.map((env) => ({
-      ...env,
-      variables: parseVariables(env.variables),
-    }))
-
-    return NextResponse.json(parsedEnvironments)
+    return NextResponse.json(environments)
   } catch (error) {
     console.error('Error fetching environments:', error)
     return NextResponse.json(
@@ -70,37 +44,22 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Count existing environments for this workspace
-    const whereClause: any = {
-      userId: user.id,
-    }
-    if (workspaceId) {
-      whereClause.workspaceId = workspaceId
-    }
-
-    const existingEnvironments = await prisma.environment.count({
-      where: whereClause,
+    const environmentService = new EnvironmentService(prisma)
+    const environment = await environmentService.createEnvironment(user.id, {
+      name,
+      variables: variables || {},
+      workspaceId: workspaceId || undefined,
     })
 
-    const environment = await prisma.environment.create({
-      data: {
-        name,
-        variables: JSON.stringify(variables || {}),
-        userId: user.id,
-        workspaceId: workspaceId || null,
-        isActive: existingEnvironments === 0, // First environment is active by default
-      },
-    })
-
-    return NextResponse.json(
-      {
-        ...environment,
-        variables: parseVariables(environment.variables),
-      },
-      { status: 201 }
-    )
-  } catch (error) {
+    return NextResponse.json(environment, { status: 201 })
+  } catch (error: any) {
     console.error('Error creating environment:', error)
+    if (error.message) {
+      return NextResponse.json(
+        { error: error.message },
+        { status: 400 }
+      )
+    }
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
-import { prisma } from '@/lib/prisma'
+import { prisma, CollectionService } from '@postmind/db'
 
 export async function POST(request: NextRequest) {
   try {
@@ -19,21 +19,10 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Fetch collection with requests
-    const collection = await prisma.collection.findFirst({
-      where: {
-        id: collectionId,
-        userId: session.user.id,
-      },
-      include: {
-        requests: {
-          orderBy: {
-            createdAt: 'asc',
-          },
-        },
-      },
-    })
-
+    // Fetch collection with requests using service
+    const collectionService = new CollectionService(prisma)
+    const collection = await collectionService.getCollection(collectionId, session.user.id)
+    
     if (!collection) {
       return NextResponse.json(
         { error: 'Collection not found' },

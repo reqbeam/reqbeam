@@ -1,7 +1,7 @@
 import { NextRequest } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from './auth';
-import { prisma } from './prisma';
+import { prisma } from '@postmind/db';
 
 /**
  * Unified authentication helper for API routes
@@ -41,12 +41,19 @@ export async function getAuthenticatedUser(request?: NextRequest): Promise<{ id:
         }
         
         // Verify user exists
-        const user = await prisma.user.findUnique({
-          where: { id: userId },
-          select: { id: true, email: true, name: true }
-        });
+        const { UserService } = await import('@postmind/db');
+        const userService = new UserService(prisma);
+        const user = await userService.getUserById(userId);
         
-        return user;
+        if (!user) {
+          return null;
+        }
+        
+        return {
+          id: user.id,
+          email: user.email,
+          name: user.name,
+        };
       } catch (error) {
         console.error('Token validation error:', error);
         return null;

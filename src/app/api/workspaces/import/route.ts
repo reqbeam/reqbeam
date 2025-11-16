@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { prisma } from '@/lib/prisma'
+import { prisma, WorkspaceService, CollectionService, RequestService, EnvironmentService } from '@postmind/db'
 import { getAuthenticatedUser } from '@/lib/apiAuth'
 import yaml from 'js-yaml'
 
@@ -84,13 +84,11 @@ export async function POST(request: NextRequest) {
 
     const workspaceData = importedData.workspace
 
-    // Create new workspace
-    const workspace = await prisma.workspace.create({
-      data: {
-        name: workspaceData.name || 'Imported Workspace',
-        description: workspaceData.description || null,
-        ownerId: user.id,
-      },
+    // Create new workspace using service
+    const workspaceService = new WorkspaceService(prisma)
+    const workspace = await workspaceService.createWorkspace(user.id, {
+      name: workspaceData.name || 'Imported Workspace',
+      description: workspaceData.description || null,
     })
 
     const stats = {
@@ -100,17 +98,18 @@ export async function POST(request: NextRequest) {
       history: 0,
     }
 
-    // Import collections
+    // Import collections using services
+    const collectionService = new CollectionService(prisma)
+    const requestService = new RequestService(prisma)
+    const environmentService = new EnvironmentService(prisma)
+
     if (workspaceData.collections) {
       for (const collectionData of workspaceData.collections) {
         try {
-          const collection = await prisma.collection.create({
-            data: {
-              name: collectionData.name,
-              description: collectionData.description || null,
-              userId: user.id,
-              workspaceId: workspace.id,
-            },
+          const collection = await collectionService.createCollection(user.id, {
+            name: collectionData.name,
+            description: collectionData.description || null,
+            workspaceId: workspace.id,
           })
           stats.collections++
 
@@ -118,23 +117,20 @@ export async function POST(request: NextRequest) {
           if (collectionData.requests) {
             for (const requestData of collectionData.requests) {
               try {
-                await prisma.request.create({
-                  data: {
-                    name: requestData.name,
-                    method: requestData.method,
-                    url: requestData.url,
-                    headers: requestData.headers
-                      ? (typeof requestData.headers === 'string' ? requestData.headers : JSON.stringify(requestData.headers))
-                      : null,
-                    body: requestData.body || null,
-                    bodyType: requestData.bodyType || 'json',
-                    auth: requestData.auth
-                      ? (typeof requestData.auth === 'string' ? requestData.auth : JSON.stringify(requestData.auth))
-                      : null,
-                    collectionId: collection.id,
-                    userId: user.id,
-                    workspaceId: workspace.id,
-                  },
+                await requestService.createRequest(user.id, {
+                  name: requestData.name,
+                  method: requestData.method,
+                  url: requestData.url,
+                  headers: requestData.headers
+                    ? (typeof requestData.headers === 'string' ? requestData.headers : JSON.stringify(requestData.headers))
+                    : undefined,
+                  body: requestData.body || undefined,
+                  bodyType: requestData.bodyType || 'json',
+                  auth: requestData.auth
+                    ? (typeof requestData.auth === 'string' ? requestData.auth : JSON.stringify(requestData.auth))
+                    : undefined,
+                  collectionId: collection.id,
+                  workspaceId: workspace.id,
                 })
                 stats.requests++
               } catch (error) {
@@ -150,18 +146,14 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // Import environments
+    // Import environments using service
     if (workspaceData.environments) {
       for (const envData of workspaceData.environments) {
         try {
-          await prisma.environment.create({
-            data: {
-              name: envData.name,
-              variables: JSON.stringify(envData.variables || {}),
-              userId: user.id,
-              workspaceId: workspace.id,
-              isActive: envData.isActive || false,
-            },
+          await environmentService.createEnvironment(user.id, {
+            name: envData.name,
+            variables: envData.variables || {},
+            workspaceId: workspace.id,
           })
           stats.environments++
         } catch (error) {

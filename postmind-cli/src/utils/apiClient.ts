@@ -1,3 +1,14 @@
+/**
+ * @deprecated This file is deprecated.
+ * The CLI now uses direct database access via @postmind/db instead of making HTTP requests to web APIs.
+ * 
+ * All database operations are handled through:
+ * - ApiStorageManager (uses @postmind/db services)
+ * - DatabaseManager (manages Prisma client connection)
+ * 
+ * This file is kept for reference only and should not be used in new code.
+ */
+
 import axios, { AxiosInstance, AxiosResponse } from 'axios';
 import { AuthManager } from './auth.js';
 import { ContextManager } from './context.js';
@@ -79,7 +90,9 @@ export interface RequestHistory {
 }
 
 /**
- * API Client for communicating with the Postmind web UI
+ * @deprecated API Client for communicating with the Postmind web UI
+ * 
+ * This class is deprecated. Use ApiStorageManager instead, which uses direct database access.
  */
 export class ApiClient {
   private static instance: ApiClient;
@@ -342,4 +355,3 @@ export class ApiClient {
     }
   }
 }
-

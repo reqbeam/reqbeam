@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import bcrypt from 'bcryptjs'
-import { prisma } from '@/lib/prisma'
+import { prisma, UserService } from '@postmind/db'
 import { validatePassword } from '@/utils/passwordValidation'
 
 const AUTH_SERVER_URL = process.env.AUTH_SERVER_URL || 'http://localhost:4000'
@@ -29,9 +29,8 @@ export async function POST(request: NextRequest) {
     const isSyncCall = request.headers.get('x-sync-from') === 'auth-server'
 
     // Check if user already exists
-    const existingUser = await prisma.user.findUnique({
-      where: { email },
-    })
+    const userService = new UserService(prisma)
+    const existingUser = await userService.getUserByEmail(email)
 
     // If user exists and this is a sync call, return success (user already synced)
     if (existingUser && isSyncCall) {
@@ -52,12 +51,10 @@ export async function POST(request: NextRequest) {
     const hashedPassword = await bcrypt.hash(password, 12)
 
     // Create user in main database
-    const user = await prisma.user.create({
-      data: {
-        name,
-        email,
-        password: hashedPassword,
-      },
+    const user = await userService.createUser({
+      name,
+      email,
+      password: hashedPassword,
     })
 
     // Also create user in auth server database (skip if this is a sync call from auth server)

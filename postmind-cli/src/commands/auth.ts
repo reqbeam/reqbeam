@@ -6,19 +6,17 @@ import { AuthManager } from '../utils/auth.js';
 const authCommand = new Command('auth');
 
 authCommand
-  .description('Authentication commands for connecting to Postmind web UI');
+  .description('Authentication commands for Postmind CLI');
 
 // Login command
 authCommand
   .command('login')
-  .description('Login to Postmind web UI')
+  .description('Login to Postmind using database credentials')
   .option('-e, --email <email>', 'Email address')
   .option('-p, --password <password>', 'Password')
-  .option('-u, --url <url>', 'API URL (default: http://localhost:3000)')
   .action(async (options: {
     email?: string;
     password?: string;
-    url?: string;
   }) => {
     try {
       const authManager = AuthManager.getInstance();
@@ -37,22 +35,12 @@ authCommand
       // Prompt for credentials if not provided
       let email = options.email;
       let password = options.password;
-      // Use environment variable if available (for Docker), otherwise default to localhost
-      const defaultApiUrl = process.env.POSTMIND_API_URL || 'http://localhost:3000';
-      let apiUrl = options.url || defaultApiUrl;
 
       if (!email || !password) {
         console.log(chalk.bold('Postmind Authentication'));
-        console.log(chalk.gray('Connect your CLI to the Postmind web UI\n'));
+        console.log(chalk.gray('Login to your Postmind account\n'));
 
         const answers = await inquirer.prompt([
-          {
-            type: 'input',
-            name: 'apiUrl',
-            message: 'API URL:',
-            default: defaultApiUrl,
-            when: !options.url,
-          },
           {
             type: 'input',
             name: 'email',
@@ -73,7 +61,6 @@ authCommand
           },
         ]);
 
-        if (answers.apiUrl) apiUrl = answers.apiUrl;
         if (answers.email) email = answers.email;
         if (answers.password) password = answers.password;
       }
@@ -87,7 +74,7 @@ authCommand
       const spinner = await import('ora').then(m => m.default('Logging in...'));
       spinner.start();
 
-      const config = await authManager.login(email, password, apiUrl);
+      const config = await authManager.login(email, password);
       
       spinner.stop();
       console.log(chalk.green('✓ Successfully logged in!'));
@@ -102,7 +89,7 @@ authCommand
 // Logout command
 authCommand
   .command('logout')
-  .description('Logout from Postmind web UI')
+  .description('Logout from Postmind CLI')
   .action(async () => {
     try {
       const authManager = AuthManager.getInstance();
@@ -145,7 +132,6 @@ authCommand
       console.log(chalk.bold('Authentication Status:'));
       console.log(`  Email: ${chalk.cyan(config.user.email)}`);
       console.log(`  Name: ${chalk.cyan(config.user.name)}`);
-      console.log(`  API URL: ${chalk.cyan(config.apiUrl)}`);
       console.log(`  Expires: ${chalk.cyan(expiresAt.toLocaleString())}`);
       console.log(`  Status: ${isValid ? chalk.green('Valid') : chalk.red('Expired')}`);
 

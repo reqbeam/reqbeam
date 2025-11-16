@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { prisma } from '@/lib/prisma'
+import { prisma, WorkspaceService } from '@postmind/db'
 import { getAuthenticatedUser } from '@/lib/apiAuth'
 import yaml from 'js-yaml'
 
@@ -18,64 +18,9 @@ export async function GET(
     const format = (searchParams.get('format') || 'json') as 'json' | 'yaml'
     const includeHistory = searchParams.get('includeHistory') === 'true'
 
-    // Verify workspace access
-    const workspace = await prisma.workspace.findFirst({
-      where: {
-        id: workspaceId,
-        OR: [
-          { ownerId: user.id },
-          {
-            members: {
-              some: {
-                userId: user.id
-              }
-            }
-          }
-        ]
-      },
-      include: {
-        collections: {
-          include: {
-            requests: {
-              select: {
-                id: true,
-                name: true,
-                method: true,
-                url: true,
-                headers: true,
-                body: true,
-                bodyType: true,
-                auth: true,
-              },
-            },
-          },
-        },
-        environments: {
-          select: {
-            id: true,
-            name: true,
-            variables: true,
-            isActive: true,
-          },
-        },
-        ...(includeHistory && {
-          requestHistories: {
-            select: {
-              id: true,
-              requestId: true,
-              statusCode: true,
-              response: true,
-              headers: true,
-              duration: true,
-              size: true,
-              error: true,
-              createdAt: true,
-            },
-            take: 1000, // Limit history entries
-          },
-        }),
-      },
-    })
+    // Get workspace for export using service
+    const workspaceService = new WorkspaceService(prisma)
+    const workspace = await workspaceService.getWorkspaceForExport(workspaceId, user.id, includeHistory)
 
     if (!workspace) {
       return NextResponse.json(

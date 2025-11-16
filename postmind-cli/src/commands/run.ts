@@ -44,15 +44,28 @@ runCommand
 
       const spinner = ora(`Running request '${requestName}'...`).start();
       
+      // Parse headers from JSON string to object
+      let parsedHeaders: Record<string, string> | undefined = undefined;
+      if (request.headers) {
+        try {
+          parsedHeaders = typeof request.headers === 'string' 
+            ? JSON.parse(request.headers) 
+            : request.headers;
+        } catch {
+          // If parsing fails, treat as empty
+          parsedHeaders = undefined;
+        }
+      }
+      
       // Convert API request format to executor format
       const execRequest = {
         name: request.name,
         method: request.method as any,
         url: request.url,
-        headers: request.headers || undefined,
+        headers: parsedHeaders,
         body: request.body || undefined,
-        createdAt: request.createdAt,
-        updatedAt: request.updatedAt
+        createdAt: request.createdAt instanceof Date ? request.createdAt.toISOString() : request.createdAt,
+        updatedAt: request.updatedAt instanceof Date ? request.updatedAt.toISOString() : request.updatedAt
       };
 
       const result = await RequestExecutor.executeRequest(
@@ -144,14 +157,26 @@ runCommand
         const spinner = ora('Running requests in parallel...').start();
         
         const promises = requests.map(request => {
+          // Parse headers from JSON string to object
+          let parsedHeaders: Record<string, string> | undefined = undefined;
+          if (request.headers) {
+            try {
+              parsedHeaders = typeof request.headers === 'string' 
+                ? JSON.parse(request.headers) 
+                : request.headers;
+            } catch {
+              parsedHeaders = undefined;
+            }
+          }
+          
           const execRequest = {
             name: request.name,
             method: request.method as any,
             url: request.url,
-            headers: request.headers || undefined,
+            headers: parsedHeaders,
             body: request.body || undefined,
-            createdAt: request.createdAt,
-            updatedAt: request.updatedAt
+            createdAt: request.createdAt instanceof Date ? request.createdAt.toISOString() : request.createdAt,
+            updatedAt: request.updatedAt instanceof Date ? request.updatedAt.toISOString() : request.updatedAt
           };
           return RequestExecutor.executeRequest(execRequest, environment || undefined, options.verbose);
         });
@@ -180,14 +205,26 @@ runCommand
           const request = requests[i];
           const spinner = ora(`[${i + 1}/${requests.length}] Running '${request.name}'...`).start();
           
+          // Parse headers from JSON string to object
+          let parsedHeaders: Record<string, string> | undefined = undefined;
+          if (request.headers) {
+            try {
+              parsedHeaders = typeof request.headers === 'string' 
+                ? JSON.parse(request.headers) 
+                : request.headers;
+            } catch {
+              parsedHeaders = undefined;
+            }
+          }
+          
           const execRequest = {
             name: request.name,
             method: request.method as any,
             url: request.url,
-            headers: request.headers || undefined,
+            headers: parsedHeaders,
             body: request.body || undefined,
-            createdAt: request.createdAt,
-            updatedAt: request.updatedAt
+            createdAt: request.createdAt instanceof Date ? request.createdAt.toISOString() : request.createdAt,
+            updatedAt: request.updatedAt instanceof Date ? request.updatedAt.toISOString() : request.updatedAt
           };
           
           const result = await RequestExecutor.executeRequest(execRequest, environment || undefined, options.verbose);

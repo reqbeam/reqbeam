@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { prisma } from '@/lib/prisma'
+import { prisma, CollectionService } from '@postmind/db'
 import { getAuthenticatedUser } from '@/lib/apiAuth'
 
 export async function DELETE(
@@ -14,31 +14,18 @@ export async function DELETE(
 
     const { id: collectionId } = await params
 
-    // Check if collection belongs to user
-    const collection = await prisma.collection.findFirst({
-      where: {
-        id: collectionId,
-        userId: user.id,
-      },
-    })
-
-    if (!collection) {
-      return NextResponse.json(
-        { error: 'Collection not found' },
-        { status: 404 }
-      )
-    }
-
-    // Delete collection (cascade will delete associated requests)
-    await prisma.collection.delete({
-      where: {
-        id: collectionId,
-      },
-    })
+    const collectionService = new CollectionService(prisma)
+    await collectionService.deleteCollection(collectionId, user.id)
 
     return NextResponse.json({ message: 'Collection deleted successfully' })
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error deleting collection:', error)
+    if (error.message) {
+      return NextResponse.json(
+        { error: error.message },
+        { status: error.message.includes('not found') ? 404 : 400 }
+      )
+    }
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }
@@ -60,35 +47,25 @@ export async function PUT(
     const body = await request.json()
     const { name, description } = body
 
-    // Check if collection belongs to user
-    const collection = await prisma.collection.findFirst({
-      where: {
-        id: collectionId,
-        userId: user.id,
-      },
-    })
-
-    if (!collection) {
-      return NextResponse.json(
-        { error: 'Collection not found' },
-        { status: 404 }
-      )
-    }
-
-    // Update collection
-    const updatedCollection = await prisma.collection.update({
-      where: {
-        id: collectionId,
-      },
-      data: {
-        ...(name && { name }),
-        ...(description !== undefined && { description }),
-      },
-    })
+    const collectionService = new CollectionService(prisma)
+    const updatedCollection = await collectionService.updateCollection(
+      collectionId,
+      user.id,
+      {
+        name,
+        description,
+      }
+    )
 
     return NextResponse.json(updatedCollection)
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error updating collection:', error)
+    if (error.message) {
+      return NextResponse.json(
+        { error: error.message },
+        { status: error.message.includes('not found') ? 404 : 400 }
+      )
+    }
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }

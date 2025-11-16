@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { prisma } from '@/lib/prisma'
+import { prisma, CollectionService } from '@postmind/db'
 import { getAuthenticatedUser } from '@/lib/apiAuth'
 import { exportCollection } from '@/lib/importExportService'
 
@@ -17,27 +17,9 @@ export async function GET(
     const { searchParams } = new URL(request.url)
     const format = (searchParams.get('format') || 'json') as 'json' | 'yaml'
 
-    // Verify collection belongs to user
-    const collection = await prisma.collection.findFirst({
-      where: {
-        id: collectionId,
-        userId: user.id,
-      },
-      include: {
-        requests: {
-          select: {
-            id: true,
-            name: true,
-            method: true,
-            url: true,
-            headers: true,
-            body: true,
-            bodyType: true,
-            auth: true,
-          },
-        },
-      },
-    })
+    // Verify collection belongs to user and fetch with requests using service
+    const collectionService = new CollectionService(prisma)
+    const collection = await collectionService.getCollection(collectionId, user.id)
 
     if (!collection) {
       return NextResponse.json(

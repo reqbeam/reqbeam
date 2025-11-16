@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { prisma } from '@/lib/prisma'
+import { prisma, RequestService } from '@postmind/db'
 import { getAuthenticatedUser } from '@/lib/apiAuth'
 
 export async function POST(request: NextRequest) {
@@ -19,46 +19,27 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    let finalWorkspaceId = workspaceId
-
-    // Verify the collection belongs to the user if collectionId is provided
-    if (collectionId) {
-      const collection = await prisma.collection.findFirst({
-        where: {
-          id: collectionId,
-          userId: user.id,
-        },
-      })
-
-      if (!collection) {
-        return NextResponse.json(
-          { error: 'Collection not found' },
-          { status: 404 }
-        )
-      }
-
-      // Use collection's workspaceId if not provided
-      finalWorkspaceId = finalWorkspaceId || collection.workspaceId
-    }
-
-    // Create the request
-    const newRequest = await prisma.request.create({
-      data: {
-        name,
-        method,
-        url,
-        headers: headers ? JSON.stringify(headers) : null,
-        body: reqBody || null,
-        bodyType: bodyType || 'json',
-        collectionId: collectionId || null,
-        userId: user.id,
-        workspaceId: finalWorkspaceId || null,
-      },
+    const requestService = new RequestService(prisma)
+    const newRequest = await requestService.createRequest(user.id, {
+      name,
+      method,
+      url,
+      headers,
+      body: reqBody,
+      bodyType,
+      collectionId,
+      workspaceId,
     })
 
     return NextResponse.json(newRequest, { status: 201 })
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error creating request:', error)
+    if (error.message) {
+      return NextResponse.json(
+        { error: error.message },
+        { status: error.message.includes('not found') ? 404 : 400 }
+      )
+    }
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }

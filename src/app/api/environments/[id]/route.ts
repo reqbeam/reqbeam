@@ -1,15 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { prisma } from '@/lib/prisma'
+import { prisma, EnvironmentService } from '@postmind/db'
 import { getAuthenticatedUser } from '@/lib/apiAuth'
-
-// Helper to parse variables JSON string to object
-function parseVariables(variables: string): Record<string, string> {
-  try {
-    return variables ? JSON.parse(variables) : {}
-  } catch {
-    return {}
-  }
-}
 
 export async function GET(
   request: NextRequest,
@@ -23,13 +14,8 @@ export async function GET(
 
     const { id: environmentId } = await params
 
-    // Check if environment belongs to user
-    const environment = await prisma.environment.findFirst({
-      where: {
-        id: environmentId,
-        userId: user.id,
-      },
-    })
+    const environmentService = new EnvironmentService(prisma)
+    const environment = await environmentService.getEnvironment(environmentId, user.id)
 
     if (!environment) {
       return NextResponse.json(
@@ -38,10 +24,7 @@ export async function GET(
       )
     }
 
-    return NextResponse.json({
-      ...environment,
-      variables: parseVariables(environment.variables),
-    })
+    return NextResponse.json(environment)
   } catch (error) {
     console.error('Error fetching environment:', error)
     return NextResponse.json(
@@ -64,43 +47,25 @@ export async function PUT(
     const { id: environmentId } = await params
     const { name, variables } = await request.json()
 
-    // Check if environment belongs to user
-    const environment = await prisma.environment.findFirst({
-      where: {
-        id: environmentId,
-        userId: user.id,
-      },
-    })
+    const environmentService = new EnvironmentService(prisma)
+    const updatedEnvironment = await environmentService.updateEnvironment(
+      environmentId,
+      user.id,
+      {
+        name,
+        variables,
+      }
+    )
 
-    if (!environment) {
+    return NextResponse.json(updatedEnvironment)
+  } catch (error: any) {
+    console.error('Error updating environment:', error)
+    if (error.message) {
       return NextResponse.json(
-        { error: 'Environment not found' },
-        { status: 404 }
+        { error: error.message },
+        { status: error.message.includes('not found') ? 404 : 400 }
       )
     }
-
-    // Update environment
-    const updateData: any = {}
-    if (name !== undefined) {
-      updateData.name = name
-    }
-    if (variables !== undefined) {
-      updateData.variables = JSON.stringify(variables || {})
-    }
-
-    const updatedEnvironment = await prisma.environment.update({
-      where: {
-        id: environmentId,
-      },
-      data: updateData,
-    })
-
-    return NextResponse.json({
-      ...updatedEnvironment,
-      variables: parseVariables(updatedEnvironment.variables),
-    })
-  } catch (error) {
-    console.error('Error updating environment:', error)
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }
@@ -120,31 +85,18 @@ export async function DELETE(
 
     const { id: environmentId } = await params
 
-    // Check if environment belongs to user
-    const environment = await prisma.environment.findFirst({
-      where: {
-        id: environmentId,
-        userId: user.id,
-      },
-    })
-
-    if (!environment) {
-      return NextResponse.json(
-        { error: 'Environment not found' },
-        { status: 404 }
-      )
-    }
-
-    // Delete environment
-    await prisma.environment.delete({
-      where: {
-        id: environmentId,
-      },
-    })
+    const environmentService = new EnvironmentService(prisma)
+    await environmentService.deleteEnvironment(environmentId, user.id)
 
     return NextResponse.json({ message: 'Environment deleted successfully' })
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error deleting environment:', error)
+    if (error.message) {
+      return NextResponse.json(
+        { error: error.message },
+        { status: error.message.includes('not found') ? 404 : 400 }
+      )
+    }
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }
