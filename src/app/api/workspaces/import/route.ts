@@ -88,7 +88,7 @@ export async function POST(request: NextRequest) {
     const workspaceService = new WorkspaceService(prisma)
     const workspace = await workspaceService.createWorkspace(user.id, {
       name: workspaceData.name || 'Imported Workspace',
-      description: workspaceData.description || null,
+      description: workspaceData.description ?? undefined,
     })
 
     const stats = {
@@ -108,7 +108,7 @@ export async function POST(request: NextRequest) {
         try {
           const collection = await collectionService.createCollection(user.id, {
             name: collectionData.name,
-            description: collectionData.description || null,
+            description: collectionData.description ?? undefined,
             workspaceId: workspace.id,
           })
           stats.collections++

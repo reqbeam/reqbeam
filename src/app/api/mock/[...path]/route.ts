@@ -84,13 +84,13 @@ async function handleMockRequest(
 
     // Find matching endpoint
     // Try exact match first
-    let endpoint = mockServer.endpoints.find(
+    let endpoint = (mockServer.endpoints || []).find(
       (ep) => ep.method === method && ep.path === requestPath
     )
 
     // If no exact match, try path parameter matching (e.g., /users/:id matches /users/123)
     if (!endpoint) {
-      endpoint = mockServer.endpoints.find((ep) => {
+      endpoint = (mockServer.endpoints || []).find((ep) => {
         if (ep.method !== method) return false
         
         // Simple path parameter matching
@@ -108,7 +108,7 @@ async function handleMockRequest(
     // If still no match, try wildcard or default
     if (!endpoint) {
       // Try to find a wildcard endpoint
-      endpoint = mockServer.endpoints.find(
+      endpoint = (mockServer.endpoints || []).find(
         (ep) => ep.method === method && ep.path === '*'
       )
     }

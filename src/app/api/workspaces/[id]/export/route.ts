@@ -35,10 +35,10 @@ export async function GET(
         name: workspace.name,
         description: workspace.description,
         exportedAt: new Date().toISOString(),
-        collections: workspace.collections.map(collection => ({
+        collections: (workspace.collections || []).map((collection: any) => ({
           name: collection.name,
           description: collection.description,
-          requests: collection.requests.map(req => ({
+          requests: (collection.requests || []).map((req: any) => ({
             name: req.name,
             method: req.method,
             url: req.url,
@@ -48,13 +48,13 @@ export async function GET(
             auth: req.auth ? (typeof req.auth === 'string' ? JSON.parse(req.auth) : req.auth) : undefined,
           })),
         })),
-        environments: workspace.environments.map(env => ({
+        environments: (workspace.environments || []).map((env: any) => ({
           name: env.name,
           variables: typeof env.variables === 'string' ? JSON.parse(env.variables) : env.variables,
           isActive: env.isActive,
         })),
         ...(includeHistory && workspace.requestHistories && {
-          history: workspace.requestHistories.map(hist => ({
+          history: (workspace.requestHistories || []).map((hist: any) => ({
             requestId: hist.requestId,
             statusCode: hist.statusCode,
             response: hist.response,

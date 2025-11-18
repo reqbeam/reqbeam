@@ -112,10 +112,10 @@ export async function POST(request: NextRequest) {
       historyService.createApiHistory(user.id, {
         method: method.toUpperCase(),
         url,
-        statusCode: statusCode || null,
+        statusCode: statusCode ?? undefined,
         source: 'WEB',
         duration,
-        workspaceId: workspaceId || null,
+        workspaceId: workspaceId ?? undefined,
       }).catch((err) => console.error('Failed to log history:', err))
     }
 
@@ -136,11 +136,11 @@ export async function POST(request: NextRequest) {
       historyService.createApiHistory(user.id, {
         method: 'GET', // Default if we don't have the method
         url: 'unknown',
-        statusCode: statusCode || null,
+        statusCode: statusCode ?? undefined,
         source: 'WEB',
         duration,
         error: errorMessage,
-        workspaceId: null,
+        workspaceId: undefined,
       }).catch((err) => console.error('Failed to log history:', err))
     }
 

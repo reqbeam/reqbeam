@@ -32,7 +32,7 @@ export async function GET(
     const exportData = {
       name: collection.name,
       description: collection.description || undefined,
-      requests: collection.requests.map(req => ({
+      requests: (collection.requests || []).map(req => ({
         name: req.name,
         method: req.method,
         url: req.url,

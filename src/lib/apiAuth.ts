@@ -52,7 +52,7 @@ export async function getAuthenticatedUser(request?: NextRequest): Promise<{ id:
         return {
           id: user.id,
           email: user.email,
-          name: user.name,
+          name: user.name ?? null,
         };
       } catch (error) {
         console.error('Token validation error:', error);

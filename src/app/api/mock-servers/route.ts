@@ -65,7 +65,7 @@ export async function POST(request: NextRequest) {
         )
       }
 
-      finalWorkspaceId = finalWorkspaceId || collection.workspaceId || null
+      finalWorkspaceId = finalWorkspaceId ?? collection.workspaceId ?? undefined
     }
 
     // Generate base URL with a unique mock ID
@@ -78,8 +78,8 @@ export async function POST(request: NextRequest) {
       user.id,
       {
         name,
-        collectionId: collectionId || null,
-        workspaceId: finalWorkspaceId || null,
+        collectionId: collectionId ?? undefined,
+        workspaceId: finalWorkspaceId ?? undefined,
         responseDelay,
         defaultStatusCode,
         isRunning: false,

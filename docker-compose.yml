@@ -1,0 +1,33 @@
+services:
+  postmind-app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: postmind-app
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      - DATABASE_URL=file:/app/data/prisma/dev.db
+      - NEXTAUTH_URL=${NEXTAUTH_URL:-http://localhost:3000}
+      - NEXTAUTH_SECRET=${NEXTAUTH_SECRET:-change-this-secret-in-production}
+      - NEXT_PUBLIC_APP_NAME=${NEXT_PUBLIC_APP_NAME:-OSS}
+      - AUTH_SERVER_URL=${AUTH_SERVER_URL:-http://localhost:4000}
+      - MAIN_APP_URL=${MAIN_APP_URL:-http://localhost:3000}
+      - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID:-}
+      - GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET:-}
+    volumes:
+      # Mount volume for database file persistence
+      - postmind-db-data:/app/data/prisma
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "node -e \"require('http').get('http://localhost:3000', (r) => {process.exit(r.statusCode === 200 ? 0 : 1)})\""]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+volumes:
+  postmind-db-data:
+    driver: local
+

@@ -54,8 +54,8 @@ export async function POST(request: NextRequest) {
     const collectionService = new CollectionService(prisma)
     const collection = await collectionService.createCollection(user.id, {
       name: normalizedCollection.name,
-      description: normalizedCollection.description || null,
-      workspaceId: workspaceId || null,
+      description: normalizedCollection.description ?? undefined,
+      workspaceId: workspaceId ?? undefined,
     })
 
     // Create requests using service
@@ -76,8 +76,7 @@ export async function POST(request: NextRequest) {
             ? (typeof request.auth === 'string' ? request.auth : JSON.stringify(request.auth))
             : undefined,
           collectionId: collection.id,
-            workspaceId: workspaceId || null,
-          },
+          workspaceId: workspaceId ?? undefined,
         })
         createdRequests.push(createdRequest)
       } catch (error) {
