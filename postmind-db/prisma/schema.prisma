@@ -1,0 +1,238 @@
+// This is your Prisma schema file
+// Learn more: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "linux-musl", "windows"]
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  password  String?  // Optional for OAuth users
+  name      String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  collections       Collection[]
+  requests          Request[]
+  environments      Environment[]
+  tabs              Tab[]
+  ownedWorkspaces   Workspace[]       @relation("WorkspaceOwner")
+  workspaceMembers  WorkspaceMember[]
+  apiHistory        ApiHistory[]
+  mockServers       MockServer[]
+
+  @@map("users")
+}
+
+model Collection {
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  userId      String
+  workspaceId String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  workspace Workspace? @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  requests  Request[]
+  mockServers MockServer[]
+
+  @@map("collections")
+}
+
+model Request {
+  id           String   @id @default(cuid())
+  name         String
+  method       String // GET, POST, PUT, DELETE, PATCH, etc.
+  url          String
+  headers      String? // Store headers as JSON string
+  body         String? // Request body
+  bodyType     String? // json, form-data, x-www-form-urlencoded
+  auth         String? // Store auth config as JSON string
+  collectionId String?
+  userId       String
+  workspaceId  String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  // Relations
+  user       User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  workspace  Workspace?       @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  collection Collection?      @relation(fields: [collectionId], references: [id], onDelete: SetNull)
+  histories  RequestHistory[]
+
+  @@map("requests")
+}
+
+model RequestHistory {
+  id          String   @id @default(cuid())
+  requestId   String
+  workspaceId String?
+  statusCode  Int?
+  response    String? // Response body
+  headers     String? // Response headers as JSON string
+  duration    Int? // Response time in ms
+  size        Int? // Response size in bytes
+  error       String? // Error message if any
+  createdAt   DateTime @default(now())
+
+  // Relations
+  request   Request    @relation(fields: [requestId], references: [id], onDelete: Cascade)
+  workspace Workspace? @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  @@map("request_histories")
+}
+
+model Environment {
+  id          String   @id @default(cuid())
+  name        String
+  variables   String // Store environment variables as JSON string
+  userId      String
+  workspaceId String?
+  isActive    Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  workspace Workspace? @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  @@map("environments")
+}
+
+model Tab {
+  id          String   @id @default(cuid())
+  name        String
+  method      String
+  url         String
+  headers     String?
+  body        String?
+  bodyType    String?
+  userId      String
+  workspaceId String?
+  isActive    Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  workspace Workspace? @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  @@map("tabs")
+}
+
+model Workspace {
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  ownerId     String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  owner            User              @relation("WorkspaceOwner", fields: [ownerId], references: [id], onDelete: Cascade)
+  members          WorkspaceMember[]
+  collections      Collection[]
+  requests         Request[]
+  environments     Environment[]
+  tabs             Tab[]
+  apiHistory       ApiHistory[]
+  requestHistories RequestHistory[]
+  mockServers      MockServer[]
+
+  @@map("workspaces")
+}
+
+model WorkspaceMember {
+  id          String   @id @default(cuid())
+  workspaceId String
+  userId      String
+  role        String   @default("viewer") // owner, editor, viewer
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([workspaceId, userId])
+  @@map("workspace_members")
+}
+
+model ApiHistory {
+  id          String   @id @default(cuid())
+  method      String   // GET, POST, PUT, DELETE, etc.
+  url         String
+  statusCode  Int?     // HTTP status code
+  source      String   // "CLI" or "WEB"
+  duration    Int?     // Response time in ms
+  error       String?  // Error message if request failed
+  userId      String?
+  workspaceId String?
+  createdAt   DateTime @default(now())
+
+  // Relations
+  user      User?      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  workspace Workspace? @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  @@map("api_history")
+  @@index([createdAt])
+  @@index([source])
+  @@index([workspaceId])
+  @@index([userId])
+}
+
+model MockServer {
+  id              String         @id @default(cuid())
+  name            String
+  baseUrl         String?        // Generated base URL (e.g., /api/mock/<mock_id>)
+  collectionId    String?
+  userId          String
+  workspaceId     String?
+  isRunning       Boolean        @default(false)
+  responseDelay   Int            @default(0) // Delay in milliseconds
+  defaultStatusCode Int          @default(200)
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+
+  // Relations
+  user        User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  workspace   Workspace?    @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  collection  Collection?   @relation(fields: [collectionId], references: [id], onDelete: SetNull)
+  endpoints   MockEndpoint[]
+
+  @@map("mock_servers")
+  @@index([userId])
+  @@index([workspaceId])
+  @@index([collectionId])
+}
+
+model MockEndpoint {
+  id            String      @id @default(cuid())
+  mockServerId  String
+  method        String      // GET, POST, PUT, DELETE, PATCH, etc.
+  path          String      // URL path (e.g., /users/:id)
+  response      String?     // Response body (JSON/YAML)
+  statusCode    Int         @default(200)
+  headers       String?     // Response headers as JSON string
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+
+  // Relations
+  mockServer MockServer @relation(fields: [mockServerId], references: [id], onDelete: Cascade)
+
+  @@map("mock_endpoints")
+  @@index([mockServerId])
+  @@index([method, path])
+}
+
