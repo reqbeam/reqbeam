@@ -124,7 +124,23 @@ export default function SignIn() {
           </div>
 
           {error && (
-            <div className="text-red-600 text-sm text-center">{error}</div>
+            <div className="text-red-600 text-sm text-center">
+              {error === 'pkce_config_error' 
+                ? 'OAuth client configuration issue: Your Google OAuth client is set as "Web application" which requires a secret. Create a new OAuth client as "Desktop app" type in Google Cloud Console to use PKCE without secrets. See docs/GOOGLE_OAUTH_PKCE_SETUP.md for details.'
+                : error === 'token_exchange_failed'
+                ? 'Failed to complete authentication. Please try again.'
+                : error === 'missing_verifier'
+                ? 'Session expired. Please try logging in again.'
+                : error === 'no_code'
+                ? 'No authorization code received. Please try again.'
+                : error === 'config_error'
+                ? 'OAuth not configured. Please contact support.'
+                : error === 'invalid_token'
+                ? 'Invalid authentication token. Please try again.'
+                : error === 'callback_error'
+                ? 'Authentication callback error. Please try again.'
+                : 'An error occurred. Please try again.'}
+            </div>
           )}
 
           <div className="space-y-3">
@@ -147,9 +163,8 @@ export default function SignIn() {
               </div>
             </div>
 
-            <button
-              type="button"
-              onClick={() => signIn('google', { callbackUrl: '/api/auth/oauth/callback' })}
+            <a
+              href="/auth/login"
               className="w-full flex items-center justify-center gap-3 py-2 px-4 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-[#1e1e1e] text-sm font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-[#2a2a2a] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 transition-colors"
             >
               <svg className="w-5 h-5" viewBox="0 0 24 24">
@@ -171,7 +186,7 @@ export default function SignIn() {
                 />
               </svg>
               Sign in with Google
-            </button>
+            </a>
           </div>
         </form>
       </div>

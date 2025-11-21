@@ -14,8 +14,9 @@ services:
       - NEXT_PUBLIC_APP_NAME=${NEXT_PUBLIC_APP_NAME:-OSS}
       - AUTH_SERVER_URL=${AUTH_SERVER_URL:-http://localhost:4000}
       - MAIN_APP_URL=${MAIN_APP_URL:-http://localhost:3000}
-      - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID:-}
-      - GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET:-}
+      - NEXT_PUBLIC_GOOGLE_CLIENT_ID=900779586767-cd5akjq2atvo35vu5rqrrnfgoakn2ao5.apps.googleusercontent.com
+      - GOOGLE_CLIENT_SECRET=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
+      - NEXT_PUBLIC_REDIRECT_URI=http://localhost:3000/auth/callback
     volumes:
       # Mount volume for database file persistence
       - postmind-db-data:/app/data/prisma

@@ -2,15 +2,17 @@ import { NextRequest } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from './auth';
 import { prisma } from '@postmind/db';
+import { verifyPKCESession } from './pkceSession';
 
 /**
  * Unified authentication helper for API routes
- * Supports both:
+ * Supports:
  * - Session-based auth (NextAuth for web UI)
+ * - PKCE session cookies (for OAuth PKCE login)
  * - Token-based auth (Bearer tokens for CLI)
  */
 export async function getAuthenticatedUser(request?: NextRequest): Promise<{ id: string; email: string; name: string | null } | null> {
-  // Try session-based auth first (for web UI)
+  // Try session-based auth first (for web UI with NextAuth)
   const session = await getServerSession(authOptions);
   if (session?.user?.id) {
     return {
@@ -18,6 +20,12 @@ export async function getAuthenticatedUser(request?: NextRequest): Promise<{ id:
       email: session.user.email || '',
       name: session.user.name || null
     };
+  }
+
+  // Try PKCE session cookies (for OAuth PKCE login)
+  const pkceUser = await verifyPKCESession(request);
+  if (pkceUser) {
+    return pkceUser;
   }
 
   // Try token-based auth (for CLI)
