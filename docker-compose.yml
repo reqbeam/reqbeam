@@ -18,8 +18,9 @@ services:
       - GOOGLE_CLIENT_SECRET=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
       - NEXT_PUBLIC_REDIRECT_URI=http://localhost:3000/auth/callback
     volumes:
-      # Mount volume for database file persistence
-      - postmind-db-data:/app/data/prisma
+      # Mount database directory so the CLI on the host can access the same dev.db file
+      # Host path is relative to this docker-compose.yml (./data/prisma -> dev.db)
+      - ./data/prisma:/app/data/prisma
     restart: unless-stopped
     healthcheck:
       test: ["CMD-SHELL", "node -e \"require('http').get('http://localhost:3000', (r) => {process.exit(r.statusCode === 200 ? 0 : 1)})\""]
@@ -29,6 +30,7 @@ services:
       start_period: 40s
 
 volumes:
+  # Kept for backward compatibility; no longer used for the app's DB
   postmind-db-data:
     driver: local
 

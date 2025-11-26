@@ -8,7 +8,7 @@
     "start": "next start",
     "lint": "next lint",
     "setup": "node scripts/setup.js",
-    "db:generate": "prisma generate --schema=./postmind-db/prisma/schema.prisma",
+    "db:generate": "node scripts/generate-prisma.js",
     "db:push": "cd postmind-db && npm run db:push",
     "db:migrate": "cd postmind-db && npm run db:migrate",
     "db:studio": "cd postmind-db && npm run db:studio"

@@ -51,6 +51,8 @@ RUN npm ci
 
 # Copy source code
 COPY src ./src
+# Copy scripts directory (needed for Prisma generation)
+COPY scripts ./scripts
 # Copy public directory if it exists (Next.js uses it for static assets)
 # If public directory doesn't exist, we'll create an empty one
 RUN mkdir -p ./public
