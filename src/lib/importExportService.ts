@@ -2,13 +2,13 @@ import yaml from 'js-yaml'
 import { v4 as uuidv4 } from 'uuid'
 import { parseOpenAPISpec, ParsedRequest } from './openApiParser'
 
-export interface PostmindCollection {
+export interface ReqbeamCollection {
   name: string
   description?: string
-  requests: PostmindRequest[]
+  requests: ReqbeamRequest[]
 }
 
-export interface PostmindRequest {
+export interface ReqbeamRequest {
   name: string
   method: string
   url: string
@@ -19,16 +19,16 @@ export interface PostmindRequest {
   description?: string
 }
 
-export interface PostmanCollection {
+export interface ExternalCollectionFormat {
   info: {
     name: string
     description?: string
     schema: string
   }
-  item: PostmanItem[]
+  item: ExternalCollectionItem[]
 }
 
-export interface PostmanItem {
+export interface ExternalCollectionItem {
   name: string
   request?: {
     method: string
@@ -47,19 +47,19 @@ export interface PostmanItem {
     auth?: any
     description?: string
   }
-  item?: PostmanItem[]
+  item?: ExternalCollectionItem[]
 }
 
 /**
  * Detect file format from content
  */
-export function detectFileFormat(fileContent: string, fileName: string): 'postmind' | 'postman' | 'openapi' {
+export function detectFileFormat(fileContent: string, fileName: string): 'reqbeam' | 'external' | 'openapi' {
   try {
     const data = JSON.parse(fileContent)
 
-    // Check for Postman collection format
-    if (data.info && data.info.schema && data.info.schema.includes('postman')) {
-      return 'postman'
+    // Check for external collection format (detects collection schema patterns)
+    if (data.info && data.info.schema && (data.info.schema.includes('collection/v') || (typeof data.info.schema === 'string' && data.info.schema.match(/collection\/v\d+\.\d+/)))) {
+      return 'external'
     }
 
     // Check for OpenAPI format
@@ -67,13 +67,13 @@ export function detectFileFormat(fileContent: string, fileName: string): 'postmi
       return 'openapi'
     }
 
-    // Check for Postmind format (has name and requests array)
+    // Check for Reqbeam format (has name and requests array)
     if (data.name && Array.isArray(data.requests)) {
-      return 'postmind'
+      return 'reqbeam'
     }
 
-    // Default to Postmind if structure matches
-    return 'postmind'
+    // Default to Reqbeam if structure matches
+    return 'reqbeam'
   } catch {
     // If JSON parsing fails, try YAML
     try {
@@ -82,27 +82,27 @@ export function detectFileFormat(fileContent: string, fileName: string): 'postmi
         return 'openapi'
       }
       if (data.name && Array.isArray(data.requests)) {
-        return 'postmind'
+        return 'reqbeam'
       }
     } catch {
       // If both fail, check file extension
       if (fileName.endsWith('.yaml') || fileName.endsWith('.yml')) {
         return 'openapi'
       }
-      return 'postmind'
+      return 'reqbeam'
     }
   }
-  return 'postmind'
+  return 'reqbeam'
 }
 
 /**
- * Normalize collection data from various formats to Postmind format
+ * Normalize collection data from various formats to Reqbeam format
  */
 export function normalizeCollection(
   fileContent: string,
   fileType: 'json' | 'yaml',
   fileName: string
-): PostmindCollection {
+): ReqbeamCollection {
   const format = detectFileFormat(fileContent, fileName)
 
   let data: any
@@ -117,10 +117,10 @@ export function normalizeCollection(
   }
 
   switch (format) {
-    case 'postmind':
-      return normalizePostmindCollection(data)
-    case 'postman':
-      return normalizePostmanCollection(data)
+    case 'reqbeam':
+      return normalizeReqbeamCollection(data)
+    case 'external':
+      return normalizeExternalCollection(data)
     case 'openapi':
       return normalizeOpenAPICollection(data, fileContent, fileType)
     default:
@@ -129,9 +129,9 @@ export function normalizeCollection(
 }
 
 /**
- * Normalize Postmind collection format
+ * Normalize Reqbeam collection format
  */
-function normalizePostmindCollection(data: any): PostmindCollection {
+function normalizeReqbeamCollection(data: any): ReqbeamCollection {
   return {
     name: data.name || 'Imported Collection',
     description: data.description,
@@ -149,12 +149,12 @@ function normalizePostmindCollection(data: any): PostmindCollection {
 }
 
 /**
- * Normalize Postman collection v2.1 format
+ * Normalize external collection format (v2.1 compatible)
  */
-function normalizePostmanCollection(data: PostmanCollection): PostmindCollection {
-  const requests: PostmindRequest[] = []
+function normalizeExternalCollection(data: ExternalCollectionFormat): ReqbeamCollection {
+  const requests: ReqbeamRequest[] = []
 
-  function processItem(item: PostmanItem, parentName?: string): void {
+  function processItem(item: ExternalCollectionItem, parentName?: string): void {
     if (item.request) {
       // It's a request
       const request = item.request
@@ -232,20 +232,20 @@ function normalizePostmanCollection(data: PostmanCollection): PostmindCollection
   }
 
   return {
-    name: data.info?.name || 'Imported Postman Collection',
+    name: data.info?.name || 'Imported Collection',
     description: data.info?.description,
     requests
   }
 }
 
 /**
- * Normalize OpenAPI spec to Postmind collection
+ * Normalize OpenAPI spec to Reqbeam collection
  */
 function normalizeOpenAPICollection(
   data: any,
   fileContent: string,
   fileType: 'json' | 'yaml'
-): PostmindCollection {
+): ReqbeamCollection {
   const requests = parseOpenAPISpec(fileContent, fileType)
 
   return {
@@ -259,7 +259,7 @@ function normalizeOpenAPICollection(
  * Export collection to JSON or YAML
  */
 export function exportCollection(
-  collection: PostmindCollection,
+  collection: ReqbeamCollection,
   format: 'json' | 'yaml'
 ): string {
   const exportData = {

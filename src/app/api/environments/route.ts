@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { prisma, EnvironmentService } from '@postmind/db'
+import { prisma, EnvironmentService } from '@reqbeam/db'
 import { getAuthenticatedUser } from '@/lib/apiAuth'
 
 export async function GET(request: NextRequest) {

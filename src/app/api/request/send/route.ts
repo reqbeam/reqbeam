@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { prisma, EnvironmentService, HistoryService } from '@postmind/db'
+import { prisma, EnvironmentService, HistoryService } from '@reqbeam/db'
 import { getAuthenticatedUser } from '@/lib/apiAuth'
 import {
   resolveEnvironmentVariables,
@@ -49,7 +49,7 @@ export async function POST(request: NextRequest) {
 
     // Prepare headers
     const requestHeaders: Record<string, string> = {
-      'User-Agent': 'Postman-Clone/1.0',
+      'User-Agent': 'Reqbeam/1.0',
       ...(headers as Record<string, string> | undefined),
     }
 

@@ -1,9 +1,9 @@
-# Multi-stage build for Postmind Web App and Database Package
+# Multi-stage build for Reqbeam Web App and Database Package
 
-# Stage 1: Build postmind-db package
+# Stage 1: Build reqbeam-db package
 FROM node:18-alpine AS db-builder
 
-WORKDIR /app/postmind-db
+WORKDIR /app/reqbeam-db
 
 # Install OpenSSL for Prisma (required for Alpine Linux)
 RUN apk add --no-cache openssl openssl-dev
@@ -11,11 +11,11 @@ RUN apk add --no-cache openssl openssl-dev
 # Install Prisma CLI globally for generating client
 RUN npm install -g prisma@^5.22.0
 
-# Copy postmind-db package files
-COPY postmind-db/package*.json ./
-COPY postmind-db/tsconfig.json ./
-COPY postmind-db/prisma ./prisma
-COPY postmind-db/src ./src
+# Copy reqbeam-db package files
+COPY reqbeam-db/package*.json ./
+COPY reqbeam-db/tsconfig.json ./
+COPY reqbeam-db/prisma ./prisma
+COPY reqbeam-db/src ./src
 
 # Install dependencies
 RUN npm ci
@@ -58,11 +58,11 @@ COPY scripts ./scripts
 RUN mkdir -p ./public
 COPY public ./public
 
-# Copy built postmind-db package from previous stage
-COPY --from=db-builder /app/postmind-db ./postmind-db
+# Copy built reqbeam-db package from previous stage
+COPY --from=db-builder /app/reqbeam-db ./reqbeam-db
 
-# Link postmind-db as local dependency
-RUN npm install ./postmind-db
+# Link reqbeam-db as local dependency
+RUN npm install ./reqbeam-db
 
 # Build Next.js application
 ENV DATABASE_URL="file:./prisma/dev.db"
@@ -93,20 +93,20 @@ RUN addgroup --system --gid 1001 nodejs && \
 COPY --from=next-builder /app/public ./public
 COPY --from=next-builder /app/.next/standalone ./
 COPY --from=next-builder /app/.next/static ./.next/static
-COPY --from=next-builder /app/postmind-db ./postmind-db
-COPY --from=next-builder /app/node_modules/@postmind/db ./node_modules/@postmind/db
+COPY --from=next-builder /app/reqbeam-db ./reqbeam-db
+COPY --from=next-builder /app/node_modules/@reqbeam/db ./node_modules/@reqbeam/db
 COPY --from=next-builder /app/node_modules/@prisma ./node_modules/@prisma
 COPY --from=next-builder /app/node_modules/.prisma ./node_modules/.prisma
 
 # Copy Prisma schema for migrations
-COPY --from=next-builder /app/postmind-db/prisma/schema.prisma ./postmind-db/prisma/schema.prisma
+COPY --from=next-builder /app/reqbeam-db/prisma/schema.prisma ./reqbeam-db/prisma/schema.prisma
 
 # Create entrypoint script to run migrations before starting
 RUN echo '#!/bin/sh' > /app/docker-entrypoint.sh && \
     echo 'set -e' >> /app/docker-entrypoint.sh && \
     echo 'if [ -n "$DATABASE_URL" ]; then' >> /app/docker-entrypoint.sh && \
     echo '  echo "Running database migrations..."' >> /app/docker-entrypoint.sh && \
-    echo '  cd /app/postmind-db && npx prisma db push --schema=./prisma/schema.prisma --skip-generate || true' >> /app/docker-entrypoint.sh && \
+    echo '  cd /app/reqbeam-db && npx prisma db push --schema=./prisma/schema.prisma --skip-generate || true' >> /app/docker-entrypoint.sh && \
     echo '  cd /app' >> /app/docker-entrypoint.sh && \
     echo 'fi' >> /app/docker-entrypoint.sh && \
     echo 'exec "$@"' >> /app/docker-entrypoint.sh && \

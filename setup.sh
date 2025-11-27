@@ -1,15 +1,15 @@
 #!/bin/bash
 
-# Script to setup postmind-db, web, and cli projects
+# Script to setup reqbeam-db, web, and cli projects
 # Exit on any error
 set -e
 
 echo "🚀 Starting setup process..."
 
-# Build postmind-db
+# Build reqbeam-db
 echo ""
-echo "📦 Setting up postmind-db..."
-cd postmind-db
+echo "📦 Setting up reqbeam-db..."
+cd reqbeam-db
 npm i
 npm run db:generate
 npm run db:push
@@ -26,7 +26,7 @@ npm run db:push
 # Build and link cli
 echo ""
 echo "⚙️  Setting up cli..."
-cd postmind-cli
+cd reqbeam-cli
 npm i
 npm run build
 npm link

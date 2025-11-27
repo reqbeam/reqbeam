@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { prisma, CollectionService, RequestService } from '@postmind/db'
+import { prisma, CollectionService, RequestService } from '@reqbeam/db'
 import { getAuthenticatedUser } from '@/lib/apiAuth'
 
 export async function GET(request: NextRequest) {

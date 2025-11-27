@@ -6,8 +6,8 @@ import { Providers } from './providers'
 const inter = Inter({ subsets: ['latin'] })
 
 export const metadata: Metadata = {
-  title: 'Postman Clone',
-  description: 'A Postman-like API testing tool built with Next.js',
+  title: 'Reqbeam',
+  description: 'A modern API testing tool built with Next.js',
 }
 
 export default function RootLayout({

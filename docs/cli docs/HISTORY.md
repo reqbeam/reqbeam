@@ -2,7 +2,7 @@
 
 ## Overview
 
-When you execute requests using the CLI with `postmind run request`, the execution history is now automatically saved to the database and appears in the web UI's history tab.
+When you execute requests using the CLI with `Reqbeam run request`, the execution history is now automatically saved to the database and appears in the web UI's history tab.
 
 ## Features
 
@@ -30,7 +30,7 @@ All CLI executions appear in the web UI's history section with:
 
 ```bash
 # Execute a request
-postmind run request "Get Users"
+Reqbeam run request "Get Users"
 
 # History is automatically saved to database
 # View it in Web UI → History tab
@@ -40,7 +40,7 @@ postmind run request "Get Users"
 
 ```bash
 # Execute entire collection
-postmind run collection "User API"
+Reqbeam run collection "User API"
 
 # Each request in the collection is saved to history
 ```
@@ -49,7 +49,7 @@ postmind run collection "User API"
 
 ```bash
 # Run collection in parallel
-postmind run collection "User API" --parallel
+Reqbeam run collection "User API" --parallel
 
 # All requests are still logged to history
 ```
@@ -61,7 +61,7 @@ postmind run collection "User API" --parallel
 When you run a request via CLI:
 
 ```bash
-postmind run request "Get Users"
+Reqbeam run request "Get Users"
 ```
 
 ### 2. Execution Happens
@@ -192,7 +192,7 @@ Track all API activity from both CLI and web UI in one place.
 
 ```bash
 # Terminal 1: Run request via CLI
-postmind run request "Get Users"
+Reqbeam run request "Get Users"
 # Output: GET 200 345ms Get Users
 # History automatically saved
 
@@ -205,7 +205,7 @@ postmind run request "Get Users"
 
 ```bash
 # Run entire collection
-postmind run collection "API Tests"
+Reqbeam run collection "API Tests"
 
 # Output:
 # GET 200 123ms Test 1
@@ -222,7 +222,7 @@ postmind run collection "API Tests"
 
 ```bash
 # Run request that fails
-postmind run request "Broken Endpoint"
+Reqbeam run request "Broken Endpoint"
 
 # Output: GET 500 1234ms Broken Endpoint
 # Error: Internal Server Error
@@ -241,7 +241,7 @@ postmind run request "Broken Endpoint"
 
 **Solutions**:
 1. Refresh the web UI page
-2. Check authentication: `postmind auth status`
+2. Check authentication: `Reqbeam auth status`
 3. Verify web UI is running
 4. Check CLI logs for history save errors
 
@@ -255,7 +255,7 @@ Warning: Failed to save to history
 
 **Solutions**:
 1. Check web UI is running: `curl http://localhost:3000/api/health`
-2. Verify authentication token is valid: `postmind auth status`
+2. Verify authentication token is valid: `Reqbeam auth status`
 3. Check network connectivity
 4. Note: Request still executed successfully, only history logging failed
 
@@ -283,10 +283,10 @@ curl -X DELETE http://localhost:3000/api/history
 
 ```bash
 # Good
-postmind run request "Get User Profile by ID"
+Reqbeam run request "Get User Profile by ID"
 
 # Bad
-postmind run request "Request1"
+Reqbeam run request "Request1"
 ```
 
 Descriptive names make history more useful.
@@ -309,7 +309,7 @@ Use history to identify slow requests:
 
 ### Implementation
 
-**CLI Side** (`postmind-cli/src/commands/run.ts`):
+**CLI Side** (`reqbeam-cli/src/commands/run.ts`):
 ```typescript
 // After executing request
 await storage.saveToHistory({
@@ -321,7 +321,7 @@ await storage.saveToHistory({
 });
 ```
 
-**API Client** (`postmind-cli/src/utils/apiClient.ts`):
+**API Client** (`reqbeam-cli/src/utils/apiClient.ts`):
 ```typescript
 async saveHistory(data) {
   await this.client.post('/api/history', {

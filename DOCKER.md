@@ -1,6 +1,6 @@
-# Docker Setup for Postmind
+# Docker Setup for Reqbeam
 
-This guide explains how to run the Postmind web application and database in a Docker container with volume mounting for database persistence.
+This guide explains how to run the Reqbeam web application and database in a Docker container with volume mounting for database persistence.
 
 ## Prerequisites
 
@@ -37,7 +37,7 @@ This guide explains how to run the Postmind web application and database in a Do
 
 ## Database Volume Mounting
 
-The database file is stored in a Docker volume named `postmind-db-data`, which ensures:
+The database file is stored in a Docker volume named `reqbeam-db-data`, which ensures:
 - **Persistence**: Database data persists across container restarts
 - **Backup**: Easy to backup by exporting the volume
 - **Portability**: Can be moved between hosts
@@ -55,20 +55,20 @@ To access the database file directly:
 docker volume ls
 
 # Inspect the volume
-docker volume inspect postmind-db-data
+docker volume inspect reqbeam-db-data
 
 # Access the database file (requires root)
-docker run --rm -v postmind-db-data:/data alpine ls -la /data
+docker run --rm -v reqbeam-db-data:/data alpine ls -la /data
 ```
 
 ### Backup Database
 
 ```bash
 # Create a backup
-docker run --rm -v postmind-db-data:/data -v $(pwd):/backup alpine tar czf /backup/postmind-db-backup.tar.gz /data
+docker run --rm -v reqbeam-db-data:/data -v $(pwd):/backup alpine tar czf /backup/reqbeam-db-backup.tar.gz /data
 
 # Restore from backup
-docker run --rm -v postmind-db-data:/data -v $(pwd):/backup alpine tar xzf /backup/postmind-db-backup.tar.gz -C /
+docker run --rm -v reqbeam-db-data:/data -v $(pwd):/backup alpine tar xzf /backup/reqbeam-db-backup.tar.gz -C /
 ```
 
 ### Using a Local Directory Instead of Volume
@@ -115,16 +115,16 @@ docker-compose down
 
 ### View logs
 ```bash
-docker-compose logs -f postmind-app
+docker-compose logs -f Reqbeam-app
 ```
 
 ### Execute commands in container
 ```bash
 # Access shell
-docker-compose exec postmind-app sh
+docker-compose exec Reqbeam-app sh
 
 # Run Prisma Studio
-docker-compose exec postmind-app npx prisma studio --schema=./postmind-db/prisma/schema.prisma
+docker-compose exec Reqbeam-app npx prisma studio --schema=./reqbeam-db/prisma/schema.prisma
 ```
 
 ### Rebuild after code changes
@@ -139,7 +139,7 @@ Database migrations are automatically run when the container starts via the entr
 To manually run migrations:
 
 ```bash
-docker-compose exec postmind-app sh -c "cd /app/postmind-db && npx prisma db push --schema=./prisma/schema.prisma"
+docker-compose exec Reqbeam-app sh -c "cd /app/reqbeam-db && npx prisma db push --schema=./prisma/schema.prisma"
 ```
 
 ## Troubleshooting
@@ -148,7 +148,7 @@ docker-compose exec postmind-app sh -c "cd /app/postmind-db && npx prisma db pus
 
 1. Check logs:
    ```bash
-   docker-compose logs postmind-app
+   docker-compose logs Reqbeam-app
    ```
 
 2. Verify environment variables:
@@ -158,19 +158,19 @@ docker-compose exec postmind-app sh -c "cd /app/postmind-db && npx prisma db pus
 
 3. Check database permissions:
    ```bash
-   docker-compose exec postmind-app ls -la /app/data/prisma
+   docker-compose exec Reqbeam-app ls -la /app/data/prisma
    ```
 
 ### Database not persisting
 
 1. Verify volume is mounted:
    ```bash
-   docker volume inspect postmind-db-data
+   docker volume inspect reqbeam-db-data
    ```
 
 2. Check if database file exists:
    ```bash
-   docker-compose exec postmind-app ls -la /app/data/prisma
+   docker-compose exec Reqbeam-app ls -la /app/data/prisma
    ```
 
 ### Port already in use
@@ -222,7 +222,7 @@ For production deployments:
 │  └───────────┬─────────────────┘  │
 │              │                      │
 │  ┌───────────▼─────────────────┐  │
-│  │    @postmind/db Package      │  │
+│  │    @reqbeam/db Package      │  │
 │  │    (Prisma Client)           │  │
 │  └───────────┬─────────────────┘  │
 │              │                      │
@@ -236,7 +236,7 @@ For production deployments:
                ▼
       ┌─────────────────┐
       │ Docker Volume   │
-      │ postmind-db-data│
+      │ reqbeam-db-data│
       └─────────────────┘
 ```
 
@@ -245,5 +245,5 @@ For production deployments:
 For issues or questions:
 - Check the logs: `docker-compose logs -f`
 - Review the [README.md](./README.md) for general setup
-- Check [SETUP_INSTRUCTIONS.md](./postmind-db/SETUP_INSTRUCTIONS.md) for database setup
+- Check [SETUP_INSTRUCTIONS.md](./reqbeam-db/SETUP_INSTRUCTIONS.md) for database setup
 

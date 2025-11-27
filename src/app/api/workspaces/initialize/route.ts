@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { prisma, UserService, WorkspaceService, CollectionService, RequestService, EnvironmentService } from '@postmind/db'
+import { prisma, UserService, WorkspaceService, CollectionService, RequestService, EnvironmentService } from '@reqbeam/db'
 import { getAuthenticatedUser } from '@/lib/apiAuth'
 
 // POST /api/workspaces/initialize - Initialize default workspace for user

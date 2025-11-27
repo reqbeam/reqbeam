@@ -3,12 +3,12 @@ const fs = require('fs');
 const path = require('path');
 
 console.log('Generating Prisma client...');
-execSync('prisma generate --schema=./postmind-db/prisma/schema.prisma', { stdio: 'inherit' });
+execSync('prisma generate --schema=./reqbeam-db/prisma/schema.prisma', { stdio: 'inherit' });
 
-// Copy Prisma client from postmind-db to root node_modules if needed
-const srcPath = path.join('postmind-db', 'node_modules', '@prisma', 'client');
+// Copy Prisma client from reqbeam-db to root node_modules if needed
+const srcPath = path.join('reqbeam-db', 'node_modules', '@prisma', 'client');
 const destPath = path.join('node_modules', '@prisma', 'client');
-const srcPrismaPath = path.join('postmind-db', 'node_modules', '.prisma', 'client');
+const srcPrismaPath = path.join('reqbeam-db', 'node_modules', '.prisma', 'client');
 const destPrismaPath = path.join('node_modules', '.prisma', 'client');
 
 if (fs.existsSync(srcPath)) {

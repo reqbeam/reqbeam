@@ -1,10 +1,10 @@
-# Postmind CLI Environment Management
+# Reqbeam CLI Environment Management
 
-This guide explains how to manage environment variables in Postmind CLI, allowing you to use dynamic values in your API requests across different environments (Development, Staging, Production).
+This guide explains how to manage environment variables in Reqbeam CLI, allowing you to use dynamic values in your API requests across different environments (Development, Staging, Production).
 
 ## 🌍 Overview
 
-Environments in Postmind CLI allow you to:
+Environments in Reqbeam CLI allow you to:
 - Store reusable variables (base URLs, API keys, tokens, etc.)
 - Switch between different environments quickly
 - Use variables in URLs, headers, and request bodies with `{{variableName}}` syntax
@@ -15,7 +15,7 @@ Environments in Postmind CLI allow you to:
 
 1. **Authentication**: You must be logged in to use environment commands
    ```bash
-   postmind auth login
+   Reqbeam auth login
    ```
 
 2. **Workspace**: Environments are scoped to workspaces. Ensure you have an active workspace.
@@ -27,9 +27,9 @@ Environments in Postmind CLI allow you to:
 View all available environments:
 
 ```bash
-postmind env list
+Reqbeam env list
 # or
-pm env list
+rb env list
 ```
 
 **Output:**
@@ -50,18 +50,18 @@ Create a new environment with optional variables:
 
 ```bash
 # Create environment without variables
-postmind env add <name>
+Reqbeam env add <name>
 
 # Create environment with interactive variable input
-postmind env add <name> --interactive
+Reqbeam env add <name> --interactive
 # or
-postmind env add <name> -i
+Reqbeam env add <name> -i
 ```
 
 **Example:**
 ```bash
 # Create Development environment
-pm env add Development -i
+rb env add Development -i
 
 # Interactive prompt will ask:
 # Enter variables as key=value pairs (comma-separated):
@@ -80,14 +80,14 @@ pm env add Development -i
 Activate a different environment (only one can be active per workspace):
 
 ```bash
-postmind env switch <name>
+Reqbeam env switch <name>
 # or
-pm env switch <name>
+rb env switch <name>
 ```
 
 **Example:**
 ```bash
-pm env switch Production
+rb env switch Production
 ```
 
 **Output:**
@@ -102,9 +102,9 @@ pm env switch Production
 Add, update, or remove variables from an environment:
 
 ```bash
-postmind env update <name> [options]
+Reqbeam env update <name> [options]
 # or
-pm env update <name> [options]
+rb env update <name> [options]
 ```
 
 **Options:**
@@ -115,16 +115,16 @@ pm env update <name> [options]
 
 ```bash
 # Add new variables
-pm env update Development -a "newKey=newValue,anotherKey=anotherValue"
+rb env update Development -a "newKey=newValue,anotherKey=anotherValue"
 
 # Update existing variables
-pm env update Development -a "baseUrl=https://new.dev.api.com,token=new_token"
+rb env update Development -a "baseUrl=https://new.dev.api.com,token=new_token"
 
 # Remove variables
-pm env update Development -r "oldKey,deprecatedKey"
+rb env update Development -r "oldKey,deprecatedKey"
 
 # Add and remove in one command
-pm env update Development -a "newVar=value" -r "oldVar"
+rb env update Development -a "newVar=value" -r "oldVar"
 ```
 
 **Output:**
@@ -138,19 +138,19 @@ pm env update Development -a "newVar=value" -r "oldVar"
 Delete an environment:
 
 ```bash
-postmind env remove <name>
+Reqbeam env remove <name>
 # or
-pm env remove <name>
+rb env remove <name>
 
 # Force removal without confirmation
-postmind env remove <name> --force
+Reqbeam env remove <name> --force
 # or
-postmind env remove <name> -f
+Reqbeam env remove <name> -f
 ```
 
 **Example:**
 ```bash
-pm env remove OldEnvironment
+rb env remove OldEnvironment
 ```
 
 **Interactive confirmation:**
@@ -173,7 +173,7 @@ Environment variables are automatically substituted when running requests. Use t
 
 ```bash
 # Create request with variable in URL
-postmind request create -n "Get Users" -m GET -u "{{baseUrl}}/api/users"
+Reqbeam request create -n "Get Users" -m GET -u "{{baseUrl}}/api/users"
 
 # When baseUrl = "https://api.example.com"
 # Actual URL: https://api.example.com/api/users
@@ -185,7 +185,7 @@ Variables can be used in request headers:
 
 ```bash
 # Create request with header variable
-postmind request create -n "Authenticated Request" \
+Reqbeam request create -n "Authenticated Request" \
   -m GET \
   -u "{{baseUrl}}/api/protected" \
   -H "Authorization: Bearer {{token}}"
@@ -200,7 +200,7 @@ Variables work in request bodies (both JSON and plain text):
 
 ```bash
 # Create POST request with body variables
-postmind request create -n "Create User" \
+Reqbeam request create -n "Create User" \
   -m POST \
   -u "{{baseUrl}}/api/users" \
   -b '{"userId": "{{userId}}", "apiKey": "{{apiKey}}"}'
@@ -240,31 +240,31 @@ Set up separate environments for Development, Staging, and Production:
 
 ```bash
 # 1. Create Development environment
-pm env add Development -i
+rb env add Development -i
 # Enter: baseUrl=https://dev.api.com,token=dev_token_123
 
 # 2. Create Staging environment
-pm env add Staging -i
+rb env add Staging -i
 # Enter: baseUrl=https://staging.api.com,token=staging_token_456
 
 # 3. Create Production environment
-pm env add Production -i
+rb env add Production -i
 # Enter: baseUrl=https://api.com,token=prod_token_789
 
 # 4. List all environments
-pm env list
+rb env list
 
 # 5. Switch to Development
-pm env switch Development
+rb env switch Development
 
 # 6. Run requests (they'll use Development variables)
-pm run request "Get Users"
+rb run request "Get Users"
 
 # 7. Switch to Production
-pm env switch Production
+rb env switch Production
 
 # 8. Run same request (now uses Production variables)
-pm run request "Get Users"
+rb run request "Get Users"
 ```
 
 ### Workflow 2: Updating Environment Variables
@@ -273,35 +273,35 @@ Update variables as your configuration changes:
 
 ```bash
 # 1. List current environments
-pm env list
+rb env list
 
 # 2. View current variables (in web UI or check active environment)
-pm env switch Development
+rb env switch Development
 
 # 3. Update base URL
-pm env update Development -a "baseUrl=https://new-dev.api.com"
+rb env update Development -a "baseUrl=https://new-dev.api.com"
 
 # 4. Add new variable
-pm env update Development -a "apiVersion=v2"
+rb env update Development -a "apiVersion=v2"
 
 # 5. Remove deprecated variable
-pm env update Development -r "oldApiKey"
+rb env update Development -r "oldApiKey"
 ```
 
 ### Workflow 3: Running Requests with Environment Variables
 
 ```bash
 # 1. Ensure you have an active environment
-pm env switch Development
+rb env switch Development
 
 # 2. Create request using variables
-pm request create -n "Get User Profile" \
+rb request create -n "Get User Profile" \
   -m GET \
   -u "{{baseUrl}}/api/users/{{userId}}" \
   -H "X-API-Key: {{apiKey}}"
 
 # 3. Run the request (variables will be substituted automatically)
-pm run request "Get User Profile"
+rb run request "Get User Profile"
 ```
 
 ## Integration with Web UI
@@ -322,16 +322,16 @@ Environments created and managed in the CLI are **automatically synced** with th
 Use descriptive environment names:
 ```bash
 ✅ Good:
-pm env add Development
-pm env add Staging
-pm env add Production
-pm env add Local
-pm env add Testing
+rb env add Development
+rb env add Staging
+rb env add Production
+rb env add Local
+rb env add Testing
 
 ❌ Avoid:
-pm env add env1
-pm env add test
-pm env add prod1
+rb env add env1
+rb env add test
+rb env add prod1
 ```
 
 ### 2. Variable Naming
@@ -386,34 +386,34 @@ Keep environments organized:
 
 ```bash
 # Setup
-pm env add API-Dev -i
+rb env add API-Dev -i
 # Variables: baseUrl=https://api-dev.example.com,apiKey=dev_key_123
 
 # Create requests
-pm request create -n "Get Posts" -m GET -u "{{baseUrl}}/posts"
-pm request create -n "Create Post" -m POST -u "{{baseUrl}}/posts" \
+rb request create -n "Get Posts" -m GET -u "{{baseUrl}}/posts"
+rb request create -n "Create Post" -m POST -u "{{baseUrl}}/posts" \
   -b '{"title": "Test", "apiKey": "{{apiKey}}"}'
 
 # Switch and test
-pm env switch API-Dev
-pm run request "Get Posts"
+rb env switch API-Dev
+rb run request "Get Posts"
 ```
 
 ### Example 2: Authentication Flow
 
 ```bash
 # Setup environment with auth variables
-pm env add Auth-Dev -i
+rb env add Auth-Dev -i
 # Variables: authUrl=https://auth.dev.com,token=test_token,clientId=client_123
 
 # Create auth request
-pm request create -n "Get Token" \
+rb request create -n "Get Token" \
   -m POST \
   -u "{{authUrl}}/oauth/token" \
   -b '{"client_id": "{{clientId}}", "grant_type": "client_credentials"}'
 
 # Use token in subsequent requests
-pm request create -n "Get Profile" \
+rb request create -n "Get Profile" \
   -m GET \
   -u "{{baseUrl}}/profile" \
   -H "Authorization: Bearer {{token}}"
@@ -423,13 +423,13 @@ pm request create -n "Get Profile" \
 
 ```bash
 # Environment with multiple service URLs
-pm env add Microservices -i
+rb env add Microservices -i
 # Variables: userService=https://users.api.com,orderService=https://orders.api.com,paymentService=https://payments.api.com
 
 # Create service-specific requests
-pm request create -n "Get Users" -m GET -u "{{userService}}/users"
-pm request create -n "Get Orders" -m GET -u "{{orderService}}/orders"
-pm request create -n "Process Payment" -m POST -u "{{paymentService}}/payments"
+rb request create -n "Get Users" -m GET -u "{{userService}}/users"
+rb request create -n "Get Orders" -m GET -u "{{orderService}}/orders"
+rb request create -n "Process Payment" -m POST -u "{{paymentService}}/payments"
 ```
 
 ## Troubleshooting
@@ -442,8 +442,8 @@ Environment 'Development' not found
 ```
 
 **Solutions:**
-1. Check environment name spelling: `pm env list`
-2. Ensure you're authenticated: `pm auth status`
+1. Check environment name spelling: `rb env list`
+2. Ensure you're authenticated: `rb auth status`
 3. Verify workspace: Environments are workspace-scoped
 
 ### Variables Not Substituting
@@ -453,12 +453,12 @@ If variables remain as `{{variableName}}` in requests:
 **Solutions:**
 1. **Check active environment:**
    ```bash
-   pm env list  # Look for ✓ mark
+   rb env list  # Look for ✓ mark
    ```
 
 2. **Switch to correct environment:**
    ```bash
-   pm env switch <environment-name>
+   rb env switch <environment-name>
    ```
 
 3. **Verify variable name:**
@@ -473,8 +473,8 @@ If variables remain as `{{variableName}}` in requests:
 If switching fails:
 
 **Solutions:**
-1. Verify environment exists: `pm env list`
-2. Check authentication: `pm auth status`
+1. Verify environment exists: `rb env list`
+2. Check authentication: `rb auth status`
 3. Ensure workspace is active
 4. Check network connection to web UI
 
@@ -485,12 +485,12 @@ If requests use wrong environment variables:
 **Solutions:**
 1. **Check active environment:**
    ```bash
-   pm env list
+   rb env list
    ```
 
 2. **Switch to correct environment:**
    ```bash
-   pm env switch Production  # Example
+   rb env switch Production  # Example
    ```
 
 3. **Verify workspace:**
@@ -502,7 +502,7 @@ If requests use wrong environment variables:
 If environment creation fails:
 
 **Solutions:**
-1. Check authentication: `pm auth status`
+1. Check authentication: `rb auth status`
 2. Verify environment name is unique
 3. Check network connection
 4. Ensure workspace is available
@@ -528,7 +528,7 @@ Update environment variables programmatically:
 
 ```bash
 # Update multiple variables at once
-pm env update Production \
+rb env update Production \
   -a "baseUrl=https://api.newdomain.com,apiKey=new_key_456,version=v2" \
   -r "oldApiKey,deprecatedToken"
 ```
@@ -540,8 +540,8 @@ Create scripts for quick environment switching:
 ```bash
 #!/bin/bash
 # switch-to-dev.sh
-pm env switch Development
-pm run collection "All Tests"
+rb env switch Development
+rb run collection "All Tests"
 ```
 
 ### CI/CD Integration
@@ -550,8 +550,8 @@ Use environments in CI/CD pipelines:
 
 ```bash
 # In CI script
-pm env switch Production
-pm run collection "Smoke Tests"
+rb env switch Production
+rb run collection "Smoke Tests"
 ```
 
 ## API Endpoints
@@ -608,18 +608,18 @@ Planned enhancements to environment management:
 If you encounter issues with environments:
 
 1. Check the troubleshooting section above
-2. Verify authentication: `pm auth status`
-3. List environments: `pm env list`
+2. Verify authentication: `rb auth status`
+3. List environments: `rb env list`
 4. Check web UI for environment state
 5. Review CLI logs for detailed error messages
 
 ---
 
-**Tip:** Use the shorter `pm` alias instead of `postmind` for faster commands!
+**Tip:** Use the shorter `pm` alias instead of `Reqbeam` for faster commands!
 
 ```bash
-pm env list
-pm env switch Development
-pm env update Production -a "key=value"
+rb env list
+rb env switch Development
+rb env update Production -a "key=value"
 ```
 

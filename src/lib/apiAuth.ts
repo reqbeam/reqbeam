@@ -1,7 +1,7 @@
 import { NextRequest } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from './auth';
-import { prisma } from '@postmind/db';
+import { prisma } from '@reqbeam/db';
 import { verifyPKCESession } from './pkceSession';
 
 /**
@@ -49,7 +49,7 @@ export async function getAuthenticatedUser(request?: NextRequest): Promise<{ id:
         }
         
         // Verify user exists
-        const { UserService } = await import('@postmind/db');
+        const { UserService } = await import('@reqbeam/db');
         const userService = new UserService(prisma);
         const user = await userService.getUserById(userId);
         

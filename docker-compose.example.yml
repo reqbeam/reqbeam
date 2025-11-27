@@ -1,11 +1,11 @@
 version: '3.8'
 
 services:
-  postmind-app:
+  reqbeam-app:
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: postmind-app
+    container_name: reqbeam-app
     ports:
       - "3000:3000"
     environment:
@@ -26,7 +26,7 @@ services:
     volumes:
       # Mount volume for database file persistence
       # This ensures the database persists across container restarts
-      - postmind-db-data:/app/data/prisma
+      - reqbeam-db-data:/app/data/prisma
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:3000 || exit 1"]
@@ -36,7 +36,7 @@ services:
       start_period: 40s
 
 volumes:
-  postmind-db-data:
+  reqbeam-db-data:
     driver: local
     # Optional: Use a named volume with a specific driver
     # driver: local

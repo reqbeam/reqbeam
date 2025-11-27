@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { prisma, HistoryService } from '@postmind/db'
+import { prisma, HistoryService } from '@reqbeam/db'
 import { getAuthenticatedUser } from '@/lib/apiAuth'
 
 // GET /api/history - Fetch all history entries

@@ -1,6 +1,6 @@
 import { NextRequest } from 'next/server';
 import { cookies } from 'next/headers';
-import { prisma, UserService } from '@postmind/db';
+import { prisma, UserService } from '@reqbeam/db';
 
 /**
  * Verify PKCE session from cookie

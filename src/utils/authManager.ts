@@ -11,7 +11,7 @@ import type { AuthConfig, AuthProfile } from '@/types/auth'
  */
 export class AuthManager {
   private static instance: AuthManager
-  private storageKey = 'postmind-auth-profiles'
+  private storageKey = 'reqbeam-auth-profiles'
 
   private constructor() {}
 

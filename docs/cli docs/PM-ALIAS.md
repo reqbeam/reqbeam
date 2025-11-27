@@ -2,19 +2,19 @@
 
 ## Overview
 
-You can now use **`pm`** as a shorter alias for **`postmind`** in all CLI commands!
+You can now use **`rb`** as a shorter alias for **`reqbeam`** in all CLI commands!
 
 ```bash
 # Both are equivalent
-postmind run request "Get Users"
-pm run request "Get Users"
+reqbeam run request "Get Users"
+rb run request "Get Users"
 ```
 
-## Why Use PM?
+## Why Use RB?
 
 - **Faster to type**: 2 characters vs 8
 - **Less verbose**: Cleaner command line history
-- **More convenient**: Quick iteration during development
+- **More convenient**: Quick iteration during develorbent
 
 ## Setup
 
@@ -22,105 +22,105 @@ After installing or linking the CLI, both commands are automatically available:
 
 ```bash
 # Install/Link (if not already done)
-cd postmind-cli
-npm install
-npm run build
-npm link
+cd reqbeam-cli
+nrb install
+nrb run build
+nrb link
 
 # Both commands now work
-postmind --version
-pm --version
+reqbeam --version
+rb --version
 ```
 
 ## Command Equivalence
 
-Every `postmind` command has a `pm` equivalent:
+Every `reqbeam` command has a `rb` equivalent:
 
 ### Authentication
 ```bash
-postmind auth login     →  pm auth login
-postmind auth logout    →  pm auth logout
-postmind auth status    →  pm auth status
+reqbeam auth login     →  rb auth login
+reqbeam auth logout    →  rb auth logout
+reqbeam auth status    →  rb auth status
 ```
 
 ### Workspace Management
 ```bash
-postmind init my-project              →  pm init my-project (deprecated)
-postmind workspace list               →  pm workspace list
-postmind workspace create my-ws       →  pm workspace create my-ws
-postmind workspace switch dev         →  pm workspace switch dev
-postmind workspace select dev         →  pm workspace select dev
-postmind workspace activate dev       →  pm workspace activate dev
-postmind workspace delete old-ws      →  pm workspace delete old-ws
+reqbeam init my-project              →  rb init my-project (deprecated)
+reqbeam workspace list               →  rb workspace list
+reqbeam workspace create my-ws       →  rb workspace create my-ws
+reqbeam workspace switch dev         →  rb workspace switch dev
+reqbeam workspace select dev         →  rb workspace select dev
+reqbeam workspace activate dev       →  rb workspace activate dev
+reqbeam workspace delete old-ws      →  rb workspace delete old-ws
 
 # Deprecated (still works for backward compatibility)
-postmind project list               →  pm project list
-postmind project switch dev         →  pm project switch dev
+reqbeam project list               →  rb project list
+reqbeam project switch dev         →  rb project switch dev
 ```
 
 ### Request Management
 ```bash
-postmind request list           →  pm request list
-postmind request create -i      →  pm request create -i
-postmind request delete "Test"  →  pm request delete "Test"
+reqbeam request list           →  rb request list
+reqbeam request create -i      →  rb request create -i
+reqbeam request delete "Test"  →  rb request delete "Test"
 ```
 
 ### Collection Management
 ```bash
-postmind collection list          →  pm collection list
-postmind collection create "API"  →  pm collection create "API"
-postmind collection export "API"  →  pm collection export "API"
+reqbeam collection list          →  rb collection list
+reqbeam collection create "API"  →  rb collection create "API"
+reqbeam collection export "API"  →  rb collection export "API"
 ```
 
 ### Environment Management
 ```bash
-postmind env list         →  pm env list
-postmind env add prod     →  pm env add prod
-postmind env switch dev   →  pm env switch dev
+reqbeam env list         →  rb env list
+reqbeam env add prod     →  rb env add prod
+reqbeam env switch dev   →  rb env switch dev
 ```
 
 ### Execution
 ```bash
-postmind run request "Get Users"       →  pm run request "Get Users"
-postmind run collection "User API"     →  pm run collection "User API"
-postmind run collection "API" --parallel  →  pm run collection "API" --parallel
+reqbeam run request "Get Users"       →  rb run request "Get Users"
+reqbeam run collection "User API"     →  rb run collection "User API"
+reqbeam run collection "API" --parallel  →  rb run collection "API" --parallel
 ```
 
 ### Testing
 ```bash
-postmind test run                      →  pm test run
-postmind test generate                 →  pm test generate
-postmind test schedule "0 * * * *"     →  pm test schedule "0 * * * *"
+reqbeam test run                      →  rb test run
+reqbeam test generate                 →  rb test generate
+reqbeam test schedule "0 * * * *"     →  rb test schedule "0 * * * *"
 ```
 
 ### Logging
 ```bash
-postmind logs list         →  pm logs list
-postmind logs summary      →  pm logs summary
-postmind logs export ./log →  pm logs export ./log
+reqbeam logs list         →  rb logs list
+reqbeam logs summary      →  rb logs summary
+reqbeam logs export ./log →  rb logs export ./log
 ```
 
 ## Quick Start Example
 
 ```bash
 # Login
-pm auth login
+rb auth login
 
 # Initialize project
-pm init my-api
+rb init my-api
 
 # Create request
-pm request create -n "Users" -m GET -u "https://api.example.com/users"
+rb request create -n "Users" -m GET -u "https://api.example.com/users"
 
 # Add to collection
-pm collection create "API"
-pm collection add "API" "Users"
+rb collection create "API"
+rb collection add "API" "Users"
 
 # Run it
-pm run request "Users"
+rb run request "Users"
 
 # View history
-pm logs list
+rb logs list
 ```
 
 ## Help Commands
@@ -128,9 +128,9 @@ pm logs list
 Both work identically:
 
 ```bash
-postmind --help          →  pm --help
-postmind auth --help     →  pm auth --help
-postmind run --help      →  pm run --help
+reqbeam --help          →  rb --help
+reqbeam auth --help     →  rb auth --help
+reqbeam run --help      →  rb run --help
 ```
 
 ## Implementation Details
@@ -143,23 +143,23 @@ Both binaries point to the same JavaScript entry point:
 ```json
 {
   "bin": {
-    "postmind": "./bin/postmind.js",
-    "pm": "./bin/pm.js"
+    "reqbeam": "./bin/reqbeam.js",
+    "rb": "./bin/rb.js"
   }
 }
 ```
 
 ### Program Configuration
 
-The CLI registers `pm` as an alias in Commander.js:
+The CLI registers `rb` as an alias in Commander.js:
 
 **src/index.ts**:
 ```typescript
 program
-  .name('postmind')
-  .alias('pm')
+  .name('reqbeam')
+  .alias('rb')
   .description('...')
-  .addHelpText('after', '\nAlias: You can also use "pm" instead of "postmind"')
+  .addHelpText('after', '\nAlias: You can also use "rb" instead of "reqbeam"')
 ```
 
 ## Verification
@@ -168,54 +168,54 @@ Test that both commands work:
 
 ```bash
 # Check installation
-which postmind
-which pm
+which reqbeam
+which rb
 
 # Check version
-postmind --version
-pm --version
+reqbeam --version
+rb --version
 
 # Should show the same version
 
 # Test a simple command
-pm auth status
+rb auth status
 ```
 
 ## Common Usage Patterns
 
-### Development Workflow
+### Develorbent Workflow
 ```bash
-pm auth login
-pm init test-api
-pm request create -i
-pm run request "Test"
-pm logs list
+rb auth login
+rb init test-api
+rb request create -i
+rb run request "Test"
+rb logs list
 ```
 
 ### Testing Workflow
 ```bash
-pm test generate
-pm test run
-pm test schedule "0 */6 * * *" --name "API Health Check"
-pm test schedule-list
+rb test generate
+rb test run
+rb test schedule "0 */6 * * *" --name "API Health Check"
+rb test schedule-list
 ```
 
 ### Environment Management
 ```bash
-pm env add development -i
-pm env add staging -i
-pm env add production -i
-pm env switch development
-pm run collection "Smoke Tests"
+rb env add develorbent -i
+rb env add staging -i
+rb env add production -i
+rb env switch develorbent
+rb run collection "Smoke Tests"
 ```
 
 ### Collection Management
 ```bash
-pm collection create "Auth API"
-pm collection add "Auth API" "Login"
-pm collection add "Auth API" "Logout"
-pm collection add "Auth API" "Refresh Token"
-pm run collection "Auth API"
+rb collection create "Auth API"
+rb collection add "Auth API" "Login"
+rb collection add "Auth API" "Logout"
+rb collection add "Auth API" "Refresh Token"
+rb run collection "Auth API"
 ```
 
 ## Tips
@@ -223,22 +223,22 @@ pm run collection "Auth API"
 1. **Shell Aliases**: Create even shorter aliases in your shell:
    ```bash
    # In ~/.bashrc or ~/.zshrc
-   alias pmr="pm run request"
-   alias pmc="pm run collection"
+   alias rbr="rb run request"
+   alias rbc="rb run collection"
    
    # Then use:
-   pmr "Get Users"
-   pmc "User API"
+   rbr "Get Users"
+   rbc "User API"
    ```
 
-2. **Tab Completion**: Both `postmind` and `pm` support tab completion (if configured)
+2. **Tab Completion**: Both `reqbeam` and `rb` support tab completion (if configured)
 
-3. **Scripts**: Use `pm` in scripts for brevity:
+3. **Scripts**: Use `rb` in scripts for brevity:
    ```bash
    #!/bin/bash
-   pm auth login
-   pm run collection "Smoke Tests"
-   pm logs export ./results.json
+   rb auth login
+   rb run collection "Smoke Tests"
+   rb logs export ./results.json
    ```
 
 4. **CI/CD**: Use either command in CI/CD pipelines:
@@ -246,14 +246,14 @@ pm run collection "Auth API"
    # GitHub Actions
    - name: Run API Tests
      run: |
-       pm auth login
-       pm test run
-       pm logs export ./test-results.json
+       rb auth login
+       rb test run
+       rb logs export ./test-results.json
    ```
 
 ## Documentation
 
-The following documentation files have been updated to use `pm`:
+The following documentation files have been updated to use `rb`:
 - `README.md` - Main documentation with all command examples
 - `AUTH.md` - Authentication documentation
 - `SYNC.md` - Web UI synchronization documentation
@@ -261,8 +261,8 @@ The following documentation files have been updated to use `pm`:
 
 ## Backward Compatibility
 
-The full `postmind` command continues to work exactly as before. Both commands:
-- Share the same configuration (`~/.postmind/`)
+The full `reqbeam` command continues to work exactly as before. Both commands:
+- Share the same configuration (`~/.reqbeam/`)
 - Use the same authentication
 - Access the same data
 - Produce identical output
@@ -271,7 +271,7 @@ Choose whichever you prefer - they're completely interchangeable!
 
 ## Summary
 
-✅ **`pm`** is now available as an alias for **`postmind`**  
+✅ **`rb`** is now available as an alias for **`reqbeam`**  
 ✅ All commands work identically  
 ✅ Same configuration and data  
 ✅ Faster and more convenient  

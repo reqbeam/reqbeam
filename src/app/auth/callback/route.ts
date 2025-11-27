@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
-import { prisma, UserService } from '@postmind/db';
+import { prisma, UserService } from '@reqbeam/db';
 
 const GOOGLE_CLIENT_ID = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID;
 // Desktop app clients have a client_secret that's public (meant to be embedded)

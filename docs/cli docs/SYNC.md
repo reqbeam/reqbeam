@@ -1,13 +1,13 @@
-# Postmind CLI - Web UI Sync
+# Reqbeam CLI - Web UI Sync
 
 ## Overview
 
-The Postmind CLI now syncs directly with the web UI database. All your collections, requests, and environments are stored in the cloud and automatically synchronized between the CLI and web interface.
+The Reqbeam CLI now syncs directly with the web UI database. All your collections, requests, and environments are stored in the cloud and automatically synchronized between the CLI and web interface.
 
 ## Architecture
 
 ### Previous (File-based)
-- Projects stored locally in `~/.postmind/projects/`
+- Projects stored locally in `~/.Reqbeam/projects/`
 - No sync with web UI
 - Data isolated to local machine
 
@@ -56,7 +56,7 @@ The Postmind CLI now syncs directly with the web UI database. All your collectio
 
 1. **Create Request in CLI**:
    ```bash
-   postmind request create -n "Get Users" -m GET -u "https://api.example.com/users"
+   Reqbeam request create -n "Get Users" -m GET -u "https://api.example.com/users"
    ```
    - CLI sends POST request to `/api/requests`
    - Request saved to database with user association
@@ -78,16 +78,16 @@ All CLI operations require authentication:
 
 ```bash
 # Login (required before any operation)
-postmind auth login
+Reqbeam auth login
 
 # Check status
-postmind auth status
+Reqbeam auth status
 
 # Logout
-postmind auth logout
+Reqbeam auth logout
 ```
 
-Authentication token stored in `~/.postmind/auth.json`.
+Authentication token stored in `~/.Reqbeam/auth.json`.
 
 ## API Endpoints Used
 
@@ -116,25 +116,25 @@ If you were using the old file-based CLI:
 
 ### Step 1: Login
 ```bash
-postmind auth login
+Reqbeam auth login
 ```
 
 ### Step 2: Recreate Your Collections
 ```bash
-# Old: postmind init my-project
-# New: postmind collection create "My Project"
+# Old: Reqbeam init my-project
+# New: Reqbeam collection create "My Project"
 ```
 
 ### Step 3: Recreate Requests
 ```bash
-# Old: postmind request create (in a project context)
-# New: postmind request create -c "My Project"
+# Old: Reqbeam request create (in a project context)
+# New: Reqbeam request create -c "My Project"
 ```
 
 ### Step 4: Recreate Environments
 ```bash
 # Environments work the same way but are now stored in database
-postmind env add development -i
+Reqbeam env add development -i
 ```
 
 ## Usage Examples
@@ -143,70 +143,70 @@ postmind env add development -i
 
 ```bash
 # Create collection
-postmind collection create "User API"
+Reqbeam collection create "User API"
 
 # List collections
-postmind collection list
+Reqbeam collection list
 
 # Delete collection
-postmind collection delete "User API"
+Reqbeam collection delete "User API"
 ```
 
 ### Working with Requests
 
 ```bash
 # Create request
-postmind request create -n "Get Users" -m GET -u "https://api.example.com/users" -c "User API"
+Reqbeam request create -n "Get Users" -m GET -u "https://api.example.com/users" -c "User API"
 
 # Create request interactively
-postmind request create -i
+Reqbeam request create -i
 
 # List all requests
-postmind request list
+Reqbeam request list
 
 # List requests in a collection
-postmind request list -c "User API"
+Reqbeam request list -c "User API"
 
 # Update request
-postmind request update "Get Users" -u "https://api.example.com/v2/users"
+Reqbeam request update "Get Users" -u "https://api.example.com/v2/users"
 
 # Delete request
-postmind request delete "Get Users"
+Reqbeam request delete "Get Users"
 ```
 
 ### Working with Environments
 
 ```bash
 # Create environment
-postmind env add development -i
+Reqbeam env add development -i
 
 # List environments
-postmind env list
+Reqbeam env list
 
 # Switch environment
-postmind env switch development
+Reqbeam env switch development
 
 # Update environment
-postmind env update development -a "API_KEY=new-key"
+Reqbeam env update development -a "API_KEY=new-key"
 
 # Delete environment
-postmind env remove development
+Reqbeam env remove development
 ```
 
 ### Running Requests
 
 ```bash
 # Run single request
-postmind run request "Get Users"
+Reqbeam run request "Get Users"
 
 # Run with specific environment
-postmind run request "Get Users" -e production
+Reqbeam run request "Get Users" -e production
 
 # Run collection
-postmind run collection "User API"
+Reqbeam run collection "User API"
 
 # Run collection in parallel
-postmind run collection "User API" --parallel
+Reqbeam run collection "User API" --parallel
 ```
 
 ## Benefits
@@ -236,19 +236,19 @@ postmind run collection "User API" --parallel
 ### "Authentication required" error
 ```bash
 # Solution: Login first
-postmind auth login
+Reqbeam auth login
 ```
 
 ### "Collection not found" error
 ```bash
 # Solution: Check available collections
-postmind collection list
+Reqbeam collection list
 ```
 
 ### "Request not found" error
 ```bash
 # Solution: Check available requests
-postmind request list
+Reqbeam request list
 ```
 
 ### Connection errors
@@ -257,7 +257,7 @@ postmind request list
 # Default: http://localhost:3000
 
 # Check authentication status
-postmind auth status
+Reqbeam auth status
 ```
 
 ## Future Enhancements
@@ -293,7 +293,7 @@ postmind auth status
 
 For issues related to sync:
 
-1. Check authentication: `postmind auth status`
+1. Check authentication: `Reqbeam auth status`
 2. Verify web UI is running
 3. Check network connectivity
 4. Review API endpoints in browser DevTools

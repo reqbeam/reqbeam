@@ -26,9 +26,9 @@
   "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],
   "exclude": [
     "node_modules",
-    "postmind-cli",
+    "reqbeam-cli",
     "auth-server",
-    "postmind-db/src"
+    "reqbeam-db/src"
   ]
 }
 
