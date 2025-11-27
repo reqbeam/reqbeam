@@ -1,6 +1,6 @@
 node_modules
-.env
-.env.local
+auth-server/.env
+/.env
 .env.development.local
 .env.test.local
 .env.production.local
