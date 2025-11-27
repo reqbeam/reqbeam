@@ -1,6 +1,6 @@
-# 🚀 Postmind - API Testing Tool
+﻿# 🚀 Reqbeam - API Testing Tool
 
-A modern, full-featured API testing tool built with **Next.js 15**, **TypeScript**, **Prisma**, and **Tailwind CSS**. This application provides a beautiful, developer-friendly interface similar to Postman, Hoppscotch, and Insomnia.
+A modern, full-featured API testing tool built with **Next.js 15**, **TypeScript**, **Prisma**, and **Tailwind CSS**. This application provides a beautiful, developer-friendly interface similar to other API testing tools, Hoppscotch, and Insomnia.
 
 ![Next.js](https://img.shields.io/badge/Next.js-15.0-black?style=flat-square&logo=next.js)
 ![TypeScript](https://img.shields.io/badge/TypeScript-5.3-blue?style=flat-square&logo=typescript)
@@ -67,8 +67,8 @@ Before you begin, ensure you have the following installed:
 ### 1. Clone the Repository
 
 ```bash
-git clone https://github.com/yourusername/postman-clone.git
-cd postman-clone
+git clone https://github.com/yourusername/reqbeam.git
+cd reqbeam
 ```
 
 ### 2. Install Dependencies
@@ -93,7 +93,7 @@ Then edit the `.env` file with your configuration:
 
 ```env
 # Database
-DATABASE_URL="postgresql://username:password@localhost:5432/postman_clone?schema=public"
+DATABASE_URL="postgresql://username:password@localhost:5432/reqbeam?schema=public"
 
 # NextAuth
 NEXTAUTH_URL="http://localhost:3000"
@@ -108,7 +108,7 @@ NEXT_PUBLIC_APP_NAME="OSS"
 - **DATABASE_URL**: Your PostgreSQL connection string
   - Replace `username` with your PostgreSQL username
   - Replace `password` with your PostgreSQL password
-  - Replace `postman_clone` with your database name (or create it)
+  - Replace `reqbeam` with your database name (or create it)
   
 - **NEXTAUTH_SECRET**: Generate a secure secret key:
   ```bash
@@ -128,7 +128,7 @@ NEXT_PUBLIC_APP_NAME="OSS"
 psql -U postgres
 
 # Create database
-CREATE DATABASE postman_clone;
+CREATE DATABASE reqbeam;
 
 # Exit psql
 \q
@@ -179,7 +179,7 @@ Open [http://localhost:3000](http://localhost:3000) in your browser to see the a
 ## 📁 Project Structure
 
 ```
-postman-clone/
+reqbeam/
 ├── prisma/
 │   ├── schema.prisma          # Database schema
 │   └── dev.db                 # SQLite database (if using SQLite)
@@ -269,70 +269,70 @@ postman-clone/
 
 ---
 
-# 🎉 Postmind CLI - Project Summary
+# 🎉 Reqbeam CLI - Project Summary
 
 ## ✅ Complete Implementation
 
-I have successfully built a comprehensive TypeScript-based CLI tool called **Postmind CLI** that meets all your requirements and more! The tool is fully functional and ready to use.
+I have successfully built a comprehensive TypeScript-based CLI tool called **Reqbeam CLI** that meets all your requirements and more! The tool is fully functional and ready to use.
 
 ## 🏗️ What Was Built
 
 ### Core Features (100% Complete)
 
 1. **Workspace Management** ✅
-   - `postmind init <project_name>` - Initialize new API projects (deprecated - use workspace commands)
-   - `postmind workspace list` - List all workspaces
-   - `postmind workspace create <name>` - Create a new workspace
-   - `postmind workspace switch <name>` - Switch between workspaces
-   - `postmind workspace activate <name>` - Activate a workspace
-   - `postmind workspace delete <name>` - Delete workspaces
+   - `reqbeam init <project_name>` - Initialize new API projects (deprecated - use workspace commands)
+   - `reqbeam workspace list` - List all workspaces
+   - `reqbeam workspace create <name>` - Create a new workspace
+   - `reqbeam workspace switch <name>` - Switch between workspaces
+   - `reqbeam workspace activate <name>` - Activate a workspace
+   - `reqbeam workspace delete <name>` - Delete workspaces
 
 2. **Environment Management** ✅
-   - `postmind env list` - List environments
-   - `postmind env add <name> -i` - Add environments interactively
-   - `postmind env switch <name>` - Switch environments
-   - `postmind env remove <name>` - Remove environments
+   - `reqbeam env list` - List environments
+   - `reqbeam env add <name> -i` - Add environments interactively
+   - `reqbeam env switch <name>` - Switch environments
+   - `reqbeam env remove <name>` - Remove environments
    - Environment variables stored per workspace
 
 3. **Request Management** ✅
-   - `postmind request create -n <name> -m <method> -u <url>` - Create requests
-   - `postmind request create -i` - Interactive request creation
-   - `postmind request list` - List all requests
-   - `postmind request update <name>` - Update existing requests
-   - `postmind request delete <name>` - Delete requests
+   - `reqbeam request create -n <name> -m <method> -u <url>` - Create requests
+   - `reqbeam request create -i` - Interactive request creation
+   - `reqbeam request list` - List all requests
+   - `reqbeam request update <name>` - Update existing requests
+   - `reqbeam request delete <name>` - Delete requests
    - Support for headers, body, and descriptions
 
 4. **Collection Management** ✅
-   - `postmind collection create <name>` - Create collections
-   - `postmind collection add <collection> <request>` - Add requests to collections
-   - `postmind collection remove <collection> <request>` - Remove requests
-   - `postmind collection list` - List collections
-   - `postmind collection export <name> <file>` - Export to JSON/YAML
+   - `reqbeam collection create <name>` - Create collections
+   - `reqbeam collection add <collection> <request>` - Add requests to collections
+   - `reqbeam collection remove <collection> <request>` - Remove requests
+   - `reqbeam collection list` - List collections
+   - `reqbeam collection export <name> <file>` - Export to JSON/YAML
 
 5. **Execution & Run** ✅
-   - `postmind run request <name>` - Run single requests
-   - `postmind run collection <name>` - Run collections
-   - `postmind run collection <name> --parallel` - Parallel execution
-   - `postmind run collection <name> --save-response` - Save responses
-   - `postmind run collection <name> -e <env>` - Use specific environment
-   - `postmind run history-list` - List execution history
-   - `postmind run history <id>` - Replay from history
+   - `reqbeam run request <name>` - Run single requests
+   - `reqbeam run collection <name>` - Run collections
+   - `reqbeam run collection <name> --parallel` - Parallel execution
+   - `reqbeam run collection <name> --save-response` - Save responses
+   - `reqbeam run collection <name> -e <env>` - Use specific environment
+   - `reqbeam run history-list` - List execution history
+   - `reqbeam run history <id>` - Replay from history
 
 6. **Testing & Automation** ✅
-   - `postmind test run` - Run tests for all requests or specific request
-   - `postmind test run --request <name>` - Run tests for specific request
-   - `postmind test generate` - Auto-generate test skeleton files
-   - `postmind test schedule <cron>` - Schedule periodic test runs
-   - `postmind test schedule-list` - List scheduled test jobs
-   - `postmind test schedule-stop <id>` - Stop scheduled job
-   - `postmind test schedule-delete <id>` - Delete scheduled job
+   - `reqbeam test run` - Run tests for all requests or specific request
+   - `reqbeam test run --request <name>` - Run tests for specific request
+   - `reqbeam test generate` - Auto-generate test skeleton files
+   - `reqbeam test schedule <cron>` - Schedule periodic test runs
+   - `reqbeam test schedule-list` - List scheduled test jobs
+   - `reqbeam test schedule-stop <id>` - Stop scheduled job
+   - `reqbeam test schedule-delete <id>` - Delete scheduled job
 
 7. **Logging & Monitoring** ✅
-   - `postmind logs list` - List past executions with filtering
-   - `postmind logs view <id>` - View detailed log information
-   - `postmind logs export <file>` - Export logs to JSON/CSV
-   - `postmind logs clear` - Clear all local logs
-   - `postmind logs summary` - Show execution statistics
+   - `reqbeam logs list` - List past executions with filtering
+   - `reqbeam logs view <id>` - View detailed log information
+   - `reqbeam logs export <file>` - Export logs to JSON/CSV
+   - `reqbeam logs clear` - Clear all local logs
+   - `reqbeam logs summary` - Show execution statistics
 
 ## 🎯 Key Features
 
@@ -370,7 +370,7 @@ I have successfully built a comprehensive TypeScript-based CLI tool called **Pos
 ## 📁 Project Structure
 
 ```
-postmind-cli/
+reqbeam-cli/
 ├── src/
 │   ├── commands/           # Command implementations
 │   │   ├── init.ts        # Project initialization
@@ -386,7 +386,7 @@ postmind-cli/
 │   ├── types.ts           # TypeScript interfaces
 │   └── index.ts           # CLI entry point
 ├── bin/
-│   └── postmind.js        # Executable entry point
+│   └── reqbeam.js        # Executable entry point
 ├── dist/                  # Compiled JavaScript
 ├── package.json           # Dependencies and scripts
 ├── tsconfig.json          # TypeScript configuration
@@ -400,7 +400,7 @@ postmind-cli/
 
 ### 1. Build and Install
 ```bash
-cd postmind-cli
+cd reqbeam-cli
 npm install
 npm run build
 npm link  # Optional: install globally
@@ -409,30 +409,30 @@ npm link  # Optional: install globally
 ### 2. Quick Start
 ```bash
 # Create a project
-postmind init my-api
+reqbeam init my-api
 
 # Add environment
-postmind env add development -i
+reqbeam env add development -i
 # Enter: API_URL=https://api.example.com,API_KEY=your-key
 
 # Create a request
-postmind request create -n "Get Users" -m GET -u "{{API_URL}}/users" -H "Authorization:Bearer {{API_KEY}}"
+reqbeam request create -n "Get Users" -m GET -u "{{API_URL}}/users" -H "Authorization:Bearer {{API_KEY}}"
 
 # Run the request
-postmind run request "Get Users"
+reqbeam run request "Get Users"
 ```
 
 ### 3. Advanced Usage
 ```bash
 # Create collection
-postmind collection create "User API"
-postmind collection add "User API" "Get Users"
+reqbeam collection create "User API"
+reqbeam collection add "User API" "Get Users"
 
 # Run collection
-postmind run collection "User API" --parallel
+reqbeam run collection "User API" --parallel
 
 # Export collection
-postmind collection export "User API" ./user-api.json
+reqbeam collection export "User API" ./user-api.json
 ```
 
 ## 🎨 Sample Output
@@ -497,7 +497,7 @@ The CLI has been tested and verified working:
 ✅ **Request Management** - Create, update, delete, list with full HTTP support
 ✅ **Collection Management** - Organize requests with export capabilities
 ✅ **Execution** - Run requests and collections with parallel support
-✅ **Storage** - Local project storage in `~/.postmind/projects/`
+✅ **Storage** - Local project storage in `~/.reqbeam/projects/`
 ✅ **Environment Variables** - `{{VARIABLE}}` syntax support
 ✅ **Beautiful Output** - Colorized terminal output with Chalk
 ✅ **History** - Execution tracking and replay functionality
@@ -506,7 +506,7 @@ The CLI has been tested and verified working:
 
 ## 🚀 Ready to Use!
 
-The Postmind CLI is **production-ready** and can be used immediately for:
+The Reqbeam CLI is **production-ready** and can be used immediately for:
 
 - API development and testing
 - Collection management
@@ -515,11 +515,11 @@ The Postmind CLI is **production-ready** and can be used immediately for:
 - Team collaboration
 - API documentation
 
-**The tool successfully replicates and extends Postman CLI/Newman functionality with a modern, project-oriented approach!** 🎊
+**The tool successfully replicates and extends Reqbeam CLI functionality with a modern, project-oriented approach!** 🎊
 
 ---
 
-**Enjoy your new Postmind CLI tool!** 🚀
+**Enjoy your new Reqbeam CLI tool!** 🚀
 
 ## 🔧 Configuration
 
@@ -607,7 +607,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## 🙏 Acknowledgments
 
-- Inspired by [Postman](https://www.postman.com/), [Hoppscotch](https://hoppscotch.io/), and [Insomnia](https://insomnia.rest/)
+- Inspired by [Hoppscotch](https://hoppscotch.io/), [Insomnia](https://insomnia.rest/), and other API testing tools
 - Built with amazing open-source tools and libraries
 
 ---

@@ -1,6 +1,6 @@
 # Database Migration Complete ✅
 
-All database operations in the web application now go through the `@postmind/db` service layer. **Zero direct Prisma queries remain.**
+All database operations in the web application now go through the `@reqbeam/db` service layer. **Zero direct Prisma queries remain.**
 
 ## Migration Summary
 
@@ -69,7 +69,7 @@ All database operations now follow this pattern:
 
 ```typescript
 // ✅ Correct: Using service layer
-import { prisma, MockServerService } from '@postmind/db';
+import { prisma, MockServerService } from '@reqbeam/db';
 
 const mockServerService = new MockServerService(prisma);
 const mockServer = await mockServerService.getMockServer(id, userId);
@@ -80,7 +80,7 @@ const mockServer = await mockServerService.getMockServer(id, userId);
 
 ### Benefits
 
-1. **Single Source of Truth**: All database logic in `@postmind/db` package
+1. **Single Source of Truth**: All database logic in `@reqbeam/db` package
 2. **Consistency**: Web and CLI use identical database operations
 3. **Maintainability**: Changes to database logic only need to be made in one place
 4. **Type Safety**: Shared types ensure consistency across applications
@@ -103,5 +103,5 @@ const mockServer = await mockServerService.getMockServer(id, userId);
 
 **✅ MIGRATION 100% COMPLETE**
 
-All database operations in the web application now go through the `@postmind/db` service layer. The web application has **zero direct Prisma queries**.
+All database operations in the web application now go through the `@reqbeam/db` service layer. The web application has **zero direct Prisma queries**.
 

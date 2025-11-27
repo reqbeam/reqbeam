@@ -1,6 +1,6 @@
 # Prisma Migration Complete ✅
 
-All API routes and utilities have been migrated to use the shared `@postmind/db` package instead of the local `@/lib/prisma` file.
+All API routes and utilities have been migrated to use the shared `@reqbeam/db` package instead of the local `@/lib/prisma` file.
 
 ## Migration Summary
 
@@ -37,7 +37,7 @@ All API routes and utilities have been migrated to use the shared `@postmind/db`
 - `src/app/api/mock-servers/[id]/endpoints/[endpointId]/route.ts`
 - `src/app/api/mock/[...path]/route.ts`
 
-### ✅ Already Using @postmind/db (Previously Migrated)
+### ✅ Already Using @reqbeam/db (Previously Migrated)
 - `src/app/api/collections/route.ts`
 - `src/app/api/collections/[id]/route.ts`
 - `src/app/api/requests/route.ts`
@@ -58,12 +58,12 @@ import { prisma } from '@/lib/prisma'
 
 ### After
 ```typescript
-import { prisma } from '@postmind/db'
+import { prisma } from '@reqbeam/db'
 ```
 
 ## Benefits
 
-1. **Single Prisma Instance**: All routes now use the same Prisma client from `@postmind/db`
+1. **Single Prisma Instance**: All routes now use the same Prisma client from `@reqbeam/db`
 2. **Consistency**: Web and CLI use the exact same database connection
 3. **No Duplication**: Eliminated duplicate Prisma client initialization
 4. **Better Performance**: Single connection pool instead of multiple instances
@@ -71,7 +71,7 @@ import { prisma } from '@postmind/db'
 
 ## Backward Compatibility
 
-The old `src/lib/prisma.ts` file has been updated to re-export from `@postmind/db` for backward compatibility. However, all active code now uses the shared package directly.
+The old `src/lib/prisma.ts` file has been updated to re-export from `@reqbeam/db` for backward compatibility. However, all active code now uses the shared package directly.
 
 ## Verification
 
@@ -93,5 +93,5 @@ grep -r "@/lib/prisma" src/
 
 **✅ MIGRATION COMPLETE**
 
-All 19 files have been successfully migrated. The application now uses a single Prisma client instance from the shared `@postmind/db` package.
+All 19 files have been successfully migrated. The application now uses a single Prisma client instance from the shared `@reqbeam/db` package.
 

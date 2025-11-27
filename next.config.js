@@ -8,8 +8,8 @@ const nextConfig = {
     '/**': [
       './node_modules/.prisma/**/*',
       './node_modules/@prisma/client/**/*',
-      './postmind-db/node_modules/.prisma/**/*',
-      './postmind-db/node_modules/@prisma/client/**/*',
+      './reqbeam-db/node_modules/.prisma/**/*',
+      './reqbeam-db/node_modules/@prisma/client/**/*',
     ],
   },
   serverExternalPackages: ['@prisma/client'],

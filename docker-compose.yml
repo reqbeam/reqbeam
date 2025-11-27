@@ -1,9 +1,9 @@
 services:
-  postmind-app:
+  reqbeam-app:
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: postmind-app
+    container_name: reqbeam-app
     ports:
       - "3000:3000"
     environment:
@@ -31,6 +31,6 @@ services:
 
 volumes:
   # Kept for backward compatibility; no longer used for the app's DB
-  postmind-db-data:
+  reqbeam-db-data:
     driver: local
 

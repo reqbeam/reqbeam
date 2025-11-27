@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { prisma, CollectionService } from '@postmind/db'
+import { prisma, CollectionService } from '@reqbeam/db'
 import { getAuthenticatedUser } from '@/lib/apiAuth'
 import { exportCollection } from '@/lib/importExportService'
 

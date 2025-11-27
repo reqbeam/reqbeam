@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { prisma, WorkspaceService, HistoryService } from '@postmind/db'
+import { prisma, WorkspaceService, HistoryService } from '@reqbeam/db'
 import { getAuthenticatedUser } from '@/lib/apiAuth'
 
 // POST /api/history/migrate - Migrate history entries to workspace

@@ -1,7 +1,7 @@
 # CLI Database Migration Summary
 
 ## Overview
-The Postmind CLI has been updated to use direct database access via `@postmind/db` instead of making HTTP requests to the web application APIs (localhost:3000).
+The Reqbeam CLI has been updated to use direct database access via `@reqbeam/db` instead of making HTTP requests to the web application APIs (localhost:3000).
 
 ## Changes Made
 
@@ -9,7 +9,7 @@ The Postmind CLI has been updated to use direct database access via `@postmind/d
 **File:** `src/utils/auth.ts`
 
 - **Before:** Made HTTP POST requests to `${apiUrl}/api/auth/login` and `${apiUrl}/api/auth/token`
-- **After:** Uses `UserService` from `@postmind/db` to:
+- **After:** Uses `UserService` from `@reqbeam/db` to:
   - Query user by email directly from database
   - Verify password using `bcrypt.compare()`
   - Generate simple token (base64 encoded user ID + timestamp)
@@ -32,13 +32,13 @@ The Postmind CLI has been updated to use direct database access via `@postmind/d
 **File:** `src/utils/apiClient.ts`
 
 - **Status:** Deprecated (marked with `@deprecated` JSDoc)
-- **Reason:** All functionality replaced by `ApiStorageManager` which uses `@postmind/db`
+- **Reason:** All functionality replaced by `ApiStorageManager` which uses `@reqbeam/db`
 - **Action:** File kept for reference but should not be used in new code
 
 ### 4. Storage Manager
 **File:** `src/utils/apiStorage.ts`
 
-- **Status:** Already using `@postmind/db` ✅
+- **Status:** Already using `@reqbeam/db` ✅
 - **Services Used:**
   - `CollectionService`
   - `RequestService`
@@ -62,14 +62,14 @@ CLI → HTTP Request → Web App (localhost:3000) → Database
 
 ### After (Direct Database Access)
 ```
-CLI → @postmind/db → Database
+CLI → @reqbeam/db → Database
 ```
 
 ## Benefits
 
 1. **No Web Server Required**: CLI works independently without needing the web app running
 2. **Faster Operations**: Direct database access eliminates HTTP overhead
-3. **Consistency**: Same database operations as web app (shared code via `@postmind/db`)
+3. **Consistency**: Same database operations as web app (shared code via `@reqbeam/db`)
 4. **Offline Capable**: Can work with local SQLite database without network
 5. **Simplified Setup**: No need to configure API URLs
 
@@ -80,7 +80,7 @@ The CLI uses `DATABASE_URL` environment variable to connect to the database:
 
 ```bash
 # SQLite (local)
-export DATABASE_URL="file:./postmind-db/prisma/dev.db"
+export DATABASE_URL="file:./reqbeam-db/prisma/dev.db"
 
 # PostgreSQL (remote)
 export DATABASE_URL="postgresql://user:password@host:port/database"
@@ -93,19 +93,19 @@ Authentication is now database-based:
 
 ```bash
 # Login (no API URL needed)
-postmind auth login
+Reqbeam auth login
 
 # Check status
-postmind auth status
+Reqbeam auth status
 
 # Logout
-postmind auth logout
+Reqbeam auth logout
 ```
 
 ## Migration Notes
 
 ### For Existing Users
-1. **Re-authenticate**: Run `postmind auth login` to re-authenticate (old tokens won't work)
+1. **Re-authenticate**: Run `Reqbeam auth login` to re-authenticate (old tokens won't work)
 2. **Database URL**: Ensure `DATABASE_URL` is set correctly
 3. **No Breaking Changes**: All commands work the same way, just using database instead of APIs
 
@@ -128,7 +128,7 @@ All commands verified to use `ApiStorageManager`:
 
 ✅ **MIGRATION COMPLETE**
 
-All CLI operations now use direct database access via `@postmind/db`. No web API calls are made except for:
+All CLI operations now use direct database access via `@reqbeam/db`. No web API calls are made except for:
 - HTTP requests to external APIs (when executing requests via `run` command)
 - Auth server APIs (untouched as requested)
 

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { prisma, UserService } from '@postmind/db'
+import { prisma, UserService } from '@reqbeam/db'
 
 // In-memory store for CLI login sessions (in production, use Redis or database)
 const cliSessions = new Map<string, {

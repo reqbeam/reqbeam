@@ -1,6 +1,6 @@
 # Keyboard Shortcuts
 
-Postmind provides keyboard shortcuts to help you work faster and more efficiently. All shortcuts work on both Windows/Linux (using `Ctrl`) and macOS (using `Cmd`).
+Reqbeam provides keyboard shortcuts to help you work faster and more efficiently. All shortcuts work on both Windows/Linux (using `Ctrl`) and macOS (using `Cmd`).
 
 ## Quick Actions
 
@@ -55,7 +55,7 @@ Additional keyboard shortcuts may be added in future updates. Check this documen
 
 If keyboard shortcuts aren't working:
 
-1. **Check Focus**: Make sure the Postmind application window is focused (clicked on).
+1. **Check Focus**: Make sure the Reqbeam application window is focused (clicked on).
 2. **Input Fields**: Some shortcuts (like `Ctrl+Enter`) don't work when typing in input fields to prevent accidental actions.
 3. **Browser Extensions**: Some browser extensions may interfere with keyboard shortcuts. Try disabling extensions if shortcuts don't work.
 4. **Platform Detection**: If you're on macOS but shortcuts show "Ctrl", the platform detection may have failed. The shortcuts should still work with the `Cmd` key.

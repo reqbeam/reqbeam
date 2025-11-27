@@ -57,7 +57,7 @@ export interface ParsedRequest {
 }
 
 /**
- * Parse OpenAPI spec (JSON or YAML) and convert to Postmind requests
+ * Parse OpenAPI spec (JSON or YAML) and convert to Reqbeam requests
  */
 export function parseOpenAPISpec(fileContent: string, fileType: 'json' | 'yaml'): ParsedRequest[] {
   let spec: OpenAPISpec

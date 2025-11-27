@@ -1,6 +1,6 @@
-# Authorization System
+﻿# Authorization System
 
-Postmind supports comprehensive authorization features similar to Postman, allowing you to authenticate API requests with multiple auth types.
+Reqbeam supports comprehensive authorization features similar to other API testing tools, allowing you to authenticate API requests with multiple auth types.
 
 ## Supported Auth Types
 
@@ -183,7 +183,7 @@ For OAuth 2.0 and Bearer tokens:
 curl -H "X-API-Key: your-key" https://api.example.com/data
 ```
 
-Equivalent Postmind config:
+Equivalent Reqbeam config:
 ```json
 {
   "type": "api-key",
@@ -200,7 +200,7 @@ Equivalent Postmind config:
 curl -H "Authorization: Bearer token123" https://api.example.com/user
 ```
 
-Equivalent Postmind config:
+Equivalent Reqbeam config:
 ```json
 {
   "type": "bearer-token",
@@ -214,7 +214,7 @@ Equivalent Postmind config:
 curl -u username:password https://api.example.com/protected
 ```
 
-Equivalent Postmind config:
+Equivalent Reqbeam config:
 ```json
 {
   "type": "basic-auth",
@@ -230,5 +230,5 @@ Equivalent Postmind config:
 - [ ] Digest authentication
 - [ ] JWT token generation
 - [ ] Auth profiles for reuse across requests
-- [ ] Import/export auth from Postman collections
+- [ ] Import/export auth from external collections
 

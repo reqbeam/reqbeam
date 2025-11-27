@@ -7,29 +7,29 @@
 - The web app no longer generates its own Prisma client
 
 ### 2. Updated Package.json
-- ✅ Updated all `db:*` scripts to use `postmind-db`:
-  - `db:generate` → `cd postmind-db && npm run db:generate`
-  - `db:push` → `cd postmind-db && npm run db:push`
-  - `db:migrate` → `cd postmind-db && npm run db:migrate`
-  - `db:studio` → `cd postmind-db && npm run db:studio`
-- ✅ Removed `@prisma/client` from dependencies (provided by `@postmind/db`)
+- ✅ Updated all `db:*` scripts to use `reqbeam-db`:
+  - `db:generate` → `cd reqbeam-db && npm run db:generate`
+  - `db:push` → `cd reqbeam-db && npm run db:push`
+  - `db:migrate` → `cd reqbeam-db && npm run db:migrate`
+  - `db:studio` → `cd reqbeam-db && npm run db:studio`
+- ✅ Removed `@prisma/client` from dependencies (provided by `@reqbeam/db`)
 - ✅ Kept `prisma` as devDependency for CLI commands
 
 ## Current Architecture
 
 ### Single Prisma Client Instance
 ```
-postmind-db/prisma/schema.prisma
+reqbeam-db/prisma/schema.prisma
     ↓
 Generates: @prisma/client
     ↓
-Exported via: @postmind/db/src/client.ts
+Exported via: @reqbeam/db/src/client.ts
     ↓
 Used by: Web App + CLI
 ```
 
 ### Database Location
-- Schema: `oss-main/postmind-db/prisma/schema.prisma`
+- Schema: `oss-main/reqbeam-db/prisma/schema.prisma`
 - Database: Configured via `DATABASE_URL` environment variable
 - Old database: `oss-main/prisma/dev.db` (may need migration)
 
@@ -44,14 +44,14 @@ Used by: Web App + CLI
 ## Next Steps (Optional)
 
 If you had data in `oss-main/prisma/dev.db`:
-1. Copy it to the location specified by `DATABASE_URL` in `postmind-db`
+1. Copy it to the location specified by `DATABASE_URL` in `reqbeam-db`
 2. Or update `DATABASE_URL` to point to the existing database
 
 ## Verification
 
-All web app code now imports from `@postmind/db`:
+All web app code now imports from `@reqbeam/db`:
 ```typescript
-import { prisma, UserService } from '@postmind/db';
+import { prisma, UserService } from '@reqbeam/db';
 ```
 
 **Status: ✅ CONSOLIDATION COMPLETE**

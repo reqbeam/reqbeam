@@ -2,36 +2,36 @@
 
 ## ✅ All Commands Verified
 
-### Commands Using `@postmind/db` (via `ApiStorageManager`)
+### Commands Using `@reqbeam/db` (via `ApiStorageManager`)
 
 1. **`auth.ts`** ✅
-   - Uses `UserService` from `@postmind/db` directly
+   - Uses `UserService` from `@reqbeam/db` directly
    - No web API calls
    - Database-based authentication
 
 2. **`collection.ts`** ✅
-   - Uses `ApiStorageManager` → `CollectionService` from `@postmind/db`
+   - Uses `ApiStorageManager` → `CollectionService` from `@reqbeam/db`
    - All operations: create, list, update, delete, add/remove requests
 
 3. **`request.ts`** ✅
-   - Uses `ApiStorageManager` → `RequestService` from `@postmind/db`
+   - Uses `ApiStorageManager` → `RequestService` from `@reqbeam/db`
    - All operations: create, list, update, delete
 
 4. **`env.ts`** ✅
-   - Uses `ApiStorageManager` → `EnvironmentService` from `@postmind/db`
+   - Uses `ApiStorageManager` → `EnvironmentService` from `@reqbeam/db`
    - All operations: add, list, remove, switch, update
 
 5. **`workspace.ts`** ✅
-   - Uses `ApiStorageManager` → `WorkspaceService` from `@postmind/db`
+   - Uses `ApiStorageManager` → `WorkspaceService` from `@reqbeam/db`
    - All operations: list, create, switch, delete, activate, select
 
 6. **`run.ts`** ✅
    - Uses `ApiStorageManager` for fetching requests/environments
-   - Uses `HistoryService` from `@postmind/db` for saving execution history
+   - Uses `HistoryService` from `@reqbeam/db` for saving execution history
    - Only makes HTTP calls to external APIs (when executing requests), not to web server
 
 7. **`project.ts`** ✅
-   - Uses `ApiStorageManager` → `WorkspaceService` from `@postmind/db`
+   - Uses `ApiStorageManager` → `WorkspaceService` from `@reqbeam/db`
    - Deprecated command that redirects to workspace commands
 
 ### Commands Using Local File Storage (No Web APIs)
@@ -53,9 +53,9 @@
 
 ## Summary
 
-### Database Operations (via `@postmind/db`)
+### Database Operations (via `@reqbeam/db`)
 - ✅ All CRUD operations use `ApiStorageManager`
-- ✅ `ApiStorageManager` uses services from `@postmind/db`:
+- ✅ `ApiStorageManager` uses services from `@reqbeam/db`:
   - `CollectionService`
   - `RequestService`
   - `EnvironmentService`
@@ -66,7 +66,7 @@
 ### No Web API Calls
 - ✅ No HTTP requests to `localhost:3000`
 - ✅ No HTTP requests to web application APIs
-- ✅ All database operations go directly through `@postmind/db`
+- ✅ All database operations go directly through `@reqbeam/db`
 
 ### Local File Operations
 - ✅ `logs.ts` - Local file logging (separate from database)
@@ -77,7 +77,7 @@
 
 ```
 CLI Commands
-├── Database Operations (via @postmind/db)
+├── Database Operations (via @reqbeam/db)
 │   ├── auth.ts → UserService
 │   ├── collection.ts → CollectionService
 │   ├── request.ts → RequestService
@@ -96,5 +96,5 @@ CLI Commands
 
 ✅ **ALL COMMANDS VERIFIED**
 
-All commands that need database access are using `@postmind/db` directly. No commands make requests to the web server (localhost:3000). The CLI is fully migrated to use direct database access.
+All commands that need database access are using `@reqbeam/db` directly. No commands make requests to the web server (localhost:3000). The CLI is fully migrated to use direct database access.
 
