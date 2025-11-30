@@ -12,7 +12,7 @@ By participating in this project, you agree to abide by our [Code of Conduct](CO
 
 Before creating a bug report, please check if the issue has already been reported:
 
-1. Search existing [GitHub Issues](https://github.com/yourusername/reqbeam/issues)
+1. Search existing [GitHub Issues](https://github.com/reqbeam/reqbeam/issues)
 2. If the issue exists, add your information as a comment
 3. If not, create a new issue with:
    - Clear, descriptive title
@@ -35,7 +35,7 @@ We welcome feature suggestions! To propose a feature:
 
 1. **Fork the repository**
    ```bash
-   git clone https://github.com/yourusername/reqbeam.git
+   git clone https://github.com/reqbeam/reqbeam.git
    cd reqbeam
    ```
 
@@ -94,7 +94,7 @@ We welcome feature suggestions! To propose a feature:
 
 1. **Clone and install**
    ```bash
-   git clone https://github.com/yourusername/reqbeam.git
+   git clone https://github.com/reqbeam/reqbeam.git
    cd reqbeam
    npm install
    ```

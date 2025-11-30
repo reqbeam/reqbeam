@@ -22,7 +22,7 @@ Before installing Reqbeam, ensure you have the following installed:
 
 ```bash
 # Clone the repository
-git clone https://github.com/yourusername/reqbeam.git
+git clone https://github.com/reqbeam/reqbeam.git
 cd reqbeam
 
 # Install dependencies
@@ -44,7 +44,7 @@ npm run dev
 
 ```bash
 # Clone the repository
-git clone https://github.com/yourusername/reqbeam.git
+git clone https://github.com/reqbeam/reqbeam.git
 cd reqbeam
 
 # Start with Docker Compose
@@ -55,7 +55,7 @@ docker-compose up -d
 
 ```bash
 # Clone the repository
-git clone https://github.com/yourusername/reqbeam.git
+git clone https://github.com/reqbeam/reqbeam.git
 cd reqbeam
 
 # Run automated setup (Linux/Mac)
@@ -89,16 +89,6 @@ NEXTAUTH_SECRET="your-secret-key-here"
 
 # App Configuration
 NEXT_PUBLIC_APP_NAME="Reqbeam"
-
-# Auth Server (optional)
-AUTH_SERVER_URL="http://localhost:4000"
-MAIN_APP_URL="http://localhost:3000"
-
-# Google OAuth (optional)
-NEXT_PUBLIC_GOOGLE_CLIENT_ID="your-client-id"
-GOOGLE_CLIENT_SECRET="your-client-secret"
-NEXT_PUBLIC_REDIRECT_URI="http://localhost:3000/auth/callback"
-```
 
 ### 3. Generate NEXTAUTH_SECRET
 

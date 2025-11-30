@@ -4,6 +4,6 @@ contact_links:
     url: https://reqbeam.github.io/reqbeam/
     about: Check our documentation for guides and tutorials
   - name: Security Issue
-    url: https://github.com/yourusername/reqbeam/security/advisories/new
+    url: https://github.com/reqbeam/reqbeam/security/advisories/new
     about: Report a security vulnerability (please do not create a public issue)
 

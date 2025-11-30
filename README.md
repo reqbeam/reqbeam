@@ -10,7 +10,7 @@ A modern, full-featured API testing and development platform built with **Next.j
 
 ---
 
-## 📖 Table of Contents
+## Table of Contents
 
 - [Features](#-features)
 - [Installation](#-installation)
@@ -27,9 +27,9 @@ A modern, full-featured API testing and development platform built with **Next.j
 
 ---
 
-## ✨ Features
+## Features
 
-### 🎯 Core Features
+### Core Features
 
 - **HTTP Request Builder** - Full support for GET, POST, PUT, DELETE, PATCH, HEAD, OPTIONS
 - **Query Parameters Management** - Add, edit, enable/disable params with automatic URL sync
@@ -45,17 +45,7 @@ A modern, full-featured API testing and development platform built with **Next.j
 - **Mock Servers** - Create mock endpoints for testing and development
 - **Import/Export** - Import from OpenAPI/Swagger, export collections
 
-### 🎨 UI/UX Features
-
-- **Dark Theme** - Modern dark-first design with beautiful color schemes
-- **Responsive Design** - Works seamlessly on mobile, tablet, and desktop
-- **Color-Coded Methods** - Visual distinction for different HTTP methods
-- **Syntax Highlighting** - Beautiful code display for responses
-- **Real-time Updates** - Instant feedback on request status
-- **Smooth Animations** - Polished transitions and interactions
-- **Keyboard Shortcuts** - Power user features for faster workflow
-
-### 🔐 Authentication & Security
+### Authentication & Security
 
 - **User Registration & Login** - Secure authentication with NextAuth.js
 - **Google OAuth** - Sign in with Google (PKCE flow)
@@ -63,7 +53,7 @@ A modern, full-featured API testing and development platform built with **Next.j
 - **Protected Routes** - Secure API endpoints
 - **JWT Tokens** - Secure token-based authentication for CLI
 
-### ⚡ CLI Features
+### CLI Features
 
 - **Command-Line Interface** - Full-featured CLI tool for automation
 - **Cloud Sync** - Real-time synchronization with web UI
@@ -74,7 +64,7 @@ A modern, full-featured API testing and development platform built with **Next.j
 
 ---
 
-## 🛠️ Tech Stack
+## Tech Stack
 
 - **Framework:** [Next.js 15](https://nextjs.org/) (App Router)
 - **Language:** [TypeScript](https://www.typescriptlang.org/)
@@ -87,7 +77,7 @@ A modern, full-featured API testing and development platform built with **Next.j
 
 ---
 
-## 📦 Installation
+## Installation
 
 ### Prerequisites
 
@@ -100,7 +90,7 @@ A modern, full-featured API testing and development platform built with **Next.j
 
 ```bash
 # Clone and install
-git clone https://github.com/yourusername/reqbeam.git
+git clone https://github.com/reqbeam/reqbeam.git
 cd reqbeam
 npm install
 
@@ -121,7 +111,7 @@ Open [http://localhost:3000](http://localhost:3000) in your browser.
 ### Alternative: Docker
 
 ```bash
-git clone https://github.com/yourusername/reqbeam.git
+git clone https://github.com/reqbeam/reqbeam.git
 cd reqbeam
 docker-compose up -d
 ```
@@ -139,7 +129,7 @@ For detailed installation instructions, see the [Installation Guide](https://req
 
 ---
 
-## 🚀 Quick Start
+## Quick Start
 
 1. **Install** - Follow the [Installation](#-installation) steps above
 2. **Configure** - Set up your `.env` file (see [env.example](./env.example))
@@ -150,7 +140,7 @@ For step-by-step instructions, see the [Quick Start Guide](https://reqbeam.githu
 
 ---
 
-## 💡 Usage Examples
+## Usage Examples
 
 ### Web Interface
 
@@ -184,7 +174,7 @@ See the [CLI Documentation](https://reqbeam.github.io/reqbeam/cli) for more exam
 
 ---
 
-## 🎯 Use Cases
+## Use Cases
 
 ### 1. API Development & Testing
 
@@ -229,7 +219,7 @@ See the [CLI Documentation](https://reqbeam.github.io/reqbeam/cli) for more exam
 
 ---
 
-## 🏗️ Architecture
+## Architecture
 
 ### Project Structure
 
@@ -268,7 +258,7 @@ reqbeam/
 
 ---
 
-## ⚙️ CLI Tool
+## CLI Tool
 
 Reqbeam includes a powerful CLI tool for automation and CI/CD integration.
 
@@ -297,7 +287,7 @@ For complete CLI documentation, see [CLI Documentation](https://reqbeam.github.i
 
 ---
 
-## 🐳 Docker Deployment
+## Docker Deployment
 
 ```bash
 # Start with Docker Compose
@@ -328,7 +318,7 @@ For detailed Docker setup, see [DOCKER.md](./DOCKER.md).
 
 ---
 
-## 🐛 Troubleshooting
+## Troubleshooting
 
 ### Database Connection Issues
 
@@ -376,7 +366,7 @@ cat ~/.reqbeam/auth.json
 
 ---
 
-## 🤝 Contributing
+## Contributing
 
 We welcome contributions! Please see our [Contributing Guide](CONTRIBUTING.md) for details on:
 
@@ -390,13 +380,13 @@ By contributing, you agree to follow our [Code of Conduct](CODE_OF_CONDUCT.md).
 
 ---
 
-## 📝 License
+## License
 
 This project is licensed under the **MIT License** - see the [LICENSE](LICENSE) file for details.
 
 ---
 
-## 🙏 Acknowledgments
+## Acknowledgments
 
 - Inspired by [Hoppscotch](https://hoppscotch.io/), [Insomnia](https://insomnia.rest/), and [Postman](https://www.postman.com/)
 - Built with amazing open-source tools and libraries
@@ -404,13 +394,13 @@ This project is licensed under the **MIT License** - see the [LICENSE](LICENSE) 
 
 ---
 
-## 📧 Support
+## Support
 
 ### Getting Help
 
 - **Documentation**: Visit the [official documentation site](https://reqbeam.github.io/reqbeam/) or check the [docs](./docs/) folder
-- **Issues**: Open an issue on [GitHub Issues](https://github.com/yourusername/reqbeam/issues)
-- **Discussions**: Join discussions on [GitHub Discussions](https://github.com/yourusername/reqbeam/discussions)
+- **Issues**: Open an issue on [GitHub Issues](https://github.com/reqbeam/reqbeam/issues)
+- **Discussions**: Join discussions on [GitHub Discussions](https://github.com/reqbeam/reqbeam/discussions)
 - **Security**: Report security vulnerabilities to [SECURITY.md](SECURITY.md)
 
 ### Useful Links
@@ -426,7 +416,7 @@ This project is licensed under the **MIT License** - see the [LICENSE](LICENSE) 
 
 ---
 
-## 🌟 Show Your Support
+## Show Your Support
 
 If you like this project, please give it a ⭐️ on GitHub!
 

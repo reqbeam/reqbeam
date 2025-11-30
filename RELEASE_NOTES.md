@@ -201,7 +201,7 @@ This is the first public release of Reqbeam. This release includes:
 
 ```bash
 # Clone the repository
-git clone https://github.com/yourusername/reqbeam.git
+git clone https://github.com/reqbeam/reqbeam.git
 cd reqbeam
 
 # Install dependencies
@@ -223,7 +223,7 @@ npm run dev
 
 ```bash
 # Clone the repository
-git clone https://github.com/yourusername/reqbeam.git
+git clone https://github.com/reqbeam/reqbeam.git
 cd reqbeam
 
 # Start with Docker Compose
@@ -234,7 +234,7 @@ docker-compose up -d
 
 ```bash
 # Clone the repository
-git clone https://github.com/yourusername/reqbeam.git
+git clone https://github.com/reqbeam/reqbeam.git
 cd reqbeam
 
 # Run automated setup
@@ -570,7 +570,7 @@ We welcome contributions from the community. Here's how you can help:
 
 ```bash
 # Clone your fork
-git clone https://github.com/yourusername/reqbeam.git
+git clone https://github.com/reqbeam/reqbeam.git
 cd reqbeam
 
 # Install dependencies
@@ -714,10 +714,10 @@ Thank you to all contributors who have helped make Reqbeam possible.
 
 ## Links
 
-- **GitHub Repository**: [https://github.com/yourusername/reqbeam](https://github.com/yourusername/reqbeam)
+- **GitHub Repository**: [https://github.com/reqbeam/reqbeam](https://github.com/reqbeam/reqbeam)
 - **Documentation**: [README.md](./README.md)
-- **Issues**: [GitHub Issues](https://github.com/yourusername/reqbeam/issues)
-- **Discussions**: [GitHub Discussions](https://github.com/yourusername/reqbeam/discussions)
+- **Issues**: [GitHub Issues](https://github.com/reqbeam/reqbeam/issues)
+- **Discussions**: [GitHub Discussions](https://github.com/reqbeam/reqbeam/discussions)
 - **License**: [MIT License](./LICENSE)
 
 ---

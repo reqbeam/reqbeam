@@ -122,7 +122,7 @@ Security updates will be:
 For security-related questions or concerns:
 
 - **Security Email**: [security@reqbeam.com] (replace with your actual email)
-- **GitHub Security Advisories**: [GitHub Security](https://github.com/yourusername/reqbeam/security/advisories)
+- **GitHub Security Advisories**: [GitHub Security](https://github.com/reqbeam/reqbeam/security/advisories)
 
 Thank you for helping keep Reqbeam secure!
 
