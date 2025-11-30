@@ -1,0 +1,44 @@
+# GitHub Pages Jekyll Configuration for Reqbeam Documentation
+
+title: Reqbeam Documentation
+description: Complete documentation for Reqbeam API testing platform
+url: https://reqbeam.github.io
+baseurl: /reqbeam
+
+# Jekyll settings
+markdown: kramdown
+highlighter: rouge
+
+# Navigation
+navigation:
+  - title: Getting Started
+    url: /
+  - title: Installation
+    url: /installation
+  - title: Quick Start
+    url: /quick-start
+  - title: Web Interface
+    url: /web-interface
+  - title: CLI Tool
+    url: /cli
+  - title: API Reference
+    url: /api-reference
+
+# Exclude files from processing
+exclude:
+  - README.md
+  - Gemfile
+  - Gemfile.lock
+  - node_modules
+  - vendor
+
+# Plugins
+plugins:
+  - jekyll-feed
+  - jekyll-sitemap
+
+# Build settings
+safe: true
+lsi: false
+incremental: false
+

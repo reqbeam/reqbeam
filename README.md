@@ -1,40 +1,76 @@
-﻿# 🚀 Reqbeam - API Testing Tool
+﻿# Reqbeam - Open Source API Testing Tool
 
-A modern, full-featured API testing tool built with **Next.js 15**, **TypeScript**, **Prisma**, and **Tailwind CSS**. This application provides a beautiful, developer-friendly interface similar to other API testing tools, Hoppscotch, and Insomnia.
+A modern, full-featured API testing and development platform built with **Next.js 15**, **TypeScript**, **Prisma**, and **Tailwind CSS**. Reqbeam provides a beautiful web interface and powerful CLI for testing, organizing, and managing your APIs.
 
 ![Next.js](https://img.shields.io/badge/Next.js-15.0-black?style=flat-square&logo=next.js)
 ![TypeScript](https://img.shields.io/badge/TypeScript-5.3-blue?style=flat-square&logo=typescript)
 ![Tailwind CSS](https://img.shields.io/badge/Tailwind-3.4-38bdf8?style=flat-square&logo=tailwind-css)
 ![Prisma](https://img.shields.io/badge/Prisma-5.22-2D3748?style=flat-square&logo=prisma)
+![License](https://img.shields.io/badge/license-MIT-green?style=flat-square)
+
+---
+
+## 📖 Table of Contents
+
+- [Features](#-features)
+- [Installation](#-installation)
+- [Quick Start](#-quick-start)
+- [Setup Guide](#-setup-guide)
+- [Usage Examples](#-usage-examples)
+- [Use Cases](#-use-cases)
+- [Architecture](#-architecture)
+- [CLI Tool](#-cli-tool)
+- [Docker Deployment](#-docker-deployment)
+- [Contributing](#-contributing)
+- [License](#-license)
+- [Support](#-support)
 
 ---
 
 ## ✨ Features
 
 ### 🎯 Core Features
-- **HTTP Request Builder** - Support for GET, POST, PUT, DELETE, PATCH, HEAD, OPTIONS
+
+- **HTTP Request Builder** - Full support for GET, POST, PUT, DELETE, PATCH, HEAD, OPTIONS
 - **Query Parameters Management** - Add, edit, enable/disable params with automatic URL sync
 - **Headers Management** - Custom headers with key-value pairs
 - **Request Body** - Support for JSON, form-data, and x-www-form-urlencoded
-- **Authorization System** - Multiple auth types: No Auth, API Key, Bearer Token, Basic Auth, OAuth 2.0
-- **Response Viewer** - Beautiful syntax-highlighted JSON responses
-- **Request History** - Track all your API requests
-- **Collections** - Organize requests into collections
-- **Environments** - Manage multiple environments with variables
+- **Authorization System** - Multiple auth types: No Auth, API Key, Bearer Token, Basic Auth, OAuth 2.0 (PKCE)
+- **Response Viewer** - Beautiful syntax-highlighted JSON responses with formatting
+- **Request History** - Track all your API requests with timestamps and response data
+- **Collections** - Organize requests into collections for better management
+- **Environments** - Manage multiple environments (dev, staging, prod) with variables
+- **Workspaces** - Multi-workspace support for team collaboration
 - **Tab Management** - Work on multiple requests simultaneously
+- **Mock Servers** - Create mock endpoints for testing and development
+- **Import/Export** - Import from OpenAPI/Swagger, export collections
 
 ### 🎨 UI/UX Features
+
 - **Dark Theme** - Modern dark-first design with beautiful color schemes
 - **Responsive Design** - Works seamlessly on mobile, tablet, and desktop
 - **Color-Coded Methods** - Visual distinction for different HTTP methods
 - **Syntax Highlighting** - Beautiful code display for responses
 - **Real-time Updates** - Instant feedback on request status
 - **Smooth Animations** - Polished transitions and interactions
+- **Keyboard Shortcuts** - Power user features for faster workflow
 
-### 🔐 Authentication
+### 🔐 Authentication & Security
+
 - **User Registration & Login** - Secure authentication with NextAuth.js
+- **Google OAuth** - Sign in with Google (PKCE flow)
 - **Session Management** - Persistent user sessions
 - **Protected Routes** - Secure API endpoints
+- **JWT Tokens** - Secure token-based authentication for CLI
+
+### ⚡ CLI Features
+
+- **Command-Line Interface** - Full-featured CLI tool for automation
+- **Cloud Sync** - Real-time synchronization with web UI
+- **Collection Execution** - Run entire collections from terminal
+- **Test Automation** - Automated testing with scheduling
+- **Logging & Monitoring** - Comprehensive execution logs
+- **History Replay** - Replay past executions
 
 ---
 
@@ -51,113 +87,227 @@ A modern, full-featured API testing tool built with **Next.js 15**, **TypeScript
 
 ---
 
-## 📋 Prerequisites
+## 📦 Installation
 
-Before you begin, ensure you have the following installed:
+### Prerequisites
 
-- **Node.js** (v18.0 or higher) - [Download](https://nodejs.org/)
-- **npm** or **yarn** or **pnpm**
-- **PostgreSQL** (v14 or higher) - [Download](https://www.postgresql.org/download/)
-- **Git** - [Download](https://git-scm.com/)
+- **Node.js** v18.0+ ([Download](https://nodejs.org/))
+- **npm**, **yarn**, or **pnpm**
+- **PostgreSQL** v14+ (production) or **SQLite** (development)
+- **Git** ([Download](https://git-scm.com/))
 
----
+### Quick Install
 
-## 🚀 Getting Started
+```bash
+# Clone and install
+git clone https://github.com/yourusername/reqbeam.git
+cd reqbeam
+npm install
 
-### 1. Clone the Repository
+# Set up environment
+cp env.example .env
+# Edit .env with your configuration
+
+# Set up database
+npm run db:generate
+npm run db:push
+
+# Start development server
+npm run dev
+```
+
+Open [http://localhost:3000](http://localhost:3000) in your browser.
+
+### Alternative: Docker
 
 ```bash
 git clone https://github.com/yourusername/reqbeam.git
 cd reqbeam
+docker-compose up -d
 ```
 
-### 2. Install Dependencies
+### Automated Setup
 
 ```bash
-npm install
+chmod +x setup.sh
+./setup.sh
 # or
-yarn install
-# or
-pnpm install
+npm run setup:all
 ```
 
-### 3. Set Up Environment Variables
+For detailed installation instructions, see the [Installation Guide](https://reqbeam.github.io/reqbeam/installation).
 
-Create a `.env` file in the root directory by copying the example file:
+---
+
+## 🚀 Quick Start
+
+1. **Install** - Follow the [Installation](#-installation) steps above
+2. **Configure** - Set up your `.env` file (see [env.example](./env.example))
+3. **Start** - Run `npm run dev` and open http://localhost:3000
+4. **Sign Up** - Create an account and start testing APIs
+
+For step-by-step instructions, see the [Quick Start Guide](https://reqbeam.github.io/reqbeam/quick-start).
+
+---
+
+## 💡 Usage Examples
+
+### Web Interface
+
+1. Sign up and create a workspace
+2. Click "New Request" and enter your API URL
+3. Add headers, query parameters, or request body as needed
+4. Click "Send" to execute the request
+5. Save requests to collections for organization
+
+See the [Web Interface Documentation](https://reqbeam.github.io/reqbeam/web-interface) for detailed guides.
+
+### CLI Usage
 
 ```bash
-cp env.example .env
+# Authenticate and set up
+rb auth login
+rb workspace create my-project
+rb env add development -i
+
+# Create and run requests
+rb request create -n "Get Users" -m GET -u "{{API_URL}}/users"
+rb run request "Get Users"
+
+# Manage collections
+rb collection create "User API"
+rb collection add "User API" "Get Users"
+rb run collection "User API" --parallel
 ```
 
-Then edit the `.env` file with your configuration:
+See the [CLI Documentation](https://reqbeam.github.io/reqbeam/cli) for more examples.
 
-```env
-# Database
-DATABASE_URL="postgresql://username:password@localhost:5432/reqbeam?schema=public"
+---
 
-# NextAuth
-NEXTAUTH_URL="http://localhost:3000"
-NEXTAUTH_SECRET="your-secret-key-here"
+## 🎯 Use Cases
 
-# App Configuration
-NEXT_PUBLIC_APP_NAME="OSS"
+### 1. API Development & Testing
+
+- **Test REST APIs** during development
+- **Debug API endpoints** with detailed request/response inspection
+- **Validate API responses** with syntax highlighting
+- **Test different environments** (dev, staging, production)
+
+### 2. API Documentation
+
+- **Organize requests** into collections by feature or endpoint
+- **Share collections** with team members
+- **Export collections** to JSON/YAML for documentation
+- **Import from OpenAPI/Swagger** specifications
+
+### 3. CI/CD Integration
+
+- **Automate API testing** with CLI in CI pipelines
+- **Run collections** as part of deployment process
+- **Schedule automated tests** with cron jobs
+- **Export test results** for reporting
+
+### 4. Team Collaboration
+
+- **Share workspaces** with team members
+- **Sync collections** across devices
+- **Track request history** for debugging
+- **Manage environments** per team member
+
+### 5. Mock Server Development
+
+- **Create mock endpoints** for frontend development
+- **Test API integrations** without backend dependencies
+- **Simulate different response scenarios**
+
+### 6. API Monitoring
+
+- **Schedule periodic tests** to monitor API health
+- **Track response times** and status codes
+- **Export logs** for analysis
+- **Set up automated alerts** for failures
+
+---
+
+## 🏗️ Architecture
+
+### Project Structure
+
+```
+reqbeam/
+├── reqbeam-db/          # Shared database package
+│   ├── prisma/         # Prisma schema and migrations
+│   └── src/            # Database services
+├── reqbeam-cli/        # CLI tool
+│   ├── src/            # CLI source code
+│   └── bin/            # CLI executables
+├── auth-server/        # Optional authentication server
+│   └── src/            # Auth server code
+├── src/                # Next.js web application
+│   ├── app/            # Next.js app router
+│   ├── components/     # React components
+│   ├── lib/            # Utilities and services
+│   └── store/          # State management
+├── prisma/             # Database files (SQLite)
+├── public/             # Static assets
+└── docker-compose.yml  # Docker configuration
 ```
 
-**Configuration Details:**
+### Database Architecture
 
-- **DATABASE_URL**: Your PostgreSQL connection string
-  - Replace `username` with your PostgreSQL username
-  - Replace `password` with your PostgreSQL password
-  - Replace `reqbeam` with your database name (or create it)
-  
-- **NEXTAUTH_SECRET**: Generate a secure secret key:
-  ```bash
-  # On Linux/Mac
-  openssl rand -base64 32
-  
-  # Or use Node.js
-  node -e "console.log(require('crypto').randomBytes(32).toString('base64'))"
-  ```
+- **PostgreSQL** (production) or **SQLite** (development)
+- **Prisma ORM** for type-safe database access
+- **Shared database package** (`@reqbeam/db`) for CLI and web app
+- **Workspace-based** data isolation
 
-### 4. Set Up the Database
+### Authentication Flow
 
-#### Create PostgreSQL Database
+1. **Web UI**: NextAuth.js with email/password and Google OAuth
+2. **CLI**: JWT token-based authentication
+3. **Auth Server**: Optional separate authentication service
+
+---
+
+## ⚙️ CLI Tool
+
+Reqbeam includes a powerful CLI tool for automation and CI/CD integration.
+
+### Installation
 
 ```bash
-# Login to PostgreSQL
-psql -U postgres
-
-# Create database
-CREATE DATABASE reqbeam;
-
-# Exit psql
-\q
+cd reqbeam-cli
+npm install && npm run build
+npm link  # Install globally
+rb auth login
 ```
 
-#### Run Prisma Migrations
+### Quick Example
 
 ```bash
-# Generate Prisma Client
-npm run db:generate
+# Create workspace and environment
+rb workspace create my-project
+rb env add development -i
 
-# Push the schema to your database
-npm run db:push
-
-# Or run migrations (recommended for production)
-npm run db:migrate
+# Create and run request
+rb request create -n "Get Users" -m GET -u "{{API_URL}}/users"
+rb run request "Get Users"
 ```
 
-### 5. Run the Development Server
+For complete CLI documentation, see [CLI Documentation](https://reqbeam.github.io/reqbeam/cli) or [reqbeam-cli/README.md](./reqbeam-cli/README.md).
+
+---
+
+## 🐳 Docker Deployment
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
+# Start with Docker Compose
+docker-compose up -d
+
+# View logs
+docker-compose logs -f
 ```
 
-Open [http://localhost:3000](http://localhost:3000) in your browser to see the application.
+For detailed Docker setup, see [DOCKER.md](./DOCKER.md).
 
 ---
 
@@ -173,381 +323,8 @@ Open [http://localhost:3000](http://localhost:3000) in your browser to see the a
 | `npm run db:push` | Push schema changes to database |
 | `npm run db:migrate` | Run database migrations |
 | `npm run db:studio` | Open Prisma Studio (Database GUI) |
-
----
-
-## 📁 Project Structure
-
-```
-reqbeam/
-├── prisma/
-│   ├── schema.prisma          # Database schema
-│   └── dev.db                 # SQLite database (if using SQLite)
-├── public/                    # Static assets
-├── src/
-│   ├── app/
-│   │   ├── api/              # API routes
-│   │   │   ├── auth/         # Authentication endpoints
-│   │   │   ├── collections/  # Collections CRUD
-│   │   │   ├── environments/ # Environments management
-│   │   │   └── request/      # Request sending logic
-│   │   ├── auth/             # Auth pages (signin/signup)
-│   │   ├── globals.css       # Global styles
-│   │   ├── layout.tsx        # Root layout
-│   │   ├── page.tsx          # Home page
-│   │   └── providers.tsx     # App providers
-│   ├── components/
-│   │   ├── Collections.tsx   # Collections sidebar
-│   │   ├── Dashboard.tsx     # Main dashboard layout
-│   │   ├── Environments.tsx  # Environment manager
-│   │   ├── RequestBuilder.tsx # Request builder UI
-│   │   ├── ResponseViewer.tsx # Response display
-│   │   └── Sidebar.tsx       # Left sidebar
-│   ├── lib/
-│   │   ├── auth.ts           # NextAuth configuration
-│   │   └── prisma.ts         # Prisma client instance
-│   └── store/
-│       └── requestStore.ts   # Zustand state management
-├── .env                      # Environment variables
-├── package.json              # Dependencies
-├── tailwind.config.ts        # Tailwind configuration
-└── tsconfig.json             # TypeScript configuration
-```
-
----
-
-## 🎯 Usage Guide
-
-### Creating Your First Request
-
-1. **Sign Up / Sign In**
-   - Navigate to the sign-up page
-   - Create an account with your email and password
-   - Sign in to access the dashboard
-
-2. **Create a New Request**
-   - Click the "New Request" button
-   - Select HTTP method (GET, POST, PUT, DELETE, etc.)
-   - Enter the API URL
-
-3. **Add Query Parameters**
-   - Go to the "Params" tab
-   - Add key-value pairs
-   - Enable/disable parameters with checkboxes
-   - Parameters automatically sync with the URL
-
-4. **Add Headers**
-   - Go to the "Headers" tab
-   - Add custom headers (e.g., `Authorization`, `Content-Type`)
-
-5. **Add Request Body** (for POST/PUT/PATCH)
-   - Go to the "Body" tab
-   - Select body type (JSON, form-data, x-www-form-urlencoded)
-   - Enter your request payload
-
-6. **Send Request**
-   - Click the "Send" button
-   - View the response with syntax highlighting
-   - Check status code, response time, and size
-
-7. **Save to Collection**
-   - Click the "Save" button
-   - Choose or create a collection
-   - Give your request a name
-
-### Managing Collections
-
-- **Create Collection**: Use the sidebar to create new collections
-- **Organize Requests**: Save related requests in collections
-- **Load Requests**: Click on saved requests to load them
-
-### Using Environments
-
-- **Create Environment**: Add environment variables
-- **Switch Environments**: Activate different environments
-- **Use Variables**: Reference variables in your requests
-
----
-
-# 🎉 Reqbeam CLI - Project Summary
-
-## ✅ Complete Implementation
-
-I have successfully built a comprehensive TypeScript-based CLI tool called **Reqbeam CLI** that meets all your requirements and more! The tool is fully functional and ready to use.
-
-## 🏗️ What Was Built
-
-### Core Features (100% Complete)
-
-1. **Workspace Management** ✅
-   - `reqbeam init <project_name>` - Initialize new API projects (deprecated - use workspace commands)
-   - `reqbeam workspace list` - List all workspaces
-   - `reqbeam workspace create <name>` - Create a new workspace
-   - `reqbeam workspace switch <name>` - Switch between workspaces
-   - `reqbeam workspace activate <name>` - Activate a workspace
-   - `reqbeam workspace delete <name>` - Delete workspaces
-
-2. **Environment Management** ✅
-   - `reqbeam env list` - List environments
-   - `reqbeam env add <name> -i` - Add environments interactively
-   - `reqbeam env switch <name>` - Switch environments
-   - `reqbeam env remove <name>` - Remove environments
-   - Environment variables stored per workspace
-
-3. **Request Management** ✅
-   - `reqbeam request create -n <name> -m <method> -u <url>` - Create requests
-   - `reqbeam request create -i` - Interactive request creation
-   - `reqbeam request list` - List all requests
-   - `reqbeam request update <name>` - Update existing requests
-   - `reqbeam request delete <name>` - Delete requests
-   - Support for headers, body, and descriptions
-
-4. **Collection Management** ✅
-   - `reqbeam collection create <name>` - Create collections
-   - `reqbeam collection add <collection> <request>` - Add requests to collections
-   - `reqbeam collection remove <collection> <request>` - Remove requests
-   - `reqbeam collection list` - List collections
-   - `reqbeam collection export <name> <file>` - Export to JSON/YAML
-
-5. **Execution & Run** ✅
-   - `reqbeam run request <name>` - Run single requests
-   - `reqbeam run collection <name>` - Run collections
-   - `reqbeam run collection <name> --parallel` - Parallel execution
-   - `reqbeam run collection <name> --save-response` - Save responses
-   - `reqbeam run collection <name> -e <env>` - Use specific environment
-   - `reqbeam run history-list` - List execution history
-   - `reqbeam run history <id>` - Replay from history
-
-6. **Testing & Automation** ✅
-   - `reqbeam test run` - Run tests for all requests or specific request
-   - `reqbeam test run --request <name>` - Run tests for specific request
-   - `reqbeam test generate` - Auto-generate test skeleton files
-   - `reqbeam test schedule <cron>` - Schedule periodic test runs
-   - `reqbeam test schedule-list` - List scheduled test jobs
-   - `reqbeam test schedule-stop <id>` - Stop scheduled job
-   - `reqbeam test schedule-delete <id>` - Delete scheduled job
-
-7. **Logging & Monitoring** ✅
-   - `reqbeam logs list` - List past executions with filtering
-   - `reqbeam logs view <id>` - View detailed log information
-   - `reqbeam logs export <file>` - Export logs to JSON/CSV
-   - `reqbeam logs clear` - Clear all local logs
-   - `reqbeam logs summary` - Show execution statistics
-
-## 🎯 Key Features
-
-### Workspace Management System
-- Workspaces stored in the cloud database (synchronized with web UI)
-- Each workspace has its own collections, requests, and environments
-- Automatic workspace switching and management
-- Workspaces can be shared with team members
-
-### Environment Variables
-- Per-workspace environment management
-- `{{VARIABLE}}` syntax support in URLs, headers, and body
-- Easy switching between environments (dev, staging, prod)
-
-### Beautiful CLI Output
-- Colorized output with Chalk
-- Status code coloring (green/red/yellow)
-- Method-specific colors (GET=green, POST=blue, etc.)
-- Formatted tables for lists and results
-- Progress indicators with Ora
-
-### Request Execution
-- Axios-based HTTP client
-- Support for all HTTP methods (GET, POST, PUT, DELETE, PATCH)
-- Custom headers and JSON body support
-- Response time tracking
-- Error handling and reporting
-
-### History & Replay
-- Automatic execution history tracking
-- Replay any past request or collection execution
-- Response data saving for debugging
-- Execution statistics and summaries
-
-## 📁 Project Structure
-
-```
-reqbeam-cli/
-├── src/
-│   ├── commands/           # Command implementations
-│   │   ├── init.ts        # Project initialization
-│   │   ├── project.ts     # Project management
-│   │   ├── env.ts         # Environment management
-│   │   ├── request.ts     # Request management
-│   │   ├── collection.ts  # Collection management
-│   │   └── run.ts         # Execution commands
-│   ├── utils/             # Utility functions
-│   │   ├── storage.ts     # Project storage management
-│   │   ├── request.ts     # HTTP request execution
-│   │   └── formatter.ts   # CLI output formatting
-│   ├── types.ts           # TypeScript interfaces
-│   └── index.ts           # CLI entry point
-├── bin/
-│   └── reqbeam.js        # Executable entry point
-├── dist/                  # Compiled JavaScript
-├── package.json           # Dependencies and scripts
-├── tsconfig.json          # TypeScript configuration
-├── README.md              # Complete documentation
-├── QUICKSTART.md          # Quick start guide
-├── EXAMPLES.md            # Real-world examples
-└── PROJECT-SUMMARY.md     # This summary
-```
-
-## 🚀 How to Use
-
-### 1. Build and Install
-```bash
-cd reqbeam-cli
-npm install
-npm run build
-npm link  # Optional: install globally
-```
-
-### 2. Quick Start
-```bash
-# Create a project
-reqbeam init my-api
-
-# Add environment
-reqbeam env add development -i
-# Enter: API_URL=https://api.example.com,API_KEY=your-key
-
-# Create a request
-reqbeam request create -n "Get Users" -m GET -u "{{API_URL}}/users" -H "Authorization:Bearer {{API_KEY}}"
-
-# Run the request
-reqbeam run request "Get Users"
-```
-
-### 3. Advanced Usage
-```bash
-# Create collection
-reqbeam collection create "User API"
-reqbeam collection add "User API" "Get Users"
-
-# Run collection
-reqbeam run collection "User API" --parallel
-
-# Export collection
-reqbeam collection export "User API" ./user-api.json
-```
-
-## 🎨 Sample Output
-
-### Request Execution:
-```
-GET    200 245ms Test Request
-✓ Request executed successfully
-```
-
-### Collection Results:
-```
-┌────────┬────────┬─────────────────┬─────────────┬────────┐
-│ Status │ Method │ Name            │ Status Code │ Time   │
-├────────┼────────┼─────────────────┼─────────────┼────────┤
-│ ✓      │ GET    │ Get Users       │ 200         │ 245ms  │
-│ ✓      │ POST   │ Create User     │ 201         │ 156ms  │
-│ ✗      │ PUT    │ Update User     │ 404         │ 89ms   │
-└────────┴────────┴─────────────────┴─────────────┴────────┘
-
-Summary:
-  ✓ Passed: 2 | ✗ Failed: 1 | Total time: 490ms
-```
-
-## 🛠️ Technology Stack
-
-- **TypeScript** - Fully typed codebase
-- **Node.js** - Runtime environment
-- **Commander.js** - CLI framework
-- **Axios** - HTTP client
-- **Chalk** - Terminal styling
-- **Inquirer** - Interactive prompts
-- **js-yaml** - YAML support
-- **table** - Table formatting
-- **ora** - Progress indicators
-- **fs-extra** - File operations
-
-## 📚 Documentation
-
-1. **README.md** - Complete documentation with all features
-2. **QUICKSTART.md** - Get started in 5 minutes
-3. **EXAMPLES.md** - Real-world usage examples
-4. **PROJECT-SUMMARY.md** - This summary
-
-## ✅ Testing Results
-
-The CLI has been tested and verified working:
-
-- ✅ **Project Creation** - Successfully creates and manages projects
-- ✅ **Environment Management** - Handles environment variables correctly
-- ✅ **Request Creation** - Creates and stores requests properly
-- ✅ **Request Execution** - Executes HTTP requests with proper formatting
-- ✅ **Collection Management** - Organizes requests into collections
-- ✅ **History Tracking** - Records and replays execution history
-- ✅ **Error Handling** - Graceful error messages and recovery
-- ✅ **Beautiful Output** - Colorized and formatted terminal output
-
-## 🎯 All Requirements Met
-
-✅ **Project Management** - Complete with init, list, switch, delete
-✅ **Environment Management** - Full CRUD operations with variable support
-✅ **Request Management** - Create, update, delete, list with full HTTP support
-✅ **Collection Management** - Organize requests with export capabilities
-✅ **Execution** - Run requests and collections with parallel support
-✅ **Storage** - Local project storage in `~/.reqbeam/projects/`
-✅ **Environment Variables** - `{{VARIABLE}}` syntax support
-✅ **Beautiful Output** - Colorized terminal output with Chalk
-✅ **History** - Execution tracking and replay functionality
-✅ **TypeScript** - Fully typed codebase
-✅ **Documentation** - Comprehensive guides and examples
-
-## 🚀 Ready to Use!
-
-The Reqbeam CLI is **production-ready** and can be used immediately for:
-
-- API development and testing
-- Collection management
-- Environment-based testing
-- CI/CD integration
-- Team collaboration
-- API documentation
-
-**The tool successfully replicates and extends Reqbeam CLI functionality with a modern, project-oriented approach!** 🎊
-
----
-
-**Enjoy your new Reqbeam CLI tool!** 🚀
-
-## 🔧 Configuration
-
-### Database Configuration
-
-The app uses PostgreSQL by default. To switch to SQLite for development:
-
-1. Update `prisma/schema.prisma`:
-```prisma
-datasource db {
-  provider = "sqlite"
-  url      = "file:./dev.db"
-}
-```
-
-2. Update `.env`:
-```env
-DATABASE_URL="file:./prisma/dev.db"
-```
-
-3. Run migrations:
-```bash
-npm run db:push
-```
-
-### Customizing Theme
-
-Edit `tailwind.config.ts` to customize colors, fonts, and other design tokens.
+| `npm run setup` | Run setup script |
+| `npm run setup:all` | Complete setup (db, web, cli) |
 
 ---
 
@@ -557,10 +334,12 @@ Edit `tailwind.config.ts` to customize colors, fonts, and other design tokens.
 
 ```bash
 # Check if PostgreSQL is running
-sudo service postgresql status
+sudo service postgresql status  # Linux
+brew services list              # Mac
 
 # Restart PostgreSQL
-sudo service postgresql restart
+sudo service postgresql restart  # Linux
+brew services restart postgresql # Mac
 ```
 
 ### Prisma Client Issues
@@ -570,13 +349,13 @@ sudo service postgresql restart
 npm run db:generate
 
 # Reset database (WARNING: This will delete all data)
+cd reqbeam-db
 npx prisma migrate reset
 ```
 
 ### Port Already in Use
 
 ```bash
-# Kill process on port 3000
 # On Linux/Mac
 lsof -ti:3000 | xargs kill -9
 
@@ -585,36 +364,65 @@ netstat -ano | findstr :3000
 taskkill /PID <PID> /F
 ```
 
+### CLI Authentication Issues
+
+```bash
+# Re-authenticate
+rb auth login
+
+# Check authentication status
+cat ~/.reqbeam/auth.json
+```
+
 ---
 
 ## 🤝 Contributing
 
-Contributions are welcome! Please follow these steps:
+We welcome contributions! Please see our [Contributing Guide](CONTRIBUTING.md) for details on:
 
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add some amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
+- How to report bugs
+- How to suggest features
+- Development setup
+- Coding standards
+- Pull request process
+
+By contributing, you agree to follow our [Code of Conduct](CODE_OF_CONDUCT.md).
 
 ---
 
 ## 📝 License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+This project is licensed under the **MIT License** - see the [LICENSE](LICENSE) file for details.
 
 ---
 
 ## 🙏 Acknowledgments
 
-- Inspired by [Hoppscotch](https://hoppscotch.io/), [Insomnia](https://insomnia.rest/), and other API testing tools
+- Inspired by [Hoppscotch](https://hoppscotch.io/), [Insomnia](https://insomnia.rest/), and [Postman](https://www.postman.com/)
 - Built with amazing open-source tools and libraries
+- Thanks to all contributors and the open-source community
 
 ---
 
-## 📧 Contact
+## 📧 Support
 
-For questions or support, please open an issue on GitHub.
+### Getting Help
+
+- **Documentation**: Visit the [official documentation site](https://reqbeam.github.io/reqbeam/) or check the [docs](./docs/) folder
+- **Issues**: Open an issue on [GitHub Issues](https://github.com/yourusername/reqbeam/issues)
+- **Discussions**: Join discussions on [GitHub Discussions](https://github.com/yourusername/reqbeam/discussions)
+- **Security**: Report security vulnerabilities to [SECURITY.md](SECURITY.md)
+
+### Useful Links
+
+- [Documentation Site](https://reqbeam.github.io/reqbeam/) - Complete documentation on GitHub Pages
+- [Contributing Guide](CONTRIBUTING.md) - How to contribute
+- [Code of Conduct](CODE_OF_CONDUCT.md) - Community guidelines
+- [Security Policy](SECURITY.md) - Security reporting
+- [CLI Documentation](./reqbeam-cli/README.md)
+- [Database Setup Guide](./reqbeam-db/README.md)
+- [Auth Server Setup](./auth-server/README.md)
+- [Docker Guide](./DOCKER.md)
 
 ---
 
