@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { prisma, WorkspaceService, CollectionService, RequestService, EnvironmentService } from '@postmind/db'
+import { prisma, WorkspaceService, CollectionService, RequestService, EnvironmentService } from '@reqbeam/db'
 import { getAuthenticatedUser } from '@/lib/apiAuth'
 import yaml from 'js-yaml'
 

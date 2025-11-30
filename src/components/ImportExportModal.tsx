@@ -173,7 +173,7 @@ export default function ImportExportModal({
                   Drag and drop a file here, or click to select
                 </p>
                 <p className="text-xs text-gray-500 dark:text-gray-500 mb-4 transition-colors">
-                  Supports {type === 'collection' ? 'Postmind, Postman, or OpenAPI' : 'Postmind'} formats (.json, .yaml)
+                  Supports {type === 'collection' ? 'Reqbeam, external collections, or OpenAPI' : 'Reqbeam'} formats (.json, .yaml)
                 </p>
                 <input
                   ref={fileInputRef}

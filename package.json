@@ -1,5 +1,5 @@
 {
-  "name": "postman-clone",
+  "name": "reqbeam",
   "version": "0.1.0",
   "private": true,
   "scripts": {
@@ -8,13 +8,14 @@
     "start": "next start",
     "lint": "next lint",
     "setup": "node scripts/setup.js",
-    "db:generate": "prisma generate --schema=./postmind-db/prisma/schema.prisma",
-    "db:push": "cd postmind-db && npm run db:push",
-    "db:migrate": "cd postmind-db && npm run db:migrate",
-    "db:studio": "cd postmind-db && npm run db:studio"
+    "setup:all": "bash ../setup.sh",
+    "db:generate": "node scripts/generate-prisma.js",
+    "db:push": "cd reqbeam-db && npm run db:push",
+    "db:migrate": "cd reqbeam-db && npm run db:migrate",
+    "db:studio": "cd reqbeam-db && npm run db:studio"
   },
   "dependencies": {
-    "@postmind/db": "file:./postmind-db",
+    "@reqbeam/db": "file:./reqbeam-db",
     "@prisma/client": "^5.22.0",
     "@types/js-yaml": "^4.0.9",
     "@types/uuid": "^10.0.0",

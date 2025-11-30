@@ -118,7 +118,7 @@ export default function Dashboard({ workspaceId }: DashboardProps) {
         {/* Header */}
         <header className="bg-white dark:bg-[#252525] border-b border-gray-200 dark:border-[#3c3c3c] px-3 sm:px-6 py-3 flex items-center justify-between gap-4 transition-colors">
           <div className="flex items-center gap-2 sm:gap-4 flex-1 min-w-0">
-            <h1 className="text-base sm:text-lg font-semibold text-gray-900 dark:text-white hidden lg:block transition-colors">Postmind</h1>
+            <h1 className="text-base sm:text-lg font-semibold text-gray-900 dark:text-white hidden lg:block transition-colors">Reqbeam</h1>
             <WorkspaceSwitcher onCreateNew={handleCreateWorkspace} />
             <button
               onClick={handleNewRequest}

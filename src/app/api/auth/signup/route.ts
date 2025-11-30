@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import bcrypt from 'bcryptjs'
-import { prisma, UserService } from '@postmind/db'
+import { prisma, UserService } from '@reqbeam/db'
 import { validatePassword } from '@/utils/passwordValidation'
 
 const AUTH_SERVER_URL = process.env.AUTH_SERVER_URL || 'http://localhost:4000'

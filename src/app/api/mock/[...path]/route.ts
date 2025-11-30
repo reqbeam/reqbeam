@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { prisma, MockServerService } from '@postmind/db'
+import { prisma, MockServerService } from '@reqbeam/db'
 
 // This route handles all HTTP methods for mock endpoints
 export async function GET(

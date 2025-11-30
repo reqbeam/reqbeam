@@ -1,8 +1,8 @@
-# Workspace Feature Documentation
+﻿# Workspace Feature Documentation
 
 ## Overview
 
-The Workspace feature allows users to organize their API projects, requests, collections, environments, and history under different workspaces — similar to Postman. This feature enables better organization and isolation of different projects, making it easier to manage multiple API testing scenarios.
+The Workspace feature allows users to organize their API projects, requests, collections, environments, and history under different workspaces — similar to other API testing tools. This feature enables better organization and isolation of different projects, making it easier to manage multiple API testing scenarios.
 
 ## Features Implemented
 

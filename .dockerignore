@@ -46,7 +46,7 @@ docker-compose.yml
 *.db-wal
 *.db-shm
 prisma/dev.db
-postmind-db/prisma/prisma/dev.db
+reqbeam-db/prisma/prisma/dev.db
 
 # Build artifacts
 *.log

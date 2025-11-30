@@ -2,7 +2,7 @@ const { execSync } = require('child_process');
 const fs = require('fs');
 const path = require('path');
 
-console.log('🚀 Setting up Postman Clone...\n');
+console.log('🚀 Setting up Reqbeam...\n');
 
 // Check if .env.local exists
 const envPath = path.join(process.cwd(), '.env.local');

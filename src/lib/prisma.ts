@@ -1,14 +1,14 @@
 /**
- * @deprecated This file is deprecated. Use `prisma` from `@postmind/db` instead.
+ * @deprecated This file is deprecated. Use `prisma` from `@reqbeam/db` instead.
  * 
  * This file is kept for backward compatibility but will be removed in a future version.
  * 
  * Migration guide:
  * - Old: import { prisma } from '@/lib/prisma'
- * - New: import { prisma } from '@postmind/db'
+ * - New: import { prisma } from '@reqbeam/db'
  * 
- * All routes have been migrated to use the shared @postmind/db package.
+ * All routes have been migrated to use the shared @reqbeam/db package.
  */
 
-// Re-export from @postmind/db for backward compatibility
-export { prisma } from '@postmind/db';
+// Re-export from @reqbeam/db for backward compatibility
+export { prisma } from '@reqbeam/db';

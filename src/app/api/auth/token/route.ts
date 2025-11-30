@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { prisma, UserService } from '@postmind/db'
+import { prisma, UserService } from '@reqbeam/db'
 
 export async function GET(request: NextRequest) {
   try {

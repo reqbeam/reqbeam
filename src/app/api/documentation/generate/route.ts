@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
-import { prisma, CollectionService } from '@postmind/db'
+import { prisma, CollectionService } from '@reqbeam/db'
 
 export async function POST(request: NextRequest) {
   try {
