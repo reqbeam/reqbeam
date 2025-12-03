@@ -1,9 +1,0 @@
-blank_issues_enabled: false
-contact_links:
-  - name: Documentation
-    url: https://reqbeam.github.io/reqbeam/
-    about: Check our documentation for guides and tutorials
-  - name: Security Issue
-    url: https://github.com/reqbeam/reqbeam/security/advisories/new
-    about: Report a security vulnerability (please do not create a public issue)
-

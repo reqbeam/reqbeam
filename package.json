@@ -1,50 +1,234 @@
 {
   "name": "reqbeam",
-  "version": "0.1.0",
-  "private": true,
-  "scripts": {
-    "dev": "next dev",
-    "build": "next build",
-    "start": "next start",
-    "lint": "next lint",
-    "setup": "node scripts/setup.js",
-    "setup:all": "bash ../setup.sh",
-    "db:generate": "node scripts/generate-prisma.js",
-    "db:push": "cd reqbeam-db && npm run db:push",
-    "db:migrate": "cd reqbeam-db && npm run db:migrate",
-    "db:studio": "cd reqbeam-db && npm run db:studio"
+  "displayName": "ReqBeam",
+  "description": "Thunder Client–style HTTP client for VS Code, powered by sqlite3.",
+  "version": "0.0.4",
+  "publisher": "reqbeam",
+  "engines": {
+    "vscode": "^1.106.0"
   },
-  "dependencies": {
-    "@reqbeam/db": "file:./reqbeam-db",
-    "@prisma/client": "^5.22.0",
-    "@types/js-yaml": "^4.0.9",
-    "@types/uuid": "^10.0.0",
-    "bcryptjs": "^2.4.3",
-    "clsx": "^2.0.0",
-    "js-yaml": "^4.1.0",
-    "lucide-react": "^0.294.0",
-    "next": "15.0.0",
-    "next-auth": "^4.24.5",
-    "react": "^18.2.0",
-    "react-dom": "^18.2.0",
-    "react-syntax-highlighter": "^15.5.0",
-    "tailwind-merge": "^2.2.0",
-    "uuid": "^13.0.0",
-    "zustand": "^4.4.7"
+  "categories": [
+    "Other"
+  ],
+  "main": "./dist/extension.js",
+  "activationEvents": [
+    "onCommand:reqbeam.newRequest",
+    "onCommand:reqbeam.sendRequest",
+    "onCommand:reqbeam.showCollections",
+    "onCommand:reqbeam.showEnvironments",
+    "onCommand:reqbeam.showHistory",
+    "onView:reqbeam.collectionsView",
+    "onView:reqbeam.environmentsView",
+    "onView:reqbeam.historyView"
+  ],
+  "contributes": {
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "reqbeam",
+          "title": "ReqBeam",
+          "icon": "media/reqbeam-icon.svg"
+        }
+      ]
+    },
+    "commands": [
+      {
+        "command": "reqbeam.newRequest",
+        "title": "ReqBeam: New Request"
+      },
+      {
+        "command": "reqbeam.loadRequest",
+        "title": "ReqBeam: Load Request"
+      },
+      {
+        "command": "reqbeam.setEnvironment",
+        "title": "ReqBeam: Set Active Environment"
+      },
+      {
+        "command": "reqbeam.showHistoryItem",
+        "title": "ReqBeam: Show History Item"
+      },
+      {
+        "command": "reqbeam.sendRequest",
+        "title": "ReqBeam: Send Request"
+      },
+      {
+        "command": "reqbeam.showCollections",
+        "title": "ReqBeam: Show Collections"
+      },
+      {
+        "command": "reqbeam.showEnvironments",
+        "title": "ReqBeam: Show Environments"
+      },
+      {
+        "command": "reqbeam.showHistory",
+        "title": "ReqBeam: Show History"
+      },
+      {
+        "command": "reqbeam.addEnvironment",
+        "title": "ReqBeam: Add Environment"
+      },
+      {
+        "command": "reqbeam.renameEnvironment",
+        "title": "ReqBeam: Rename Environment"
+      },
+      {
+        "command": "reqbeam.deleteEnvironment",
+        "title": "ReqBeam: Delete Environment"
+      },
+      {
+        "command": "reqbeam.createWorkspace",
+        "title": "Create Workspace",
+        "icon": "$(add)"
+      },
+      {
+        "command": "reqbeam.setWorkspace",
+        "title": "ReqBeam: Set Active Workspace"
+      },
+      {
+        "command": "reqbeam.createCollection",
+        "title": "Create Collection",
+        "icon": "$(add)"
+      },
+      {
+        "command": "reqbeam.createRequest",
+        "title": "New Request",
+        "icon": "$(add)"
+      },
+      {
+        "command": "reqbeam.renameRequest",
+        "title": "Rename Request"
+      },
+      {
+        "command": "reqbeam.editRequest",
+        "title": "Edit Request"
+      },
+      {
+        "command": "reqbeam.deleteRequest",
+        "title": "Delete Request"
+      },
+      {
+        "command": "reqbeam.showRequestMenu",
+        "title": "More Actions...",
+        "icon": "$(more)"
+      }
+    ],
+    "views": {
+      "reqbeam": [
+        {
+          "id": "reqbeam.workspacesView",
+          "name": "Workspaces"
+        },
+        {
+          "id": "reqbeam.collectionsView",
+          "name": "Collections"
+        },
+        {
+          "id": "reqbeam.environmentsView",
+          "name": "Environments"
+        },
+        {
+          "id": "reqbeam.historyView",
+          "name": "History"
+        }
+      ]
+    },
+    "menus": {
+      "view/title": [
+        {
+          "command": "reqbeam.createWorkspace",
+          "when": "view == reqbeam.workspacesView",
+          "group": "navigation",
+          "icon": "$(add)"
+        },
+        {
+          "command": "reqbeam.newRequest",
+          "when": "view == reqbeam.collectionsView",
+          "group": "navigation",
+          "icon": "$(add)"
+        },
+        {
+          "command": "reqbeam.createCollection",
+          "when": "view == reqbeam.collectionsView",
+          "group": "navigation",
+          "icon": "$(folder)"
+        },
+        {
+          "command": "reqbeam.addEnvironment",
+          "when": "view == reqbeam.environmentsView",
+          "group": "navigation"
+        }
+      ],
+      "view/item/context": [
+        {
+          "command": "reqbeam.createCollection",
+          "when": "view == reqbeam.collectionsView && viewItem == workspace",
+          "group": "inline"
+        },
+        {
+          "command": "reqbeam.createRequest",
+          "when": "view == reqbeam.collectionsView && viewItem == workspace",
+          "group": "inline"
+        },
+        {
+          "command": "reqbeam.createRequest",
+          "when": "view == reqbeam.collectionsView && viewItem == collection",
+          "group": "inline"
+        },
+        {
+          "command": "reqbeam.renameEnvironment",
+          "when": "view == reqbeam.environmentsView && viewItem == environment",
+          "group": "inline"
+        },
+        {
+          "command": "reqbeam.deleteEnvironment",
+          "when": "view == reqbeam.environmentsView && viewItem == environment",
+          "group": "inline"
+        },
+        {
+          "command": "reqbeam.renameEnvironment",
+          "when": "view == reqbeam.environmentsView && viewItem == environment-active",
+          "group": "inline"
+        },
+        {
+          "command": "reqbeam.deleteEnvironment",
+          "when": "view == reqbeam.environmentsView && viewItem == environment-active",
+          "group": "inline"
+        },
+        {
+          "command": "reqbeam.showRequestMenu",
+          "when": "view == reqbeam.collectionsView && viewItem == request",
+          "group": "inline",
+          "icon": "$(more)"
+        }
+      ]
+    }
+  },
+  "scripts": {
+    "build:extension": "esbuild src/extension/activate.ts --bundle --platform=node --external:vscode --external:sqlite3 --external:sqlite --external:bindings --outfile=dist/extension.js --format=cjs --sourcemap",
+    "build:webview": "esbuild src/webview/index.tsx --bundle --platform=browser --outfile=dist/webview.js --loader:.tsx=tsx --loader:.ts=ts --sourcemap",
+    "build": "npm run build:extension && npm run build:webview",
+    "watch:extension": "esbuild src/extension/activate.ts --bundle --platform=node --external:vscode --external:sqlite3 --external:sqlite --external:bindings --outfile=dist/extension.js --format=cjs --sourcemap --watch",
+    "watch:webview": "esbuild src/webview/index.tsx --bundle --platform=browser --outfile=dist/webview.js --loader:.tsx=tsx --loader:.ts=ts --sourcemap --watch",
+    "watch": "npm-run-all --parallel watch:extension watch:webview",
+    "package": "npm run build && vsce package"
   },
   "devDependencies": {
-    "@types/bcryptjs": "^2.4.6",
-    "@types/node": "^20.10.0",
-    "@types/react": "^18.2.45",
-    "@types/react-dom": "^18.2.18",
-    "@types/react-syntax-highlighter": "^15.5.11",
-    "autoprefixer": "^10.4.16",
-    "eslint": "^8.56.0",
-    "eslint-config-next": "15.0.0",
-    "postcss": "^8.4.32",
-    "prettier": "^3.1.1",
-    "prisma": "^5.22.0",
-    "tailwindcss": "^3.4.0",
-    "typescript": "^5.3.0"
+    "@types/node": "^22.10.2",
+    "@types/react": "^18.3.12",
+    "@types/react-dom": "^18.3.1",
+    "@types/vscode": "^1.106.0",
+    "esbuild": "^0.24.0",
+    "vsce": "^2.15.0",
+    "npm-run-all": "^4.1.5",
+    "typescript": "^5.6.3"
+  },
+  "dependencies": {
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "sqlite": "^5.1.1",
+    "sqlite3": "^5.1.7"
   }
 }
+
+
