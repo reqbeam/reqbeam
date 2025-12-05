@@ -18,6 +18,7 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
     historyService,
     getActiveEnvironment: () => environmentService.getActiveEnvironment(),
     getActiveWorkspace: () => workspaceService.getActiveWorkspace(),
+    environmentManager: environmentService.getManager(),
   });
 
   const state: ReqBeamContext = {

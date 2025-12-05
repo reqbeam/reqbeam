@@ -31,6 +31,10 @@ export const App: React.FC<AppProps> = ({ vscode }) => {
   const [selectedCollectionId, setSelectedCollectionId] = React.useState<
     number | null
   >(null);
+  const [environments, setEnvironments] = React.useState<
+    Array<{ id: number; name: string; variables: Record<string, string> }>
+  >([]);
+  const [activeEnvId, setActiveEnvId] = React.useState<number | null>(null);
 
   React.useEffect(() => {
     const handler = (event: MessageEvent) => {
@@ -150,6 +154,15 @@ export const App: React.FC<AppProps> = ({ vscode }) => {
           }
           break;
         }
+        case "environments": {
+          const payload = msg.payload as {
+            environments: Array<{ id: number; name: string; variables: Record<string, string> }>;
+            activeId: number | null;
+          };
+          setEnvironments(payload.environments);
+          setActiveEnvId(payload.activeId);
+          break;
+        }
         default:
           break;
       }
@@ -159,7 +172,7 @@ export const App: React.FC<AppProps> = ({ vscode }) => {
     vscode.postMessage({ type: "getEnvironments" });
     vscode.postMessage({ type: "getHistory" });
     return () => window.removeEventListener("message", handler);
-  }, [vscode, method, url, headers, body, requestId, requestName, collections, activeWorkspaceId]);
+  }, [vscode]);
 
   const onSend = React.useCallback(() => {
     const payload: SendRequestPayload = {
@@ -175,21 +188,20 @@ export const App: React.FC<AppProps> = ({ vscode }) => {
   }, [method, url, headers, body, requestId, requestName, vscode]);
 
   const openSaveDialog = React.useCallback(() => {
-    if (!requestName.trim()) {
-      setStatusText("Please enter a request name before saving.");
-      return;
-    }
     // Default to first collection in current workspace if none selected
     if (selectedCollectionId == null && collections.length > 0) {
       setSelectedCollectionId(collections[0].id);
     }
+    setStatusText("");
     setIsSaveDialogOpen(true);
-  }, [requestName, selectedCollectionId, collections]);
+  }, [selectedCollectionId, collections]);
 
   const confirmSave = React.useCallback(() => {
+    const finalName = (requestName || "").trim() || "New Request";
+
     const payload: SendRequestPayload = {
       id: requestId,
-      name: requestName,
+      name: finalName,
       collectionId: selectedCollectionId ?? null,
       method,
       url,
@@ -197,6 +209,7 @@ export const App: React.FC<AppProps> = ({ vscode }) => {
       body,
     };
     setStatusText("Saving...");
+    setRequestName(finalName);
     vscode.postMessage({ type: "saveRequest", payload });
     setIsSaveDialogOpen(false);
   }, [
@@ -225,22 +238,48 @@ export const App: React.FC<AppProps> = ({ vscode }) => {
         backgroundColor: "var(--vscode-editor-background)",
       }}
     >
-      <RequestBuilder
-        method={method}
-        url={url}
-        headers={headers}
-        body={body}
-        requestName={requestName}
-        onMethodChange={setMethod}
-        onUrlChange={setUrl}
-        onHeadersChange={setHeaders}
-        onBodyChange={setBody}
-        onRequestNameChange={setRequestName}
-        onSend={onSend}
-        onSave={openSaveDialog}
-        statusText={statusText}
-      />
-      <ResponseViewer response={response} />
+      <div
+        style={{
+          display: "flex",
+          flex: 1,
+          overflow: "hidden",
+          borderTop: "1px solid var(--vscode-editorGroup-border)",
+          borderBottom: "1px solid var(--vscode-editorGroup-border)",
+        }}
+      >
+        <div
+          style={{
+            flex: 1.05,
+            minWidth: 0,
+            borderRight: "1px solid var(--vscode-editorGroup-border)",
+          }}
+        >
+          <RequestBuilder
+            method={method}
+            url={url}
+            headers={headers}
+            body={body}
+            requestName={requestName}
+            environments={environments}
+            activeEnvId={activeEnvId}
+            onMethodChange={setMethod}
+            onUrlChange={setUrl}
+            onHeadersChange={setHeaders}
+            onBodyChange={setBody}
+            onRequestNameChange={setRequestName}
+            onSend={onSend}
+            onSave={openSaveDialog}
+            onEnvironmentChange={(envId) => {
+              vscode.postMessage({ type: "setEnvironment", payload: envId });
+            }}
+            statusText={statusText}
+            vscode={vscode}
+          />
+        </div>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <ResponseViewer response={response} />
+        </div>
+      </div>
 
       {isSaveDialogOpen && (
         <div

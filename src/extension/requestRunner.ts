@@ -1,40 +1,92 @@
 import * as http from "http";
 import * as https from "https";
+import * as vscode from "vscode";
 import { URL } from "url";
 import { SendRequestPayload, SendRequestResult, Workspace } from "../types/models";
 import { Environment } from "../types/models";
-import { parseEnvironment, resolveVariables } from "../utils/variableResolver";
+import { EnvironmentManager } from "../core/environmentManager";
 import { HistoryService } from "./historyService";
 
 export interface RequestRunnerDeps {
   historyService: HistoryService;
   getActiveEnvironment: () => Promise<Environment | null>;
   getActiveWorkspace: () => Promise<Workspace | null>;
+  environmentManager: EnvironmentManager;
 }
 
 export class RequestRunner {
   private readonly historyService: HistoryService;
   private readonly getActiveEnvironment: () => Promise<Environment | null>;
   private readonly getActiveWorkspace: () => Promise<Workspace | null>;
+  private readonly environmentManager: EnvironmentManager;
 
   constructor(deps: RequestRunnerDeps) {
     this.historyService = deps.historyService;
     this.getActiveEnvironment = deps.getActiveEnvironment;
     this.getActiveWorkspace = deps.getActiveWorkspace;
+    this.environmentManager = deps.environmentManager;
   }
 
   async sendRequest(payload: SendRequestPayload): Promise<SendRequestResult> {
     const activeEnv = await this.getActiveEnvironment();
-    const vars = parseEnvironment(activeEnv);
+    const envId = activeEnv ? String(activeEnv.id) : null;
 
-    const resolvedUrl = resolveVariables(payload.url, vars);
-    const resolvedBody = resolveVariables(payload.body ?? "", vars);
+    // Track unresolved variables for warnings
+    const unresolvedVars = new Set<string>();
+
+    const VARIABLE_REGEX = /\{\{\s*([a-zA-Z0-9_.-]+)\s*\}\}/g;
+    
+    // Check original text for variables, then check resolved text for any that remain unresolved
+    const checkUnresolved = (originalText: string, resolvedText: string): void => {
+      // Find all variables in the original text
+      const originalMatches = originalText.matchAll(VARIABLE_REGEX);
+      for (const match of originalMatches) {
+        const varName = match[1];
+        // Check if this variable still exists in the resolved text (meaning it wasn't resolved)
+        if (resolvedText.includes(`{{${varName}}}`) || resolvedText.includes(`{{ ${varName} }}`)) {
+          unresolvedVars.add(varName);
+        }
+      }
+    };
+
+    const resolvedUrl = await this.environmentManager.resolveVariables(
+      payload.url,
+      envId
+    );
+    checkUnresolved(payload.url, resolvedUrl);
+
+    const resolvedBody = await this.environmentManager.resolveVariables(
+      payload.body ?? "",
+      envId
+    );
+    checkUnresolved(payload.body ?? "", resolvedBody);
 
     const headers: Record<string, string> = {};
     for (const h of payload.headers || []) {
       if (h.enabled === false) continue;
       if (!h.key) continue;
-      headers[h.key] = resolveVariables(h.value ?? "", vars);
+      const originalValue = h.value ?? "";
+      const resolvedValue = await this.environmentManager.resolveVariables(
+        originalValue,
+        envId
+      );
+      checkUnresolved(originalValue, resolvedValue);
+      headers[h.key] = resolvedValue;
+    }
+
+    // Log warnings for unresolved variables
+    if (unresolvedVars.size > 0 && envId) {
+      const outputChannel = vscode.window.createOutputChannel("ReqBeam");
+      outputChannel.appendLine(
+        `⚠️ Warning: Unresolved variables found: ${Array.from(unresolvedVars).join(", ")}`
+      );
+      outputChannel.appendLine(
+        `Environment "${activeEnv?.name || envId}" does not contain these variables.`
+      );
+      outputChannel.appendLine(
+        `Variables will be sent as-is (e.g., {{variableName}}).`
+      );
+      outputChannel.show(true);
     }
 
     const url = new URL(resolvedUrl);

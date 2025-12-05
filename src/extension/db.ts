@@ -58,10 +58,17 @@ export async function initDatabase(
     CREATE TABLE IF NOT EXISTS environments (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       name TEXT NOT NULL,
-      variables TEXT NOT NULL,
       workspaceId INTEGER,
-      isActive INTEGER DEFAULT 0,
       FOREIGN KEY (workspaceId) REFERENCES workspaces(id) ON DELETE CASCADE
+    );
+
+    CREATE TABLE IF NOT EXISTS environment_variables (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      env_id INTEGER NOT NULL,
+      key TEXT NOT NULL,
+      value TEXT NOT NULL,
+      FOREIGN KEY (env_id) REFERENCES environments(id) ON DELETE CASCADE,
+      UNIQUE(env_id, key)
     );
 
     CREATE TABLE IF NOT EXISTS history (
@@ -86,9 +93,41 @@ export async function initDatabase(
     `ALTER TABLE requests ADD COLUMN bodyType TEXT;`,
     `ALTER TABLE requests ADD COLUMN auth TEXT;`,
     `ALTER TABLE environments ADD COLUMN workspaceId INTEGER;`,
-    `ALTER TABLE environments ADD COLUMN isActive INTEGER DEFAULT 0;`,
     `ALTER TABLE history ADD COLUMN workspaceId INTEGER;`,
   ];
+
+  // Migration: Migrate from JSON variables to environment_variables table
+  try {
+    const oldEnvs = await dbInstance.all<Array<{ id: number; variables: string }>>(
+      `SELECT id, variables FROM environments WHERE variables IS NOT NULL AND variables != '' AND variables != '{}'`
+    );
+    
+    for (const env of oldEnvs) {
+      try {
+        const parsed = JSON.parse(env.variables || "{}");
+        if (parsed && typeof parsed === "object") {
+          for (const [key, value] of Object.entries(parsed)) {
+            if (typeof value === "string") {
+              await dbInstance.run(
+                `INSERT OR IGNORE INTO environment_variables (env_id, key, value) VALUES (?, ?, ?)`,
+                env.id,
+                key,
+                value
+              );
+            }
+          }
+        }
+      } catch {
+        // Ignore parse errors
+      }
+    }
+    
+    // Remove the old variables column after migration
+    // Note: SQLite doesn't support DROP COLUMN directly, so we'll leave it for now
+    // and just ignore it in queries
+  } catch {
+    // Migration failed, continue
+  }
 
   for (const sql of alterStatements) {
     try {

@@ -12,7 +12,19 @@ export const ResponseViewer: React.FC<ResponseViewerProps> = ({ response }) => {
 
   if (!response) {
     return (
-      <div style={{ padding: 8, fontSize: 12 }}>No response yet. Send a request.</div>
+      <div
+        style={{
+          height: "100%",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          fontSize: 12,
+          color: "var(--vscode-descriptionForeground)",
+        }}
+      >
+        No response yet. Build your request on the left and click{" "}
+        <span style={{ fontWeight: 600, marginLeft: 4 }}>Send</span>.
+      </div>
     );
   }
 
@@ -36,7 +48,13 @@ export const ResponseViewer: React.FC<ResponseViewerProps> = ({ response }) => {
   ].join("\n");
 
   return (
-    <div style={{ flex: 1, display: "flex", flexDirection: "column" }}>
+    <div
+      style={{
+        height: "100%",
+        display: "flex",
+        flexDirection: "column",
+      }}
+    >
       <div
         style={{
           display: "flex",
@@ -60,7 +78,14 @@ export const ResponseViewer: React.FC<ResponseViewerProps> = ({ response }) => {
         activeId={activeTab}
         onChange={setActiveTab}
       />
-      <div style={{ flex: 1, padding: 8 }}>
+      <div
+        style={{
+          flex: 1,
+          minHeight: 0,
+          padding: 8,
+          overflow: "auto",
+        }}
+      >
         {activeTab === "body" && (
           <pre
             style={{

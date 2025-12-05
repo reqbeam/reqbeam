@@ -105,6 +105,54 @@ export function registerCommands(
 
   disposables.push(
     vscode.commands.registerCommand(
+      "reqbeam.quickEditEnvironmentVariables",
+      async (env: { id: number; name: string }) => {
+        // Ensure this environment becomes active
+        await state.environmentService.setActiveEnvironment(env.id);
+
+        // Ask for variable key
+        const key = await vscode.window.showInputBox({
+          prompt: `Environment variable name for "${env.name}"`,
+          placeHolder: "e.g. baseUrl",
+        });
+        if (!key) {
+          return;
+        }
+
+        // Load existing value (if any)
+        const vars = await state.environmentService
+          .getManager()
+          .getVariables(String(env.id));
+        const existing = vars.find((v) => v.key === key);
+
+        const value = await vscode.window.showInputBox({
+          prompt: `Value for "${key}" in "${env.name}"`,
+          value: existing?.value ?? "",
+        });
+        if (value === undefined) {
+          // user cancelled
+          return;
+        }
+
+        await state.environmentService
+          .getManager()
+          .setVariable(String(env.id), key, value);
+
+        // Refresh tree and broadcast to any open ReqBeam panels
+        state.environmentService.refresh();
+        for (const panelInfo of state.panels.values()) {
+          await sendEnvironmentsToWebview(panelInfo.panel, state);
+        }
+
+        void vscode.window.showInformationMessage(
+          `Environment variable "${key}" updated in "${env.name}".`
+        );
+      }
+    )
+  );
+
+  disposables.push(
+    vscode.commands.registerCommand(
       "reqbeam.showHistoryItem",
       async (entry: unknown) => {
         const hist = entry as { method?: string; url?: string };
@@ -128,7 +176,11 @@ export function registerCommands(
       if (!name) {
         return;
       }
-      await state.environmentService.createEnvironment(name);
+      const activeWorkspaceId = state.workspaceService.getActiveWorkspaceId();
+      await state.environmentService.createEnvironment(
+        name,
+        activeWorkspaceId ?? null
+      );
       // Broadcast to all open panels
       for (const panelInfo of state.panels.values()) {
         await sendEnvironmentsToWebview(panelInfo.panel, state);
@@ -173,6 +225,37 @@ export function registerCommands(
         for (const panelInfo of state.panels.values()) {
           await sendEnvironmentsToWebview(panelInfo.panel, state);
         }
+      }
+    )
+  );
+
+  disposables.push(
+    vscode.commands.registerCommand(
+      "reqbeam.duplicateEnvironment",
+      async (env: { id: number; name: string }) => {
+        const name = await vscode.window.showInputBox({
+          prompt: "New environment name",
+          value: `${env.name} (Copy)`,
+        });
+        if (!name) {
+          return;
+        }
+        await state.environmentService.duplicateEnvironment(env.id, name);
+        // Broadcast to all open panels
+        for (const panelInfo of state.panels.values()) {
+          await sendEnvironmentsToWebview(panelInfo.panel, state);
+        }
+      }
+    )
+  );
+
+  disposables.push(
+    vscode.commands.registerCommand(
+      "reqbeam.editEnvironment",
+      async (env: { id: number; name: string }) => {
+        const key = `env-${env.id}`;
+        const panel = createOrRevealEnvironmentEditor(context, state, key, env.name, env.id);
+        await loadEnvironmentVariables(panel, state, env.id);
       }
     )
   );
@@ -536,6 +619,60 @@ export function createOrRevealWebview(
         await sendEnvironmentsToWebview(panel, state);
         break;
       }
+      case "updateEnvironmentVariables": {
+        const payload = msg.payload as {
+          id: number;
+          variables: Record<string, string>;
+        };
+        await state.environmentService.updateEnvironmentVariables(
+          payload.id,
+          payload.variables
+        );
+        await sendEnvironmentsToWebview(panel, state);
+        break;
+      }
+      case "saveEnvironmentVariables": {
+        const payload = msg.payload as {
+          environmentId: string;
+          variables: Record<string, string>;
+        };
+        await state.environmentService.updateEnvironmentVariables(
+          Number(payload.environmentId),
+          payload.variables
+        );
+        // Notify the editor
+        panel.webview.postMessage({
+          type: "environmentVariablesSaved",
+        });
+        // Broadcast to all panels
+        for (const panelInfo of state.panels.values()) {
+          await sendEnvironmentsToWebview(panelInfo.panel, state);
+        }
+        break;
+      }
+      case "getEnvironmentVariables": {
+        const payload = msg.payload as { environmentId: string };
+        const variables = await state.environmentService
+          .getManager()
+          .getVariables(payload.environmentId);
+        panel.webview.postMessage({
+          type: "loadEnvironment",
+          payload: {
+            id: payload.environmentId,
+            name: (await state.environmentService.getEnvironmentById(Number(payload.environmentId)))?.name || "",
+            variables: variables.map((v) => ({
+              id: v.id,
+              key: v.key,
+              value: v.value,
+            })),
+          },
+        });
+        break;
+      }
+      case "ready": {
+        // Handle ready message from environment editor
+        break;
+      }
       case "getHistory": {
         await sendHistoryToWebview(panel, state);
         break;
@@ -566,6 +703,24 @@ export function createOrRevealWebview(
       case "createWorkspace": {
         await vscode.commands.executeCommand("reqbeam.createWorkspace");
         await sendCollectionsToWebview(panel, state);
+        break;
+      }
+      case "createEnvironment": {
+        await vscode.commands.executeCommand("reqbeam.addEnvironment");
+        await sendEnvironmentsToWebview(panel, state);
+        break;
+      }
+      case "loadRequest": {
+        const payload = msg.payload as { id?: number };
+        if (payload.id != null) {
+          const request = await state.collectionService.getRequestById(payload.id);
+          if (request) {
+            panel.webview.postMessage({
+              type: "loadRequest",
+              payload: request,
+            });
+          }
+        }
         break;
       }
       default:
@@ -601,9 +756,26 @@ async function sendCollectionsToWebview(
     activeWorkspaceId
   );
   const workspaces = await state.workspaceService.getWorkspaces();
+  
+  // Fetch requests for each collection
+  const collectionsWithRequests = await Promise.all(
+    collections.map(async (c) => {
+      const requests = await state.collectionService.getRequestsForCollection(c.id);
+      return {
+        ...c,
+        requests: requests.map((r) => ({
+          id: r.id,
+          name: r.name,
+          method: r.method,
+          url: r.url,
+        })),
+      };
+    })
+  );
+  
   panel.webview.postMessage({
     type: "collections",
-    payload: { collections, workspaces, activeWorkspaceId },
+    payload: { collections: collectionsWithRequests, workspaces, activeWorkspaceId },
   });
 }
 
@@ -612,13 +784,25 @@ async function sendEnvironmentsToWebview(
   state: ReqBeamContext
 ): Promise<void> {
   const activeWorkspaceId = state.workspaceService.getActiveWorkspaceId();
-  const envs = await state.environmentService.getEnvironments(
-    activeWorkspaceId
-  );
+  const envs = await state.environmentService.getEnvironments(activeWorkspaceId);
   const activeId = state.environmentService.getActiveEnvironmentId();
+
+  const environments = envs.map((e) => {
+    let vars: Record<string, string> = {};
+    try {
+      const parsed = JSON.parse(e.variables || "{}");
+      if (parsed && typeof parsed === "object") {
+        vars = parsed;
+      }
+    } catch {
+      // ignore parse errors
+    }
+    return { id: e.id, name: e.name, variables: vars };
+  });
+
   panel.webview.postMessage({
     type: "environments",
-    payload: { environments: envs, activeId },
+    payload: { environments, activeId: activeId != null ? Number(activeId) : null },
   });
 }
 
@@ -632,6 +816,134 @@ async function sendHistoryToWebview(
     type: "history",
     payload: history,
   });
+}
+
+function createOrRevealEnvironmentEditor(
+  context: vscode.ExtensionContext,
+  state: ReqBeamContext,
+  key: string,
+  title: string,
+  envId: number
+): vscode.WebviewPanel {
+  const existing = state.panels.get(key);
+  if (existing) {
+    existing.panel.reveal();
+    existing.panel.title = title;
+    return existing.panel;
+  }
+
+  const panel = vscode.window.createWebviewPanel(
+    "reqbeam-env-editor",
+    title,
+    vscode.ViewColumn.One,
+    {
+      enableScripts: true,
+      retainContextWhenHidden: true,
+    }
+  );
+
+  const scriptUri = panel.webview.asWebviewUri(
+    vscode.Uri.joinPath(context.extensionUri, "dist", "environmentEditor.js")
+  );
+
+  const nonce = Date.now().toString();
+
+  panel.webview.html = getEnvironmentEditorHtml(scriptUri.toString(), nonce);
+
+  state.panels.set(key, { panel });
+
+  panel.onDidDispose(() => {
+    state.panels.delete(key);
+  });
+
+  panel.webview.onDidReceiveMessage(async (msg) => {
+    switch (msg.type) {
+      case "saveEnvironmentVariables": {
+        const payload = msg.payload as {
+          environmentId: string;
+          variables: Record<string, string>;
+        };
+        await state.environmentService.updateEnvironmentVariables(
+          Number(payload.environmentId),
+          payload.variables
+        );
+        panel.webview.postMessage({
+          type: "environmentVariablesSaved",
+        });
+        for (const panelInfo of state.panels.values()) {
+          await sendEnvironmentsToWebview(panelInfo.panel, state);
+        }
+        break;
+      }
+      case "getEnvironmentVariables": {
+        const payload = msg.payload as { environmentId: string };
+        const variables = await state.environmentService
+          .getManager()
+          .getVariables(payload.environmentId);
+        const env = await state.environmentService.getEnvironmentById(Number(payload.environmentId));
+        panel.webview.postMessage({
+          type: "loadEnvironment",
+          payload: {
+            id: payload.environmentId,
+            name: env?.name || "",
+            variables: variables.map((v) => ({
+              id: v.id,
+              key: v.key,
+              value: v.value,
+            })),
+          },
+        });
+        break;
+      }
+      case "ready": {
+        await loadEnvironmentVariables(panel, state, envId);
+        break;
+      }
+      default:
+        break;
+    }
+  });
+
+  return panel;
+}
+
+async function loadEnvironmentVariables(
+  panel: vscode.WebviewPanel,
+  state: ReqBeamContext,
+  envId: number
+): Promise<void> {
+  const variables = await state.environmentService
+    .getManager()
+    .getVariables(String(envId));
+  const env = await state.environmentService.getEnvironmentById(envId);
+  panel.webview.postMessage({
+    type: "loadEnvironment",
+    payload: {
+      id: String(envId),
+      name: env?.name || "",
+      variables: variables.map((v) => ({
+        id: v.id,
+        key: v.key,
+        value: v.value,
+      })),
+    },
+  });
+}
+
+function getEnvironmentEditorHtml(scriptUri: string, nonce: string): string {
+  return `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; img-src data: https:; script-src 'nonce-${nonce}'; style-src 'unsafe-inline';" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Environment Editor</title>
+</head>
+<body>
+  <div id="root"></div>
+  <script nonce="${nonce}" src="${scriptUri}"></script>
+</body>
+</html>`;
 }
 
 

@@ -59,14 +59,32 @@ export const HeaderEditor: React.FC<HeaderEditorProps> = ({
             </td>
             <td>
               <input
-                style={{ width: "100%" }}
+                style={{
+                  width: "100%",
+                  padding: "2px 4px",
+                  fontSize: 12,
+                  backgroundColor: "var(--vscode-input-background)",
+                  color: "var(--vscode-input-foreground)",
+                  border:
+                    "1px solid var(--vscode-input-border, var(--vscode-editorGroup-border))",
+                  boxSizing: "border-box",
+                }}
                 value={h.key}
                 onChange={(e) => updateRow(index, { key: e.target.value })}
               />
             </td>
             <td>
               <input
-                style={{ width: "100%" }}
+                style={{
+                  width: "100%",
+                  padding: "2px 4px",
+                  fontSize: 12,
+                  backgroundColor: "var(--vscode-input-background)",
+                  color: "var(--vscode-input-foreground)",
+                  border:
+                    "1px solid var(--vscode-input-border, var(--vscode-editorGroup-border))",
+                  boxSizing: "border-box",
+                }}
                 value={h.value}
                 onChange={(e) => updateRow(index, { value: e.target.value })}
               />

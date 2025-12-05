@@ -45,6 +45,10 @@
         "title": "ReqBeam: Set Active Environment"
       },
       {
+        "command": "reqbeam.quickEditEnvironmentVariables",
+        "title": "ReqBeam: Quick Edit Environment Variables"
+      },
+      {
         "command": "reqbeam.showHistoryItem",
         "title": "ReqBeam: Show History Item"
       },
@@ -75,6 +79,14 @@
       {
         "command": "reqbeam.deleteEnvironment",
         "title": "ReqBeam: Delete Environment"
+      },
+      {
+        "command": "reqbeam.duplicateEnvironment",
+        "title": "ReqBeam: Duplicate Environment"
+      },
+      {
+        "command": "reqbeam.editEnvironment",
+        "title": "ReqBeam: Edit Environment"
       },
       {
         "command": "reqbeam.createWorkspace",
@@ -196,6 +208,26 @@
           "group": "inline"
         },
         {
+          "command": "reqbeam.duplicateEnvironment",
+          "when": "view == reqbeam.environmentsView && viewItem == environment",
+          "group": "inline"
+        },
+        {
+          "command": "reqbeam.duplicateEnvironment",
+          "when": "view == reqbeam.environmentsView && viewItem == environment-active",
+          "group": "inline"
+        },
+        {
+          "command": "reqbeam.editEnvironment",
+          "when": "view == reqbeam.environmentsView && viewItem == environment",
+          "group": "inline"
+        },
+        {
+          "command": "reqbeam.editEnvironment",
+          "when": "view == reqbeam.environmentsView && viewItem == environment-active",
+          "group": "inline"
+        },
+        {
           "command": "reqbeam.showRequestMenu",
           "when": "view == reqbeam.collectionsView && viewItem == request",
           "group": "inline",
@@ -207,10 +239,12 @@
   "scripts": {
     "build:extension": "esbuild src/extension/activate.ts --bundle --platform=node --external:vscode --external:sqlite3 --external:sqlite --external:bindings --outfile=dist/extension.js --format=cjs --sourcemap",
     "build:webview": "esbuild src/webview/index.tsx --bundle --platform=browser --outfile=dist/webview.js --loader:.tsx=tsx --loader:.ts=ts --sourcemap",
-    "build": "npm run build:extension && npm run build:webview",
+    "build:env-editor": "esbuild src/webview/environmentEditor.tsx --bundle --platform=browser --outfile=dist/environmentEditor.js --loader:.tsx=tsx --loader:.ts=ts --sourcemap",
+    "build": "npm run build:extension && npm run build:webview && npm run build:env-editor",
     "watch:extension": "esbuild src/extension/activate.ts --bundle --platform=node --external:vscode --external:sqlite3 --external:sqlite --external:bindings --outfile=dist/extension.js --format=cjs --sourcemap --watch",
     "watch:webview": "esbuild src/webview/index.tsx --bundle --platform=browser --outfile=dist/webview.js --loader:.tsx=tsx --loader:.ts=ts --sourcemap --watch",
-    "watch": "npm-run-all --parallel watch:extension watch:webview",
+    "watch:env-editor": "esbuild src/webview/environmentEditor.tsx --bundle --platform=browser --outfile=dist/environmentEditor.js --loader:.tsx=tsx --loader:.ts=ts --sourcemap --watch",
+    "watch": "npm-run-all --parallel watch:extension watch:webview watch:env-editor",
     "package": "npm run build && vsce package"
   },
   "devDependencies": {
