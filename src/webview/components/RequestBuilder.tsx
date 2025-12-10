@@ -1,8 +1,11 @@
 import * as React from "react";
-import { HttpMethod } from "../../types/models";
+import { HttpMethod, RequestParam, RequestAuth } from "../../types/models";
 import { HeaderEditor, HeaderRow } from "./HeaderEditor";
 import { BodyEditor } from "./BodyEditor";
+import { ParamsSection } from "./ParamsSection";
+import { AuthSection } from "./AuthSection";
 import { Tabs } from "./Tabs";
+import { buildFinalUrl } from "../utils/urlBuilder";
 
 export interface RequestBuilderProps {
   method: HttpMethod;
@@ -10,12 +13,16 @@ export interface RequestBuilderProps {
   headers: HeaderRow[];
   body: string;
   requestName: string;
+  params: RequestParam[];
+  auth: RequestAuth | null;
   environments: Array<{ id: number; name: string; variables: Record<string, string> }>;
   activeEnvId: number | null;
   onMethodChange: (m: HttpMethod) => void;
   onUrlChange: (u: string) => void;
   onHeadersChange: (h: HeaderRow[]) => void;
   onBodyChange: (b: string) => void;
+  onParamsChange: (p: RequestParam[]) => void;
+  onAuthChange: (a: RequestAuth | null) => void;
   onRequestNameChange: (name: string) => void;
   onSend: () => void;
   onSave: () => void;
@@ -47,12 +54,16 @@ export const RequestBuilder: React.FC<RequestBuilderProps> = ({
   headers,
   body,
   requestName,
+  params,
+  auth,
   environments,
   activeEnvId,
   onMethodChange,
   onUrlChange,
   onHeadersChange,
   onBodyChange,
+  onParamsChange,
+  onAuthChange,
   onRequestNameChange,
   onSend,
   onSave,
@@ -61,6 +72,25 @@ export const RequestBuilder: React.FC<RequestBuilderProps> = ({
   vscode,
 }) => {
   const [activeTab, setActiveTab] = React.useState<string>("headers");
+  
+  // Calculate final URL with params
+  const resolvedUrl = React.useMemo(() => {
+    if (!url) return "";
+    try {
+      // Resolve environment variables first
+      const activeEnv = environments.find((e) => e.id === activeEnvId);
+      let resolved = url;
+      if (activeEnv) {
+        resolved = url.replace(/\{\{\s*([a-zA-Z0-9_.-]+)\s*\}\}/g, (_, key) => {
+          return activeEnv.variables[key] ?? `{{${key}}}`;
+        });
+      }
+      // Then apply params
+      return buildFinalUrl(resolved, params);
+    } catch {
+      return url;
+    }
+  }, [url, params, activeEnvId, environments]);
   
   const activeEnv = React.useMemo(() => {
     return environments.find((e) => e.id === activeEnvId) || null;
@@ -264,8 +294,10 @@ export const RequestBuilder: React.FC<RequestBuilderProps> = ({
       >
         <Tabs
           tabs={[
+            { id: "params", label: "Params" },
             { id: "headers", label: "Headers" },
             { id: "body", label: "Body" },
+            { id: "auth", label: "Authorization" },
           ]}
           activeId={activeTab}
           onChange={setActiveTab}
@@ -273,6 +305,16 @@ export const RequestBuilder: React.FC<RequestBuilderProps> = ({
         <div
           style={{ flex: 1, minHeight: 0, overflow: "auto", paddingTop: 6 }}
         >
+          {activeTab === "params" && (
+            <div style={{ height: "100%", padding: "0 8px" }}>
+              <ParamsSection
+                params={params}
+                finalUrl={resolvedUrl}
+                onChange={onParamsChange}
+                vscode={vscode}
+              />
+            </div>
+          )}
           {activeTab === "headers" && (
             <div>
               <HeaderEditor headers={headers} onChange={onHeadersChange} />
@@ -281,6 +323,15 @@ export const RequestBuilder: React.FC<RequestBuilderProps> = ({
           {activeTab === "body" && (
             <div>
               <BodyEditor body={body} onChange={onBodyChange} />
+            </div>
+          )}
+          {activeTab === "auth" && (
+            <div style={{ height: "100%", padding: "0 8px" }}>
+              <AuthSection
+                auth={auth}
+                onChange={onAuthChange}
+                vscode={vscode}
+              />
             </div>
           )}
         </div>

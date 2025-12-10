@@ -1,0 +1,53 @@
+{
+  "commands_to_add": [
+    {
+      "command": "reqbeam.collections.import",
+      "title": "ReqBeam: Import Collection",
+      "icon": "$(import)"
+    },
+    {
+      "command": "reqbeam.collections.export",
+      "title": "ReqBeam: Export Collection",
+      "icon": "$(export)"
+    },
+    {
+      "command": "reqbeam.collections.importSwagger",
+      "title": "ReqBeam: Import Swagger/OpenAPI",
+      "icon": "$(file-code)"
+    }
+  ],
+  "view_title_buttons": [
+    {
+      "command": "reqbeam.collections.import",
+      "when": "view == reqbeam.collectionsView",
+      "group": "navigation",
+      "icon": "$(import)"
+    },
+    {
+      "command": "reqbeam.collections.export",
+      "when": "view == reqbeam.collectionsView",
+      "group": "navigation",
+      "icon": "$(export)"
+    },
+    {
+      "command": "reqbeam.collections.importSwagger",
+      "when": "view == reqbeam.collectionsView",
+      "group": "navigation",
+      "icon": "$(file-code)"
+    }
+  ],
+  "context_menu_items": [
+    {
+      "command": "reqbeam.collections.export",
+      "when": "view == reqbeam.collectionsView && viewItem == collection",
+      "group": "inline"
+    },
+    {
+      "command": "reqbeam.collections.import",
+      "when": "view == reqbeam.collectionsView && viewItem == collection",
+      "group": "inline"
+    }
+  ],
+  "build_script_update": "Add --external:js-yaml to build:extension script"
+}
+

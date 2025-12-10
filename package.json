@@ -45,10 +45,6 @@
         "title": "ReqBeam: Set Active Environment"
       },
       {
-        "command": "reqbeam.quickEditEnvironmentVariables",
-        "title": "ReqBeam: Quick Edit Environment Variables"
-      },
-      {
         "command": "reqbeam.showHistoryItem",
         "title": "ReqBeam: Show History Item"
       },
@@ -123,6 +119,21 @@
         "command": "reqbeam.showRequestMenu",
         "title": "More Actions...",
         "icon": "$(more)"
+      },
+      {
+        "command": "reqbeam.collections.import",
+        "title": "ReqBeam: Import Collection",
+        "icon": "$(import)"
+      },
+      {
+        "command": "reqbeam.collections.export",
+        "title": "ReqBeam: Export Collection",
+        "icon": "$(export)"
+      },
+      {
+        "command": "reqbeam.collections.importSwagger",
+        "title": "ReqBeam: Import Swagger/OpenAPI",
+        "icon": "$(file-code)"
       }
     ],
     "views": {
@@ -164,6 +175,27 @@
           "when": "view == reqbeam.collectionsView",
           "group": "navigation",
           "icon": "$(folder)"
+        },
+        {
+          "command": "reqbeam.collections.import",
+          "when": "view == reqbeam.collectionsView",
+          "group": "navigation",
+          "icon": "$(import)",
+          "title": "Import Collection"
+        },
+        {
+          "command": "reqbeam.collections.export",
+          "when": "view == reqbeam.collectionsView",
+          "group": "navigation",
+          "icon": "$(export)",
+          "title": "Export Collection"
+        },
+        {
+          "command": "reqbeam.collections.importSwagger",
+          "when": "view == reqbeam.collectionsView",
+          "group": "navigation",
+          "icon": "$(file-code)",
+          "title": "Import Swagger/OpenAPI"
         },
         {
           "command": "reqbeam.addEnvironment",
@@ -232,12 +264,17 @@
           "when": "view == reqbeam.collectionsView && viewItem == request",
           "group": "inline",
           "icon": "$(more)"
+        },
+        {
+          "command": "reqbeam.collections.export",
+          "when": "view == reqbeam.collectionsView && viewItem == collection",
+          "group": "inline"
         }
       ]
     }
   },
   "scripts": {
-    "build:extension": "esbuild src/extension/activate.ts --bundle --platform=node --external:vscode --external:sqlite3 --external:sqlite --external:bindings --outfile=dist/extension.js --format=cjs --sourcemap",
+    "build:extension": "esbuild src/extension/activate.ts --bundle --platform=node --external:vscode --external:sqlite3 --external:sqlite --external:bindings --external:js-yaml --outfile=dist/extension.js --format=cjs --sourcemap",
     "build:webview": "esbuild src/webview/index.tsx --bundle --platform=browser --outfile=dist/webview.js --loader:.tsx=tsx --loader:.ts=ts --sourcemap",
     "build:env-editor": "esbuild src/webview/environmentEditor.tsx --bundle --platform=browser --outfile=dist/environmentEditor.js --loader:.tsx=tsx --loader:.ts=ts --sourcemap",
     "build": "npm run build:extension && npm run build:webview && npm run build:env-editor",
@@ -253,16 +290,18 @@
     "@types/react-dom": "^18.3.1",
     "@types/vscode": "^1.106.0",
     "esbuild": "^0.24.0",
-    "vsce": "^2.15.0",
     "npm-run-all": "^4.1.5",
-    "typescript": "^5.6.3"
+    "typescript": "^5.6.3",
+    "vsce": "^2.15.0"
   },
   "dependencies": {
+    "@types/js-yaml": "^4.0.9",
+    "@types/uuid": "^10.0.0",
+    "js-yaml": "^4.1.1",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "sqlite": "^5.1.1",
-    "sqlite3": "^5.1.7"
+    "sqlite3": "^5.1.7",
+    "uuid": "^13.0.0"
   }
 }
-
-

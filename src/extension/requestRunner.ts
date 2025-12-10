@@ -6,6 +6,9 @@ import { SendRequestPayload, SendRequestResult, Workspace } from "../types/model
 import { Environment } from "../types/models";
 import { EnvironmentManager } from "../core/environmentManager";
 import { HistoryService } from "./historyService";
+import { buildFinalUrl, applyAuth, mergeHeaders } from "../core/requestBuilder";
+import { getParams } from "../storage/params";
+import { getAuth } from "../storage/auth";
 
 export interface RequestRunnerDeps {
   historyService: HistoryService;
@@ -49,19 +52,31 @@ export class RequestRunner {
       }
     };
 
-    const resolvedUrl = await this.environmentManager.resolveVariables(
+    // Step 1: Resolve base URL with environment variables
+    let resolvedUrl = await this.environmentManager.resolveVariables(
       payload.url,
       envId
     );
     checkUnresolved(payload.url, resolvedUrl);
 
+    // Step 2: Fetch and apply params (query parameters)
+    let finalUrl = resolvedUrl;
+    if (payload.id) {
+      const params = await getParams(payload.id);
+      finalUrl = buildFinalUrl(resolvedUrl, params);
+    } else if (payload.params && payload.params.length > 0) {
+      finalUrl = buildFinalUrl(resolvedUrl, payload.params);
+    }
+
+    // Step 3: Resolve body with environment variables
     const resolvedBody = await this.environmentManager.resolveVariables(
       payload.body ?? "",
       envId
     );
     checkUnresolved(payload.body ?? "", resolvedBody);
 
-    const headers: Record<string, string> = {};
+    // Step 4: Build custom headers (from user input)
+    const customHeaders: Record<string, string> = {};
     for (const h of payload.headers || []) {
       if (h.enabled === false) continue;
       if (!h.key) continue;
@@ -71,8 +86,24 @@ export class RequestRunner {
         envId
       );
       checkUnresolved(originalValue, resolvedValue);
-      headers[h.key] = resolvedValue;
+      customHeaders[h.key] = resolvedValue;
     }
+
+    // Step 5: Fetch and apply auth
+    let authConfig = payload.authConfig || null;
+    if (!authConfig && payload.id) {
+      authConfig = await getAuth(payload.id);
+    }
+
+    const { headers: authHeaders, url: authUrl } = applyAuth(
+      authConfig,
+      {},
+      finalUrl
+    );
+
+    // Step 6: Merge custom headers with auth headers
+    const headers = mergeHeaders(customHeaders, authHeaders);
+    finalUrl = authUrl;
 
     // Log warnings for unresolved variables
     if (unresolvedVars.size > 0 && envId) {
@@ -89,7 +120,7 @@ export class RequestRunner {
       outputChannel.show(true);
     }
 
-    const url = new URL(resolvedUrl);
+    const url = new URL(finalUrl);
     const isHttps = url.protocol === "https:";
 
     const options: http.RequestOptions = {
@@ -160,7 +191,7 @@ export class RequestRunner {
     const activeWorkspace = await this.getActiveWorkspace();
     await this.historyService.addEntry({
       method: payload.method,
-      url: resolvedUrl,
+      url: finalUrl,
       status: result.status,
       duration: result.duration,
       createdAt: new Date().toISOString(),

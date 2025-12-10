@@ -4,6 +4,8 @@ import {
   SendRequestPayload,
   SendRequestResult,
   Collection,
+  RequestParam,
+  RequestAuth,
 } from "../types/models";
 import { RequestBuilder } from "./components/RequestBuilder";
 import { ResponseViewer } from "./components/ResponseViewer";
@@ -35,6 +37,8 @@ export const App: React.FC<AppProps> = ({ vscode }) => {
     Array<{ id: number; name: string; variables: Record<string, string> }>
   >([]);
   const [activeEnvId, setActiveEnvId] = React.useState<number | null>(null);
+  const [params, setParams] = React.useState<RequestParam[]>([]);
+  const [auth, setAuth] = React.useState<RequestAuth | null>(null);
 
   React.useEffect(() => {
     const handler = (event: MessageEvent) => {
@@ -69,6 +73,24 @@ export const App: React.FC<AppProps> = ({ vscode }) => {
             setHeaders([{ key: "", value: "", enabled: true }]);
           }
           setBody(r.body || "");
+          // Request params and auth
+          if (r.id) {
+            vscode.postMessage({ type: "getParams", payload: { requestId: r.id } });
+            vscode.postMessage({ type: "getAuth", payload: { requestId: r.id } });
+          } else {
+            setParams([]);
+            setAuth(null);
+          }
+          break;
+        }
+        case "loadParams": {
+          const payload = msg.payload as { params: RequestParam[] };
+          setParams(payload.params || []);
+          break;
+        }
+        case "loadAuth": {
+          const payload = msg.payload as { auth: RequestAuth | null };
+          setAuth(payload.auth);
           break;
         }
         case "loadHistory": {
@@ -82,6 +104,8 @@ export const App: React.FC<AppProps> = ({ vscode }) => {
           setUrl(h.url);
           setHeaders([{ key: "", value: "", enabled: true }]);
           setBody("");
+          setParams([]);
+          setAuth(null);
           break;
         }
         case "newRequest": {
@@ -91,6 +115,8 @@ export const App: React.FC<AppProps> = ({ vscode }) => {
           setUrl("");
           setHeaders([{ key: "", value: "", enabled: true }]);
           setBody("");
+          setParams([]);
+          setAuth(null);
           setResponse(null);
           setStatusText("");
           break;
@@ -102,6 +128,8 @@ export const App: React.FC<AppProps> = ({ vscode }) => {
           setUrl("");
           setHeaders([{ key: "", value: "", enabled: true }]);
           setBody("");
+          setParams([]);
+          setAuth(null);
           setResponse(null);
           setStatusText("");
           break;
@@ -182,10 +210,12 @@ export const App: React.FC<AppProps> = ({ vscode }) => {
       url,
       headers,
       body,
+      params: params.length > 0 ? params : undefined,
+      authConfig: auth || undefined,
     };
     setStatusText("Sending...");
     vscode.postMessage({ type: "sendRequest", payload });
-  }, [method, url, headers, body, requestId, requestName, vscode]);
+  }, [method, url, headers, body, params, auth, requestId, requestName, vscode]);
 
   const openSaveDialog = React.useCallback(() => {
     // Default to first collection in current workspace if none selected
@@ -211,6 +241,19 @@ export const App: React.FC<AppProps> = ({ vscode }) => {
     setStatusText("Saving...");
     setRequestName(finalName);
     vscode.postMessage({ type: "saveRequest", payload });
+    
+    // Save params and auth after request is saved
+    if (requestId || params.length > 0 || auth) {
+      vscode.postMessage({ 
+        type: "saveParams", 
+        payload: { requestId: requestId || 0, params } 
+      });
+      vscode.postMessage({ 
+        type: "saveAuth", 
+        payload: { requestId: requestId || 0, auth } 
+      });
+    }
+    
     setIsSaveDialogOpen(false);
   }, [
     requestId,
@@ -220,8 +263,32 @@ export const App: React.FC<AppProps> = ({ vscode }) => {
     url,
     headers,
     body,
+    params,
+    auth,
     vscode,
   ]);
+  
+  // Auto-save params and auth when they change (debounced)
+  React.useEffect(() => {
+    if (!requestId) return;
+    
+    const timeoutId = setTimeout(() => {
+      if (params.length > 0 || auth) {
+        vscode.postMessage({ 
+          type: "saveParams", 
+          payload: { requestId, params } 
+        });
+        if (auth) {
+          vscode.postMessage({ 
+            type: "saveAuth", 
+            payload: { requestId, auth } 
+          });
+        }
+      }
+    }, 500); // Debounce 500ms
+    
+    return () => clearTimeout(timeoutId);
+  }, [params, auth, requestId, vscode]);
 
   const cancelSave = React.useCallback(() => {
     setIsSaveDialogOpen(false);
@@ -260,12 +327,16 @@ export const App: React.FC<AppProps> = ({ vscode }) => {
             headers={headers}
             body={body}
             requestName={requestName}
+            params={params}
+            auth={auth}
             environments={environments}
             activeEnvId={activeEnvId}
             onMethodChange={setMethod}
             onUrlChange={setUrl}
             onHeadersChange={setHeaders}
             onBodyChange={setBody}
+            onParamsChange={setParams}
+            onAuthChange={setAuth}
             onRequestNameChange={setRequestName}
             onSend={onSend}
             onSave={openSaveDialog}

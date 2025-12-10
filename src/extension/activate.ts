@@ -6,6 +6,7 @@ import { EnvironmentService } from "./environmentService";
 import { HistoryService } from "./historyService";
 import { RequestRunner } from "./requestRunner";
 import { registerCommands, ReqBeamContext } from "./commands";
+import { registerImportExportCommands } from "../commands/importExport";
 
 export async function activate(context: vscode.ExtensionContext): Promise<void> {
   await initDatabase(context);
@@ -31,6 +32,7 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
   };
 
   registerCommands(context, state);
+  registerImportExportCommands(context, collectionService, workspaceService);
 
   vscode.window.registerTreeDataProvider(
     "reqbeam.workspacesView",

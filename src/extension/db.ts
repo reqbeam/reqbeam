@@ -81,6 +81,30 @@ export async function initDatabase(
       workspaceId INTEGER,
       FOREIGN KEY (workspaceId) REFERENCES workspaces(id) ON DELETE CASCADE
     );
+
+    CREATE TABLE IF NOT EXISTS request_params (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      requestId INTEGER NOT NULL,
+      key TEXT NOT NULL,
+      value TEXT NOT NULL,
+      active INTEGER NOT NULL DEFAULT 1,
+      FOREIGN KEY (requestId) REFERENCES requests(id) ON DELETE CASCADE,
+      UNIQUE(requestId, key)
+    );
+
+    CREATE TABLE IF NOT EXISTS request_auth (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      requestId INTEGER NOT NULL UNIQUE,
+      type TEXT NOT NULL DEFAULT 'none',
+      key TEXT,
+      value TEXT,
+      username TEXT,
+      password TEXT,
+      in_location TEXT,
+      headerName TEXT,
+      headerValue TEXT,
+      FOREIGN KEY (requestId) REFERENCES requests(id) ON DELETE CASCADE
+    );
   `);
 
   // Migration: Add new columns to existing tables if they don't exist.
