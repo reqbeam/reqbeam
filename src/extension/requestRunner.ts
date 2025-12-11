@@ -9,12 +9,14 @@ import { HistoryService } from "./historyService";
 import { buildFinalUrl, applyAuth, mergeHeaders } from "../core/requestBuilder";
 import { getParams } from "../storage/params";
 import { getAuth } from "../storage/auth";
+import { AuthManager } from "../auth/authManager";
 
 export interface RequestRunnerDeps {
   historyService: HistoryService;
   getActiveEnvironment: () => Promise<Environment | null>;
   getActiveWorkspace: () => Promise<Workspace | null>;
   environmentManager: EnvironmentManager;
+  authManager?: AuthManager;
 }
 
 export class RequestRunner {
@@ -22,12 +24,14 @@ export class RequestRunner {
   private readonly getActiveEnvironment: () => Promise<Environment | null>;
   private readonly getActiveWorkspace: () => Promise<Workspace | null>;
   private readonly environmentManager: EnvironmentManager;
+  private readonly authManager?: AuthManager;
 
   constructor(deps: RequestRunnerDeps) {
     this.historyService = deps.historyService;
     this.getActiveEnvironment = deps.getActiveEnvironment;
     this.getActiveWorkspace = deps.getActiveWorkspace;
     this.environmentManager = deps.environmentManager;
+    this.authManager = deps.authManager;
   }
 
   async sendRequest(payload: SendRequestPayload): Promise<SendRequestResult> {
@@ -102,8 +106,23 @@ export class RequestRunner {
     );
 
     // Step 6: Merge custom headers with auth headers
-    const headers = mergeHeaders(customHeaders, authHeaders);
+    let headers = mergeHeaders(customHeaders, authHeaders);
     finalUrl = authUrl;
+
+    // Step 7: Inject authentication token if logged in (unless user has custom Authorization header)
+    if (this.authManager) {
+      const token = await this.authManager.getToken();
+      if (token) {
+        // Only add token if there's no Authorization header already set
+        // (either from request auth config or custom headers)
+        const hasAuthHeader = Object.keys(headers).some(
+          (key) => key.toLowerCase() === "authorization"
+        );
+        if (!hasAuthHeader) {
+          headers["Authorization"] = `Bearer ${token}`;
+        }
+      }
+    }
 
     // Log warnings for unresolved variables
     if (unresolvedVars.size > 0 && envId) {

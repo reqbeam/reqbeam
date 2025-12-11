@@ -7,6 +7,8 @@ import {
   importSwagger,
 } from "../storage/db";
 import { CollectionService } from "../extension/collectionService";
+import { AuthManager } from "../auth/authManager";
+import { requireAuth } from "../auth/authHelper";
 
 /**
  * Register import/export commands
@@ -14,13 +16,17 @@ import { CollectionService } from "../extension/collectionService";
 export function registerImportExportCommands(
   context: vscode.ExtensionContext,
   collectionService: CollectionService,
-  workspaceService: { getActiveWorkspaceId: () => number | null }
+  workspaceService: { getActiveWorkspaceId: () => number | null },
+  authManager?: AuthManager
 ): void {
   // Export Collection command
   context.subscriptions.push(
     vscode.commands.registerCommand(
       "reqbeam.collections.export",
       async (item?: { collectionId?: number }) => {
+        if (authManager && !(await requireAuth(authManager, "exporting collections"))) {
+          return;
+        }
         try {
           const activeWorkspaceId = workspaceService.getActiveWorkspaceId();
           if (activeWorkspaceId == null) {
@@ -121,6 +127,9 @@ export function registerImportExportCommands(
   // Import Collection command
   context.subscriptions.push(
     vscode.commands.registerCommand("reqbeam.collections.import", async () => {
+      if (authManager && !(await requireAuth(authManager, "importing collections"))) {
+        return;
+      }
       try {
         const activeWorkspaceId = workspaceService.getActiveWorkspaceId();
         if (activeWorkspaceId == null) {
@@ -186,6 +195,9 @@ export function registerImportExportCommands(
     vscode.commands.registerCommand(
       "reqbeam.collections.importSwagger",
       async () => {
+        if (authManager && !(await requireAuth(authManager, "importing Swagger/OpenAPI"))) {
+          return;
+        }
         try {
           const activeWorkspaceId = workspaceService.getActiveWorkspaceId();
           if (activeWorkspaceId == null) {

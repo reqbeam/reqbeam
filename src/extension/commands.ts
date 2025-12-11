@@ -7,6 +7,8 @@ import { RequestRunner } from "./requestRunner";
 import { SendRequestPayload } from "../types/models";
 import { getParams, setParams } from "../storage/params";
 import { getAuth, saveAuth } from "../storage/auth";
+import { AuthManager } from "../auth/authManager";
+import { requireAuth } from "../auth/authHelper";
 
 interface PanelInfo {
   panel: vscode.WebviewPanel;
@@ -20,6 +22,7 @@ export interface ReqBeamContext {
   environmentService: EnvironmentService;
   historyService: HistoryService;
   requestRunner: RequestRunner;
+  authManager?: AuthManager;
 }
 
 export function registerCommands(
@@ -38,7 +41,10 @@ export function registerCommands(
   );
 
   disposables.push(
-    vscode.commands.registerCommand("reqbeam.sendRequest", () => {
+    vscode.commands.registerCommand("reqbeam.sendRequest", async () => {
+      if (state.authManager && !(await requireAuth(state.authManager, "sending requests"))) {
+        return;
+      }
       // Find the first available panel or create a new one
       const panelInfo = Array.from(state.panels.values())[0];
       if (panelInfo) {
@@ -53,7 +59,10 @@ export function registerCommands(
   );
 
   disposables.push(
-    vscode.commands.registerCommand("reqbeam.showCollections", () => {
+    vscode.commands.registerCommand("reqbeam.showCollections", async () => {
+      if (state.authManager && !(await requireAuth(state.authManager, "viewing collections"))) {
+        return;
+      }
       const key = `new-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
       const panel = createOrRevealWebview(context, state, key, "ReqBeam");
       void sendCollectionsToWebview(panel, state);
@@ -69,7 +78,10 @@ export function registerCommands(
   );
 
   disposables.push(
-    vscode.commands.registerCommand("reqbeam.showHistory", () => {
+    vscode.commands.registerCommand("reqbeam.showHistory", async () => {
+      if (state.authManager && !(await requireAuth(state.authManager, "viewing history"))) {
+        return;
+      }
       const key = `new-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
       const panel = createOrRevealWebview(context, state, key, "ReqBeam");
       void sendHistoryToWebview(panel, state);
@@ -80,6 +92,9 @@ export function registerCommands(
     vscode.commands.registerCommand(
       "reqbeam.loadRequest",
       async (request: unknown) => {
+        if (state.authManager && !(await requireAuth(state.authManager, "loading requests"))) {
+          return;
+        }
         const req = request as { id?: number; name?: string };
         const key = req.id != null ? `req-${req.id}` : "new";
         const title = req.name || "New Request";
@@ -223,6 +238,9 @@ export function registerCommands(
 
   disposables.push(
     vscode.commands.registerCommand("reqbeam.createCollection", async () => {
+      if (state.authManager && !(await requireAuth(state.authManager, "creating collections"))) {
+        return;
+      }
       const activeWorkspaceId = state.workspaceService.getActiveWorkspaceId();
       if (activeWorkspaceId == null) {
         await vscode.window.showWarningMessage(
@@ -253,6 +271,9 @@ export function registerCommands(
     vscode.commands.registerCommand(
       "reqbeam.createRequest",
       async (item?: { workspaceId?: number; collectionId?: number }) => {
+        if (state.authManager && !(await requireAuth(state.authManager, "creating requests"))) {
+          return;
+        }
         // Determine workspace and collection from the clicked tree item or active workspace
         const activeWorkspaceId =
           item?.workspaceId ?? state.workspaceService.getActiveWorkspaceId();
@@ -362,6 +383,9 @@ export function registerCommands(
     vscode.commands.registerCommand(
       "reqbeam.editRequest",
       async (item: CollectionTreeItem) => {
+        if (state.authManager && !(await requireAuth(state.authManager, "editing requests"))) {
+          return;
+        }
         if (!item.requestId) {
           return;
         }
@@ -465,6 +489,13 @@ export function createOrRevealWebview(
   panel.webview.onDidReceiveMessage(async (msg) => {
     switch (msg.type) {
       case "sendRequest": {
+        if (state.authManager && !(await requireAuth(state.authManager, "sending requests"))) {
+          panel.webview.postMessage({
+            type: "error",
+            message: "Authentication required. Please login to send requests.",
+          });
+          return;
+        }
         const payload = msg.payload as SendRequestPayload;
         try {
           const result = await state.requestRunner.sendRequest(payload);
@@ -482,6 +513,13 @@ export function createOrRevealWebview(
         break;
       }
       case "saveRequest": {
+        if (state.authManager && !(await requireAuth(state.authManager, "saving requests"))) {
+          panel.webview.postMessage({
+            type: "error",
+            message: "Authentication required. Please login to save requests.",
+          });
+          return;
+        }
         const request = msg.payload as SendRequestPayload & {
           id?: number;
           collectionId?: number | null;

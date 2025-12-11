@@ -105,6 +105,15 @@ export async function initDatabase(
       headerValue TEXT,
       FOREIGN KEY (requestId) REFERENCES requests(id) ON DELETE CASCADE
     );
+
+    CREATE TABLE IF NOT EXISTS users (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      email TEXT NOT NULL UNIQUE,
+      name TEXT NOT NULL,
+      passwordHash TEXT NOT NULL,
+      createdAt TEXT NOT NULL,
+      updatedAt TEXT NOT NULL
+    );
   `);
 
   // Migration: Add new columns to existing tables if they don't exist.

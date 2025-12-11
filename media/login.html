@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ReqBeam - Login</title>
+    <!-- INJECT_CSS -->
+</head>
+<body>
+    <div class="login-container">
+        <div class="login-header">
+            <h1>Welcome to ReqBeam</h1>
+            <p id="headerSubtext">Sign in to continue</p>
+        </div>
+
+        <div class="mode-toggle">
+            <button type="button" class="toggle-button active" id="loginToggle">Sign In</button>
+            <button type="button" class="toggle-button" id="signupToggle">Sign Up</button>
+        </div>
+
+        <div id="message" class="message"></div>
+
+        <form id="authForm">
+            <div class="form-group" id="nameGroup" style="display: none;">
+                <label for="name">Full Name</label>
+                <input type="text" id="name" name="name" autocomplete="name" placeholder="John Doe">
+            </div>
+
+            <div class="form-group">
+                <label for="email">Email</label>
+                <input type="email" id="email" name="email" required autocomplete="email" placeholder="your@email.com">
+            </div>
+
+            <div class="form-group">
+                <label for="password">Password</label>
+                <input type="password" id="password" name="password" required autocomplete="current-password" placeholder="••••••••">
+            </div>
+
+            <div class="form-group" id="confirmPasswordGroup" style="display: none;">
+                <label for="confirmPassword">Confirm Password</label>
+                <input type="password" id="confirmPassword" name="confirmPassword" autocomplete="new-password" placeholder="••••••••">
+            </div>
+
+            <button type="submit" class="login-button" id="submitButton">
+                Sign In
+            </button>
+        </form>
+    </div>
+
+    <!-- INJECT_JS -->
+</body>
+</html>
+

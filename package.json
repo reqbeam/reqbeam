@@ -17,6 +17,9 @@
     "onCommand:reqbeam.showCollections",
     "onCommand:reqbeam.showEnvironments",
     "onCommand:reqbeam.showHistory",
+    "onCommand:reqbeam.auth.login",
+    "onCommand:reqbeam.auth.logout",
+    "onUri",
     "onView:reqbeam.collectionsView",
     "onView:reqbeam.environmentsView",
     "onView:reqbeam.historyView"
@@ -134,6 +137,23 @@
         "command": "reqbeam.collections.importSwagger",
         "title": "ReqBeam: Import Swagger/OpenAPI",
         "icon": "$(file-code)"
+      },
+      {
+        "command": "reqbeam.auth.login",
+        "title": "ReqBeam: Login"
+      },
+      {
+        "command": "reqbeam.auth.logout",
+        "title": "ReqBeam: Logout"
+      },
+      {
+        "command": "reqbeam.auth.statusUpdate",
+        "title": "ReqBeam: Update Auth Status"
+      }
+    ],
+    "uriHandlers": [
+      {
+        "scheme": "reqbeam"
       }
     ],
     "views": {

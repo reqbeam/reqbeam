@@ -360,3 +360,4 @@ export const AuthSection: React.FC<AuthSectionProps> = ({
   );
 };
 
+
