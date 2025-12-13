@@ -6,6 +6,8 @@ import { ParamsSection } from "./ParamsSection";
 import { AuthSection } from "./AuthSection";
 import { Tabs } from "./Tabs";
 import { buildFinalUrl } from "../utils/urlBuilder";
+import { resolveVariables } from "../../core/envResolver";
+import { VariableHighlightInput } from "./VariableHighlightInput";
 
 export interface RequestBuilderProps {
   method: HttpMethod;
@@ -73,35 +75,74 @@ export const RequestBuilder: React.FC<RequestBuilderProps> = ({
 }) => {
   const [activeTab, setActiveTab] = React.useState<string>("headers");
   
+  const activeEnv = React.useMemo(() => {
+    console.log("RequestBuilder - Finding active env. activeEnvId:", activeEnvId, "type:", typeof activeEnvId, "environments:", environments);
+    // Try to find by id first, then by isActive flag
+    let found = environments.find((e) => {
+      // Handle both string and number comparison
+      const match = e.id === activeEnvId || String(e.id) === String(activeEnvId) || Number(e.id) === Number(activeEnvId);
+      console.log("RequestBuilder - Comparing env.id:", e.id, "type:", typeof e.id, "with activeEnvId:", activeEnvId, "type:", typeof activeEnvId, "match:", match, "isActive:", e.isActive);
+      return match;
+    });
+    
+    // Fallback: find by isActive flag if no match by id
+    if (!found) {
+      found = environments.find((e) => e.isActive);
+      console.log("RequestBuilder - Fallback: Found by isActive flag:", found);
+    }
+    
+    console.log("RequestBuilder - Final found active env:", found);
+    if (found) {
+      console.log("RequestBuilder - Active env variables:", found.variables, "keys:", Object.keys(found.variables || {}));
+    }
+    return found || null;
+  }, [environments, activeEnvId]);
+
+  const envVars = React.useMemo(() => {
+    console.log("RequestBuilder - activeEnv:", activeEnv);
+    if (!activeEnv) {
+      console.log("RequestBuilder - No active environment");
+      return {};
+    }
+    
+    if (!activeEnv.variables) {
+      console.log("RequestBuilder - No variables in activeEnv");
+      return {};
+    }
+    
+    // Handle both string (JSON) and object formats
+    let vars: Record<string, string> = {};
+    if (typeof activeEnv.variables === "string") {
+      try {
+        vars = JSON.parse(activeEnv.variables);
+        console.log("RequestBuilder - Parsed from string:", Object.keys(vars).length, vars);
+      } catch (e) {
+        console.error("RequestBuilder - Failed to parse environment variables:", e);
+        vars = {};
+      }
+    } else if (typeof activeEnv.variables === "object") {
+      vars = activeEnv.variables;
+      console.log("RequestBuilder - Using object directly:", Object.keys(vars).length, vars);
+    } else {
+      console.log("RequestBuilder - Unknown variables type:", typeof activeEnv.variables);
+    }
+    
+    console.log("RequestBuilder - Final envVars:", Object.keys(vars).length, "variables", vars);
+    return vars;
+  }, [activeEnv]);
+
   // Calculate final URL with params
   const resolvedUrl = React.useMemo(() => {
     if (!url) return "";
     try {
       // Resolve environment variables first
-      const activeEnv = environments.find((e) => e.id === activeEnvId);
-      let resolved = url;
-      if (activeEnv) {
-        resolved = url.replace(/\{\{\s*([a-zA-Z0-9_.-]+)\s*\}\}/g, (_, key) => {
-          return activeEnv.variables[key] ?? `{{${key}}}`;
-        });
-      }
+      const resolved = resolveVariables(url, envVars);
       // Then apply params
       return buildFinalUrl(resolved, params);
     } catch {
       return url;
     }
-  }, [url, params, activeEnvId, environments]);
-  
-  const activeEnv = React.useMemo(() => {
-    return environments.find((e) => e.id === activeEnvId) || null;
-  }, [environments, activeEnvId]);
-
-  const resolveVariable = React.useCallback((text: string): string => {
-    if (!activeEnv || !text) return text;
-    return text.replace(/\{\{\s*([a-zA-Z0-9_.-]+)\s*\}\}/g, (_, key) => {
-      return activeEnv.variables[key] ?? `{{${key}}}`;
-    });
-  }, [activeEnv]);
+  }, [url, params, envVars]);
 
   return (
     <div
@@ -213,39 +254,30 @@ export const RequestBuilder: React.FC<RequestBuilderProps> = ({
           )}
         </select>
         <div style={{ flex: 1, position: "relative" }}>
-          <input
+          <VariableHighlightInput
+            value={url}
+            onChange={onUrlChange}
+            placeholder="https://api.example.com/path or {{baseUrl}}/path"
+            environmentVariables={envVars}
             style={{
-              width: "100%",
               padding: "2px 6px",
-              fontSize: 12,
-              backgroundColor: "var(--vscode-input-background)",
-              color: "var(--vscode-input-foreground)",
-              border:
-                "1px solid var(--vscode-input-border, var(--vscode-editorGroup-border))",
               borderRadius: 2,
             }}
-            value={url}
-            onChange={(e) => onUrlChange(e.target.value)}
-            placeholder="https://api.example.com/path or {{baseUrl}}/path"
           />
           {activeEnv && url && url.includes("{{") && (
             <div
               style={{
-                position: "absolute",
-                top: "100%",
-                left: 0,
-                right: 0,
+                position: "relative",
                 marginTop: 2,
                 padding: "4px 6px",
                 fontSize: 10,
                 backgroundColor: "var(--vscode-editor-background)",
                 border: "1px solid var(--vscode-editorGroup-border)",
                 borderRadius: 2,
-                zIndex: 10,
                 color: "var(--vscode-descriptionForeground)",
               }}
             >
-              Resolved: {resolveVariable(url)}
+              Resolved: {resolveVariables(url, envVars)}
             </div>
           )}
         </div>
@@ -312,17 +344,26 @@ export const RequestBuilder: React.FC<RequestBuilderProps> = ({
                 finalUrl={resolvedUrl}
                 onChange={onParamsChange}
                 vscode={vscode}
+                environmentVariables={envVars}
               />
             </div>
           )}
           {activeTab === "headers" && (
             <div>
-              <HeaderEditor headers={headers} onChange={onHeadersChange} />
+              <HeaderEditor 
+                headers={headers} 
+                onChange={onHeadersChange}
+                environmentVariables={envVars}
+              />
             </div>
           )}
           {activeTab === "body" && (
             <div>
-              <BodyEditor body={body} onChange={onBodyChange} />
+              <BodyEditor 
+                body={body} 
+                onChange={onBodyChange}
+                environmentVariables={envVars}
+              />
             </div>
           )}
           {activeTab === "auth" && (

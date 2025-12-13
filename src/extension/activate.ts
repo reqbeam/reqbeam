@@ -12,6 +12,7 @@ import { registerUriHandler } from "../auth/uriHandler";
 import { registerLoginCommand } from "../commands/login";
 import { registerLogoutCommand } from "../commands/logout";
 import { AuthStatusBar } from "../ui/statusBar";
+import { EnvironmentVariableEditorProvider } from "../editors/environmentVariableEditor";
 
 export async function activate(context: vscode.ExtensionContext): Promise<void> {
   await initDatabase(context);
@@ -86,6 +87,39 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
     environmentService
   );
   vscode.window.registerTreeDataProvider("reqbeam.historyView", historyService);
+
+  // Register document content provider for environment editor URIs
+  const envDocumentProvider = new (class implements vscode.TextDocumentContentProvider {
+    provideTextDocumentContent(uri: vscode.Uri): string {
+      // Return empty content - the custom editor will load the actual data
+      return "";
+    }
+  })();
+  context.subscriptions.push(
+    vscode.workspace.registerTextDocumentContentProvider(
+      "reqbeam-env",
+      envDocumentProvider
+    )
+  );
+
+  // Register custom editor for environment variables
+  const envEditorProvider = new EnvironmentVariableEditorProvider(
+    context,
+    environmentService,
+    authManager
+  );
+  context.subscriptions.push(
+    vscode.window.registerCustomEditorProvider(
+      "reqbeam.environmentVariableEditor",
+      envEditorProvider,
+      {
+        webviewOptions: {
+          retainContextWhenHidden: true,
+        },
+        supportsMultipleEditorsPerDocument: false,
+      }
+    )
+  );
 }
 
 export function deactivate(): void {

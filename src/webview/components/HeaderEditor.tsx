@@ -1,4 +1,5 @@
 import * as React from "react";
+import { VariableHighlightInput } from "./VariableHighlightInput";
 
 export interface HeaderRow {
   key: string;
@@ -9,11 +10,13 @@ export interface HeaderRow {
 export interface HeaderEditorProps {
   headers: HeaderRow[];
   onChange: (headers: HeaderRow[]) => void;
+  environmentVariables?: Record<string, string>;
 }
 
 export const HeaderEditor: React.FC<HeaderEditorProps> = ({
   headers,
   onChange,
+  environmentVariables = {},
 }) => {
   const updateRow = (index: number, patch: Partial<HeaderRow>) => {
     const next = headers.map((h, i) => (i === index ? { ...h, ...patch } : h));
@@ -59,34 +62,19 @@ export const HeaderEditor: React.FC<HeaderEditorProps> = ({
             </td>
             <td>
               <input
-                style={{
-                  width: "100%",
-                  padding: "2px 4px",
-                  fontSize: 12,
-                  backgroundColor: "var(--vscode-input-background)",
-                  color: "var(--vscode-input-foreground)",
-                  border:
-                    "1px solid var(--vscode-input-border, var(--vscode-editorGroup-border))",
-                  boxSizing: "border-box",
-                }}
+                style={{ width: "100%" }}
                 value={h.key}
                 onChange={(e) => updateRow(index, { key: e.target.value })}
               />
             </td>
             <td>
-              <input
-                style={{
-                  width: "100%",
-                  padding: "2px 4px",
-                  fontSize: 12,
-                  backgroundColor: "var(--vscode-input-background)",
-                  color: "var(--vscode-input-foreground)",
-                  border:
-                    "1px solid var(--vscode-input-border, var(--vscode-editorGroup-border))",
-                  boxSizing: "border-box",
-                }}
+              <VariableHighlightInput
                 value={h.value}
-                onChange={(e) => updateRow(index, { value: e.target.value })}
+                onChange={(value) => updateRow(index, { value })}
+                environmentVariables={environmentVariables}
+                style={{
+                  padding: "2px 4px",
+                }}
               />
             </td>
             <td>

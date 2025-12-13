@@ -184,11 +184,43 @@ export const App: React.FC<AppProps> = ({ vscode }) => {
         }
         case "environments": {
           const payload = msg.payload as {
-            environments: Array<{ id: number; name: string; variables: Record<string, string> }>;
+            environments: Array<{ id: number; name: string; variables: string | Record<string, string> }>;
             activeId: number | null;
           };
-          setEnvironments(payload.environments);
+          console.log("Received environments:", payload.environments.length, payload.environments);
+          // Parse variables if they're JSON strings
+          const parsedEnvironments = payload.environments.map(env => {
+            let variables: Record<string, string> = {};
+            console.log("Processing env:", env.name, "variables type:", typeof env.variables, "value:", env.variables);
+            if (typeof env.variables === "string") {
+              try {
+                variables = JSON.parse(env.variables);
+                console.log("Parsed variables:", Object.keys(variables).length, variables);
+              } catch (e) {
+                console.error("Failed to parse environment variables:", e, env.variables);
+                variables = {};
+              }
+            } else {
+              variables = env.variables;
+              console.log("Variables already object:", Object.keys(variables).length, variables);
+            }
+            return {
+              ...env,
+              variables,
+            };
+          });
+          console.log("Final parsed environments:", parsedEnvironments);
+          console.log("Setting activeEnvId to:", payload.activeId, "type:", typeof payload.activeId);
+          setEnvironments(parsedEnvironments);
           setActiveEnvId(payload.activeId);
+          // Also try to find active by isActive flag as fallback
+          if (payload.activeId === null || payload.activeId === undefined) {
+            const activeByFlag = parsedEnvironments.find(e => e.isActive);
+            if (activeByFlag) {
+              console.log("Found active environment by isActive flag:", activeByFlag.id);
+              setActiveEnvId(activeByFlag.id);
+            }
+          }
           break;
         }
         default:

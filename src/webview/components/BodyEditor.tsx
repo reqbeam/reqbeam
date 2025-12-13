@@ -14,11 +14,6 @@ export const BodyEditor: React.FC<BodyEditorProps> = ({ body, onChange }) => {
         resize: "vertical",
         fontFamily: "monospace",
         fontSize: 12,
-        backgroundColor: "var(--vscode-input-background)",
-        color: "var(--vscode-input-foreground)",
-        border: "1px solid var(--vscode-input-border, var(--vscode-editorGroup-border))",
-        boxSizing: "border-box",
-        padding: 6,
       }}
       value={body}
       onChange={(e) => onChange(e.target.value)}

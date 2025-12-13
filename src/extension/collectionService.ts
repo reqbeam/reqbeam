@@ -142,6 +142,30 @@ export class CollectionService implements vscode.TreeDataProvider<CollectionTree
     this.refresh();
   }
 
+  async getCollectionById(id: number): Promise<Collection | null> {
+    const db = getDb();
+    const row = await db.get<Collection>(
+      `SELECT id, name, workspaceId, description FROM collections WHERE id = ?`,
+      id
+    );
+    return row ?? null;
+  }
+
+  async renameCollection(id: number, name: string): Promise<void> {
+    const db = getDb();
+    await db.run(`UPDATE collections SET name = ? WHERE id = ?`, name, id);
+    this.refresh();
+  }
+
+  async deleteCollection(id: number): Promise<void> {
+    const db = getDb();
+    // First delete all requests in this collection
+    await db.run(`DELETE FROM requests WHERE collectionId = ?`, id);
+    // Then delete the collection
+    await db.run(`DELETE FROM collections WHERE id = ?`, id);
+    this.refresh();
+  }
+
   getTreeItem(element: CollectionTreeItem): vscode.TreeItem {
     return element;
   }

@@ -117,7 +117,12 @@ export class EnvironmentService
     name: string,
     workspaceId?: number | null
   ): Promise<void> {
-    await this.manager.createEnvironment(name, workspaceId ?? null);
+    // If workspaceId is not provided, use the active workspace
+    const activeWorkspaceId = workspaceId ?? this.context.globalState.get<number | null>(
+      "reqbeam.activeWorkspaceId",
+      null
+    );
+    await this.manager.createEnvironment(name, activeWorkspaceId);
     this.refresh();
   }
 
@@ -171,8 +176,9 @@ export class EnvironmentService
     const isActive = this.activeEnvId === element.id;
     item.description = isActive ? "Active" : "";
     item.contextValue = isActive ? "environment-active" : "environment";
+    // Clicking on the environment opens the editor, but we also have a menu for other actions
     item.command = {
-      command: "reqbeam.quickEditEnvironmentVariables",
+      command: "reqbeam.openEnvironmentEditor",
       title: "ReqBeam: Edit Environment Variables",
       arguments: [{ id: Number(element.id), name: element.name }],
     };

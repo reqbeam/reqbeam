@@ -1,5 +1,5 @@
 import * as vscode from "vscode";
-import { WorkspaceService } from "./workspaceService";
+import { WorkspaceService, WorkspaceTreeItem } from "./workspaceService";
 import { CollectionService, CollectionTreeItem } from "./collectionService";
 import { EnvironmentService } from "./environmentService";
 import { HistoryService } from "./historyService";
@@ -138,6 +138,9 @@ export function registerCommands(
 
   disposables.push(
     vscode.commands.registerCommand("reqbeam.addEnvironment", async () => {
+      if (state.authManager && !(await requireAuth(state.authManager, "creating environments"))) {
+        return;
+      }
       const name = await vscode.window.showInputBox({
         prompt: "Environment name",
         placeHolder: "e.g. Development",
@@ -145,10 +148,17 @@ export function registerCommands(
       if (!name) {
         return;
       }
-      await state.environmentService.createEnvironment(name);
-      // Broadcast to all open panels
-      for (const panelInfo of state.panels.values()) {
-        await sendEnvironmentsToWebview(panelInfo.panel, state);
+      try {
+        await state.environmentService.createEnvironment(name);
+        vscode.window.showInformationMessage(`Environment "${name}" created successfully`);
+        // Broadcast to all open panels
+        for (const panelInfo of state.panels.values()) {
+          await sendEnvironmentsToWebview(panelInfo.panel, state);
+        }
+      } catch (error) {
+        vscode.window.showErrorMessage(
+          `Failed to create environment: ${error instanceof Error ? error.message : String(error)}`
+        );
       }
     })
   );
@@ -157,6 +167,9 @@ export function registerCommands(
     vscode.commands.registerCommand(
       "reqbeam.renameEnvironment",
       async (env: { id: number; name: string }) => {
+        if (state.authManager && !(await requireAuth(state.authManager, "renaming environments"))) {
+          return;
+        }
         const name = await vscode.window.showInputBox({
           prompt: "New environment name",
           value: env.name,
@@ -177,6 +190,9 @@ export function registerCommands(
     vscode.commands.registerCommand(
       "reqbeam.deleteEnvironment",
       async (env: { id: number; name: string }) => {
+        if (state.authManager && !(await requireAuth(state.authManager, "deleting environments"))) {
+          return;
+        }
         const confirm = await vscode.window.showWarningMessage(
           `Delete environment "${env.name}"?`,
           { modal: true },
@@ -189,6 +205,36 @@ export function registerCommands(
         // Broadcast to all open panels
         for (const panelInfo of state.panels.values()) {
           await sendEnvironmentsToWebview(panelInfo.panel, state);
+        }
+      }
+    )
+  );
+
+  disposables.push(
+    vscode.commands.registerCommand(
+      "reqbeam.duplicateEnvironment",
+      async (env: { id: number; name: string }) => {
+        if (state.authManager && !(await requireAuth(state.authManager, "duplicating environments"))) {
+          return;
+        }
+        const newName = await vscode.window.showInputBox({
+          prompt: "New environment name",
+          value: `${env.name} (Copy)`,
+        });
+        if (!newName) {
+          return;
+        }
+        try {
+          await state.environmentService.duplicateEnvironment(env.id, newName);
+          vscode.window.showInformationMessage(`Environment "${newName}" created successfully`);
+          // Broadcast to all open panels
+          for (const panelInfo of state.panels.values()) {
+            await sendEnvironmentsToWebview(panelInfo.panel, state);
+          }
+        } catch (error) {
+          vscode.window.showErrorMessage(
+            `Failed to duplicate environment: ${error instanceof Error ? error.message : String(error)}`
+          );
         }
       }
     )
@@ -359,8 +405,111 @@ export function registerCommands(
 
   disposables.push(
     vscode.commands.registerCommand(
+      "reqbeam.showCollectionMenu",
+      async (item: CollectionTreeItem) => {
+        if (!item.collectionId) {
+          return;
+        }
+        const options = [
+          { label: "$(edit) Rename Collection", id: "rename" },
+          { label: "$(trash) Delete Collection", id: "delete" },
+        ];
+        const selected = await vscode.window.showQuickPick(options, {
+          placeHolder: "Select an action",
+        });
+        if (!selected) {
+          return;
+        }
+        switch (selected.id) {
+          case "rename":
+            await vscode.commands.executeCommand("reqbeam.renameCollection", item);
+            break;
+          case "delete":
+            await vscode.commands.executeCommand("reqbeam.deleteCollection", item);
+            break;
+        }
+      }
+    )
+  );
+
+  disposables.push(
+    vscode.commands.registerCommand(
+      "reqbeam.showWorkspaceMenu",
+      async (item: WorkspaceTreeItem | { workspaceId?: number; id?: number }) => {
+        const workspaceId = (item as any).workspaceId || (item as any).id;
+        if (!workspaceId) {
+          return;
+        }
+        const options = [
+          { label: "$(edit) Rename Workspace", id: "rename" },
+          { label: "$(trash) Delete Workspace", id: "delete" },
+        ];
+        const selected = await vscode.window.showQuickPick(options, {
+          placeHolder: "Select an action",
+        });
+        if (!selected) {
+          return;
+        }
+        switch (selected.id) {
+          case "rename":
+            await vscode.commands.executeCommand("reqbeam.renameWorkspace", item);
+            break;
+          case "delete":
+            await vscode.commands.executeCommand("reqbeam.deleteWorkspace", item);
+            break;
+        }
+      }
+    )
+  );
+
+  disposables.push(
+    vscode.commands.registerCommand(
+      "reqbeam.showEnvironmentMenu",
+      async (item: { id: number; name: string }) => {
+        if (!item.id) {
+          return;
+        }
+        const options = [
+          { label: "$(edit) Edit Variables", id: "edit" },
+          { label: "$(add) Add Variable", id: "addVariable" },
+          { label: "$(edit) Rename Environment", id: "rename" },
+          { label: "$(copy) Duplicate Environment", id: "duplicate" },
+          { label: "$(trash) Delete Environment", id: "delete" },
+        ];
+        const selected = await vscode.window.showQuickPick(options, {
+          placeHolder: "Select an action",
+        });
+        if (!selected) {
+          return;
+        }
+        switch (selected.id) {
+          case "edit":
+            await vscode.commands.executeCommand("reqbeam.openEnvironmentEditor", item);
+            break;
+          case "addVariable":
+            await vscode.commands.executeCommand("reqbeam.addEnvironmentVariable", item);
+            break;
+          case "rename":
+            await vscode.commands.executeCommand("reqbeam.renameEnvironment", item);
+            break;
+          case "duplicate":
+            await vscode.commands.executeCommand("reqbeam.duplicateEnvironment", item);
+            break;
+          case "delete":
+            await vscode.commands.executeCommand("reqbeam.deleteEnvironment", item);
+            break;
+        }
+      }
+    )
+  );
+
+  disposables.push(
+    vscode.commands.registerCommand(
       "reqbeam.renameRequest",
       async (item: CollectionTreeItem) => {
+        if (state.authManager && !(await requireAuth(state.authManager, "renaming requests"))) {
+          return;
+        }
         if (!item.requestId) {
           return;
         }
@@ -420,6 +569,9 @@ export function registerCommands(
     vscode.commands.registerCommand(
       "reqbeam.deleteRequest",
       async (item: CollectionTreeItem) => {
+        if (state.authManager && !(await requireAuth(state.authManager, "deleting requests"))) {
+          return;
+        }
         if (!item.requestId) {
           return;
         }
@@ -439,6 +591,178 @@ export function registerCommands(
         const panelInfo = state.panels.get(key);
         if (panelInfo) {
           panelInfo.panel.dispose();
+        }
+      }
+    )
+  );
+
+  // Collection rename and delete commands
+  disposables.push(
+    vscode.commands.registerCommand(
+      "reqbeam.renameCollection",
+      async (item: CollectionTreeItem) => {
+        if (state.authManager && !(await requireAuth(state.authManager, "renaming collections"))) {
+          return;
+        }
+        if (!item.collectionId) {
+          return;
+        }
+        const collection = await state.collectionService.getCollectionById(item.collectionId);
+        const currentName = collection?.name || "";
+        const name = await vscode.window.showInputBox({
+          prompt: "New collection name",
+          value: currentName,
+        });
+        if (!name) {
+          return;
+        }
+        await state.collectionService.renameCollection(item.collectionId, name);
+      }
+    )
+  );
+
+  disposables.push(
+    vscode.commands.registerCommand(
+      "reqbeam.deleteCollection",
+      async (item: CollectionTreeItem) => {
+        if (state.authManager && !(await requireAuth(state.authManager, "deleting collections"))) {
+          return;
+        }
+        if (!item.collectionId) {
+          return;
+        }
+        const collection = await state.collectionService.getCollectionById(item.collectionId);
+        const name = collection?.name || "this collection";
+        const confirm = await vscode.window.showWarningMessage(
+          `Delete collection "${name}" and all its requests?`,
+          { modal: true },
+          "Delete"
+        );
+        if (confirm !== "Delete") {
+          return;
+        }
+        await state.collectionService.deleteCollection(item.collectionId);
+      }
+    )
+  );
+
+  // Workspace rename and delete commands
+  disposables.push(
+    vscode.commands.registerCommand(
+      "reqbeam.renameWorkspace",
+      async (item: { workspaceId?: number } | WorkspaceTreeItem) => {
+        if (state.authManager && !(await requireAuth(state.authManager, "renaming workspaces"))) {
+          return;
+        }
+        const workspaceId = (item as any).workspaceId || (item as any).id;
+        if (!workspaceId) {
+          return;
+        }
+        const workspace = await state.workspaceService.getWorkspaceById(workspaceId);
+        const currentName = workspace?.name || "";
+        const name = await vscode.window.showInputBox({
+          prompt: "New workspace name",
+          value: currentName,
+        });
+        if (!name) {
+          return;
+        }
+        await state.workspaceService.renameWorkspace(workspaceId, name);
+      }
+    )
+  );
+
+  disposables.push(
+    vscode.commands.registerCommand(
+      "reqbeam.deleteWorkspace",
+      async (item: { workspaceId?: number } | WorkspaceTreeItem) => {
+        if (state.authManager && !(await requireAuth(state.authManager, "deleting workspaces"))) {
+          return;
+        }
+        const workspaceId = (item as any).workspaceId || (item as any).id;
+        if (!workspaceId) {
+          return;
+        }
+        const workspace = await state.workspaceService.getWorkspaceById(workspaceId);
+        const name = workspace?.name || "this workspace";
+        const confirm = await vscode.window.showWarningMessage(
+          `Delete workspace "${name}" and all its collections and requests?`,
+          { modal: true },
+          "Delete"
+        );
+        if (confirm !== "Delete") {
+          return;
+        }
+        await state.workspaceService.deleteWorkspace(workspaceId);
+      }
+    )
+  );
+
+  // Environment variable commands
+  disposables.push(
+    vscode.commands.registerCommand(
+      "reqbeam.openEnvironmentEditor",
+      async (env: { id: number; name: string }) => {
+        if (state.authManager && !(await requireAuth(state.authManager, "editing environment variables"))) {
+          return;
+        }
+        // Create a virtual document URI for the environment
+        const uri = vscode.Uri.parse(`reqbeam-env://environment/${env.id}`);
+        await vscode.commands.executeCommand(
+          "vscode.openWith",
+          uri,
+          "reqbeam.environmentVariableEditor"
+        );
+      }
+    )
+  );
+
+  disposables.push(
+    vscode.commands.registerCommand(
+      "reqbeam.addEnvironmentVariable",
+      async (env: { id: number; name: string }) => {
+        if (state.authManager && !(await requireAuth(state.authManager, "adding environment variables"))) {
+          return;
+        }
+        const key = await vscode.window.showInputBox({
+          prompt: "Variable key",
+          placeHolder: "e.g. API_URL",
+          validateInput: (value) => {
+            if (!value || !value.trim()) {
+              return "Variable key cannot be empty";
+            }
+            if (!/^[a-zA-Z0-9_]+$/.test(value.trim())) {
+              return "Variable key can only contain letters, numbers, and underscores";
+            }
+            return null;
+          },
+        });
+        if (!key) {
+          return;
+        }
+        const value = await vscode.window.showInputBox({
+          prompt: "Variable value",
+          placeHolder: "e.g. https://api.example.com",
+        });
+        if (value === undefined) {
+          return; // User cancelled
+        }
+        try {
+          await state.environmentService.getManager().setVariable(
+            String(env.id),
+            key.trim(),
+            value || ""
+          );
+          state.environmentService.refresh();
+          vscode.window.showInformationMessage(`Variable "${key.trim()}" added to environment "${env.name}"`);
+          // Refresh environments in all panels
+          for (const panelInfo of state.panels.values()) {
+            await sendEnvironmentsToWebview(panelInfo.panel, state);
+          }
+        } catch (error) {
+          vscode.window.showErrorMessage(
+            `Failed to add variable: ${error instanceof Error ? error.message : String(error)}`
+          );
         }
       }
     )
@@ -673,6 +997,54 @@ export function createOrRevealWebview(
         await sendCollectionsToWebview(panel, state);
         break;
       }
+      case "saveEnvironmentVariables": {
+        if (state.authManager && !(await requireAuth(state.authManager, "saving environment variables"))) {
+          panel.webview.postMessage({
+            type: "error",
+            message: "Authentication required. Please login to save environment variables.",
+          });
+          return;
+        }
+        const payload = msg.payload as {
+          environmentId: number;
+          variables: Record<string, string>;
+        };
+        try {
+          await state.environmentService.updateEnvironmentVariables(
+            payload.environmentId,
+            payload.variables
+          );
+          panel.webview.postMessage({
+            type: "environmentVariablesSaved",
+            payload: { environmentId: payload.environmentId },
+          });
+          // Refresh environments in all panels
+          for (const panelInfo of state.panels.values()) {
+            await sendEnvironmentsToWebview(panelInfo.panel, state);
+          }
+        } catch (error) {
+          panel.webview.postMessage({
+            type: "error",
+            message: error instanceof Error ? error.message : String(error),
+          });
+        }
+        break;
+      }
+      case "getEnvironmentVariables": {
+        const payload = msg.payload as { environmentId: number };
+        const env = await state.environmentService.getEnvironmentById(payload.environmentId);
+        if (env) {
+          const variables = await state.environmentService.getManager().getVariables(String(payload.environmentId));
+          panel.webview.postMessage({
+            type: "loadEnvironmentVariables",
+            payload: {
+              environmentId: String(payload.environmentId),
+              variables: variables.map(v => ({ id: v.id, key: v.key, value: v.value })),
+            },
+          });
+        }
+        break;
+      }
       default:
         break;
     }
@@ -689,6 +1061,22 @@ function getWebviewHtml(scriptUri: string, nonce: string): string {
   <meta http-equiv="Content-Security-Policy" content="default-src 'none'; img-src data: https:; script-src 'nonce-${nonce}'; style-src 'unsafe-inline';" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>ReqBeam</title>
+</head>
+<body>
+  <div id="root"></div>
+  <script nonce="${nonce}" src="${scriptUri}"></script>
+</body>
+</html>`;
+}
+
+function getEnvironmentEditorHtml(scriptUri: string, nonce: string): string {
+  return `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; img-src data: https:; script-src 'nonce-${nonce}'; style-src 'unsafe-inline';" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Environment Editor</title>
 </head>
 <body>
   <div id="root"></div>
@@ -720,7 +1108,9 @@ async function sendEnvironmentsToWebview(
   const envs = await state.environmentService.getEnvironments(
     activeWorkspaceId
   );
-  const activeId = state.environmentService.getActiveEnvironmentId();
+  const activeIdStr = state.environmentService.getActiveEnvironmentId();
+  // Convert string ID to number for consistency
+  const activeId = activeIdStr ? Number(activeIdStr) : null;
   panel.webview.postMessage({
     type: "environments",
     payload: { environments: envs, activeId },

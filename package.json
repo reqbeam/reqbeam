@@ -25,6 +25,18 @@
     "onView:reqbeam.historyView"
   ],
   "contributes": {
+    "customEditors": [
+      {
+        "viewType": "reqbeam.environmentVariableEditor",
+        "displayName": "Environment Variables",
+        "selector": [
+          {
+            "filenamePattern": "*.reqbeam-env"
+          }
+        ],
+        "priority": "default"
+      }
+    ],
     "viewsContainers": {
       "activitybar": [
         {
@@ -120,6 +132,45 @@
       },
       {
         "command": "reqbeam.showRequestMenu",
+        "title": "More Actions...",
+        "icon": "$(more)"
+      },
+      {
+        "command": "reqbeam.renameCollection",
+        "title": "Rename Collection"
+      },
+      {
+        "command": "reqbeam.deleteCollection",
+        "title": "Delete Collection"
+      },
+      {
+        "command": "reqbeam.showCollectionMenu",
+        "title": "More Actions...",
+        "icon": "$(more)"
+      },
+      {
+        "command": "reqbeam.renameWorkspace",
+        "title": "Rename Workspace"
+      },
+      {
+        "command": "reqbeam.deleteWorkspace",
+        "title": "Delete Workspace"
+      },
+      {
+        "command": "reqbeam.showWorkspaceMenu",
+        "title": "More Actions...",
+        "icon": "$(more)"
+      },
+      {
+        "command": "reqbeam.openEnvironmentEditor",
+        "title": "Edit Environment Variables"
+      },
+      {
+        "command": "reqbeam.addEnvironmentVariable",
+        "title": "Add Variable"
+      },
+      {
+        "command": "reqbeam.showEnvironmentMenu",
         "title": "More Actions...",
         "icon": "$(more)"
       },
@@ -240,44 +291,16 @@
           "group": "inline"
         },
         {
-          "command": "reqbeam.renameEnvironment",
+          "command": "reqbeam.showEnvironmentMenu",
           "when": "view == reqbeam.environmentsView && viewItem == environment",
-          "group": "inline"
+          "group": "inline",
+          "icon": "$(more)"
         },
         {
-          "command": "reqbeam.deleteEnvironment",
-          "when": "view == reqbeam.environmentsView && viewItem == environment",
-          "group": "inline"
-        },
-        {
-          "command": "reqbeam.renameEnvironment",
+          "command": "reqbeam.showEnvironmentMenu",
           "when": "view == reqbeam.environmentsView && viewItem == environment-active",
-          "group": "inline"
-        },
-        {
-          "command": "reqbeam.deleteEnvironment",
-          "when": "view == reqbeam.environmentsView && viewItem == environment-active",
-          "group": "inline"
-        },
-        {
-          "command": "reqbeam.duplicateEnvironment",
-          "when": "view == reqbeam.environmentsView && viewItem == environment",
-          "group": "inline"
-        },
-        {
-          "command": "reqbeam.duplicateEnvironment",
-          "when": "view == reqbeam.environmentsView && viewItem == environment-active",
-          "group": "inline"
-        },
-        {
-          "command": "reqbeam.editEnvironment",
-          "when": "view == reqbeam.environmentsView && viewItem == environment",
-          "group": "inline"
-        },
-        {
-          "command": "reqbeam.editEnvironment",
-          "when": "view == reqbeam.environmentsView && viewItem == environment-active",
-          "group": "inline"
+          "group": "inline",
+          "icon": "$(more)"
         },
         {
           "command": "reqbeam.showRequestMenu",
@@ -286,9 +309,27 @@
           "icon": "$(more)"
         },
         {
+          "command": "reqbeam.showCollectionMenu",
+          "when": "view == reqbeam.collectionsView && viewItem == collection",
+          "group": "inline",
+          "icon": "$(more)"
+        },
+        {
           "command": "reqbeam.collections.export",
           "when": "view == reqbeam.collectionsView && viewItem == collection",
           "group": "inline"
+        },
+        {
+          "command": "reqbeam.showWorkspaceMenu",
+          "when": "view == reqbeam.collectionsView && viewItem == workspace",
+          "group": "inline",
+          "icon": "$(more)"
+        },
+        {
+          "command": "reqbeam.showWorkspaceMenu",
+          "when": "view == reqbeam.workspacesView && viewItem == workspace",
+          "group": "inline",
+          "icon": "$(more)"
         }
       ]
     }

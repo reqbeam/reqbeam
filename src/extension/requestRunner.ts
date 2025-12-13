@@ -10,6 +10,7 @@ import { buildFinalUrl, applyAuth, mergeHeaders } from "../core/requestBuilder";
 import { getParams } from "../storage/params";
 import { getAuth } from "../storage/auth";
 import { AuthManager } from "../auth/authManager";
+import { resolveVariables, getMissingVariables } from "../core/envResolver";
 
 export interface RequestRunnerDeps {
   historyService: HistoryService;
@@ -38,46 +39,71 @@ export class RequestRunner {
     const activeEnv = await this.getActiveEnvironment();
     const envId = activeEnv ? String(activeEnv.id) : null;
 
-    // Track unresolved variables for warnings
-    const unresolvedVars = new Set<string>();
-
-    const VARIABLE_REGEX = /\{\{\s*([a-zA-Z0-9_.-]+)\s*\}\}/g;
-    
-    // Check original text for variables, then check resolved text for any that remain unresolved
-    const checkUnresolved = (originalText: string, resolvedText: string): void => {
-      // Find all variables in the original text
-      const originalMatches = originalText.matchAll(VARIABLE_REGEX);
-      for (const match of originalMatches) {
-        const varName = match[1];
-        // Check if this variable still exists in the resolved text (meaning it wasn't resolved)
-        if (resolvedText.includes(`{{${varName}}}`) || resolvedText.includes(`{{ ${varName} }}`)) {
-          unresolvedVars.add(varName);
-        }
+    // Get environment variables
+    let envVars: Record<string, string> = {};
+    if (activeEnv && activeEnv.variables) {
+      try {
+        envVars = typeof activeEnv.variables === "string" 
+          ? JSON.parse(activeEnv.variables) 
+          : activeEnv.variables;
+      } catch {
+        envVars = {};
       }
-    };
+    }
+
+    // Collect all text that might contain variables
+    const allTexts: string[] = [payload.url];
+    if (payload.body) allTexts.push(payload.body);
+    for (const h of payload.headers || []) {
+      if (h.value) allTexts.push(h.value);
+    }
+
+    // Check for missing variables before sending
+    const allMissingVars = new Set<string>();
+    for (const text of allTexts) {
+      const missing = getMissingVariables(text, envVars);
+      missing.forEach(v => allMissingVars.add(v));
+    }
+
+    // If there are missing variables, show warning
+    if (allMissingVars.size > 0) {
+      const varList = Array.from(allMissingVars).join(", ");
+      const result = await vscode.window.showWarningMessage(
+        `Missing environment variables: ${varList}. Continue anyway?`,
+        { modal: true },
+        "Continue",
+        "Cancel"
+      );
+      if (result !== "Continue") {
+        throw new Error("Request cancelled due to missing environment variables");
+      }
+    }
 
     // Step 1: Resolve base URL with environment variables
-    let resolvedUrl = await this.environmentManager.resolveVariables(
-      payload.url,
-      envId
-    );
-    checkUnresolved(payload.url, resolvedUrl);
+    const resolvedUrl = resolveVariables(payload.url, envVars);
 
     // Step 2: Fetch and apply params (query parameters)
+    // Note: Params values should also be resolved, but we'll do that in buildFinalUrl if needed
     let finalUrl = resolvedUrl;
     if (payload.id) {
       const params = await getParams(payload.id);
-      finalUrl = buildFinalUrl(resolvedUrl, params);
+      // Resolve variables in param values
+      const resolvedParams = params.map(p => ({
+        ...p,
+        value: resolveVariables(p.value, envVars),
+      }));
+      finalUrl = buildFinalUrl(resolvedUrl, resolvedParams);
     } else if (payload.params && payload.params.length > 0) {
-      finalUrl = buildFinalUrl(resolvedUrl, payload.params);
+      // Resolve variables in param values
+      const resolvedParams = payload.params.map(p => ({
+        ...p,
+        value: resolveVariables(p.value, envVars),
+      }));
+      finalUrl = buildFinalUrl(resolvedUrl, resolvedParams);
     }
 
     // Step 3: Resolve body with environment variables
-    const resolvedBody = await this.environmentManager.resolveVariables(
-      payload.body ?? "",
-      envId
-    );
-    checkUnresolved(payload.body ?? "", resolvedBody);
+    const resolvedBody = resolveVariables(payload.body ?? "", envVars);
 
     // Step 4: Build custom headers (from user input)
     const customHeaders: Record<string, string> = {};
@@ -85,11 +111,7 @@ export class RequestRunner {
       if (h.enabled === false) continue;
       if (!h.key) continue;
       const originalValue = h.value ?? "";
-      const resolvedValue = await this.environmentManager.resolveVariables(
-        originalValue,
-        envId
-      );
-      checkUnresolved(originalValue, resolvedValue);
+      const resolvedValue = resolveVariables(originalValue, envVars);
       customHeaders[h.key] = resolvedValue;
     }
 
@@ -124,20 +146,6 @@ export class RequestRunner {
       }
     }
 
-    // Log warnings for unresolved variables
-    if (unresolvedVars.size > 0 && envId) {
-      const outputChannel = vscode.window.createOutputChannel("ReqBeam");
-      outputChannel.appendLine(
-        `⚠️ Warning: Unresolved variables found: ${Array.from(unresolvedVars).join(", ")}`
-      );
-      outputChannel.appendLine(
-        `Environment "${activeEnv?.name || envId}" does not contain these variables.`
-      );
-      outputChannel.appendLine(
-        `Variables will be sent as-is (e.g., {{variableName}}).`
-      );
-      outputChannel.show(true);
-    }
 
     const url = new URL(finalUrl);
     const isHttps = url.protocol === "https:";

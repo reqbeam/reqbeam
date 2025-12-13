@@ -1,11 +1,13 @@
 import * as React from "react";
 import { RequestParam } from "../../types/models";
+import { VariableHighlightInput } from "./VariableHighlightInput";
 
 export interface ParamsSectionProps {
   params: RequestParam[];
   finalUrl: string;
   onChange: (params: RequestParam[]) => void;
   vscode: { postMessage: (msg: unknown) => void };
+  environmentVariables?: Record<string, string>;
 }
 
 export const ParamsSection: React.FC<ParamsSectionProps> = ({
@@ -13,6 +15,7 @@ export const ParamsSection: React.FC<ParamsSectionProps> = ({
   finalUrl,
   onChange,
   vscode,
+  environmentVariables = {},
 }) => {
   const handleAdd = () => {
     const newParam: RequestParam = {
@@ -220,22 +223,13 @@ export const ParamsSection: React.FC<ParamsSectionProps> = ({
                     />
                   </td>
                   <td style={{ padding: "4px 8px" }}>
-                    <input
-                      type="text"
+                    <VariableHighlightInput
                       value={param.value}
-                      onChange={(e) =>
-                        handleChange(param.id, "value", e.target.value)
-                      }
+                      onChange={(value) => handleChange(param.id, "value", value)}
                       placeholder="Parameter value"
+                      environmentVariables={environmentVariables}
                       style={{
-                        width: "100%",
                         padding: "2px 6px",
-                        fontSize: 12,
-                        backgroundColor: "var(--vscode-input-background)",
-                        color: "var(--vscode-input-foreground)",
-                        border:
-                          "1px solid var(--vscode-input-border, var(--vscode-editorGroup-border))",
-                        borderRadius: 2,
                       }}
                     />
                   </td>
