@@ -20,7 +20,7 @@ export class EnvironmentVariableEditorProvider
     // Extract environment ID from document URI
     const uri = document.uri;
     const envId = uri.path.split("/").pop();
-    if (!envId || isNaN(Number(envId))) {
+    if (!envId || envId.trim() === '') {
       webviewPanel.webview.html = this.getErrorHtml("Invalid environment ID");
       return;
     }
@@ -31,14 +31,14 @@ export class EnvironmentVariableEditorProvider
       return;
     }
 
-    // Get environment data
-    const env = await this.environmentService.getEnvironmentById(Number(envId));
+    // Get environment data (envId is now a string CUID, not a number)
+    const env = await this.environmentService.getEnvironmentById(envId);
     if (!env) {
       webviewPanel.webview.html = this.getErrorHtml("Environment not found");
       return;
     }
 
-    const variables = await this.environmentService.getManager().getVariables(String(envId));
+    const variables = await this.environmentService.getManager().getVariables(envId);
 
     // Setup webview
     webviewPanel.webview.options = {
@@ -65,7 +65,7 @@ export class EnvironmentVariableEditorProvider
           }
           try {
             await this.environmentService.updateEnvironmentVariables(
-              Number(envId),
+              envId,
               varsMap
             );
             webviewPanel.webview.postMessage({

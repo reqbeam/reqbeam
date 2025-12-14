@@ -5,6 +5,7 @@ import { v4 as uuidv4 } from "uuid";
 import { getDb } from "../extension/db";
 import { Collection, RequestModel } from "../types/models";
 import { parseOpenAPISpec } from "../core/swaggerParser";
+import { generateId } from "../utils/cuid";
 
 export interface PostmanCollection {
   info: {
@@ -60,7 +61,7 @@ export interface ReqBeamCollection {
  * Get all collections for a workspace
  */
 export async function getCollections(
-  workspaceId: number | null
+  workspaceId: string | null
 ): Promise<Collection[]> {
   const db = getDb();
   if (workspaceId != null) {
@@ -78,7 +79,7 @@ export async function getCollections(
  * Get a single collection with its requests
  */
 export async function getCollectionWithRequests(
-  collectionId: number
+  collectionId: string
 ): Promise<{ collection: Collection; requests: RequestModel[] } | null> {
   const db = getDb();
   const collection = await db.get<Collection>(
@@ -106,24 +107,31 @@ export async function getCollectionWithRequests(
  */
 export async function saveCollection(
   name: string,
-  workspaceId: number | null,
+  workspaceId: string | null,
+  userId: string,
   description?: string
-): Promise<number> {
+): Promise<string> {
   const db = getDb();
-  const result = await db.run(
-    `INSERT INTO collections (name, workspaceId, description) VALUES (?, ?, ?)`,
+  const id = generateId();
+  const now = new Date().toISOString();
+  await db.run(
+    `INSERT INTO collections (id, name, userId, workspaceId, description, createdAt, updatedAt) VALUES (?, ?, ?, ?, ?, ?, ?)`,
+    id,
     name,
+    userId,
     workspaceId ?? null,
-    description || null
+    description || null,
+    now,
+    now
   );
-  return result.lastID ?? 0;
+  return id;
 }
 
 /**
  * Export collection to Postman v2.1 format
  */
 export async function exportCollection(
-  collectionId: number,
+  collectionId: string,
   exportAll: boolean = false
 ): Promise<string> {
   const db = getDb();
@@ -278,8 +286,9 @@ function convertRequestsToPostmanItems(
  */
 export async function importCollection(
   filePath: string,
-  workspaceId: number | null
-): Promise<{ collectionId: number; requestCount: number }> {
+  workspaceId: string | null,
+  userId: string
+): Promise<{ collectionId: string; requestCount: number }> {
   const fileContent = fs.readFileSync(filePath, "utf-8");
   let data: any;
 
@@ -296,10 +305,10 @@ export async function importCollection(
     data.info.schema.includes("collection/v");
 
   if (isPostman) {
-    return await importPostmanCollection(data as PostmanCollection, workspaceId);
+    return await importPostmanCollection(data as PostmanCollection, workspaceId, userId);
   } else {
     // Assume ReqBeam format
-    return await importReqBeamCollection(data as ReqBeamCollection, workspaceId);
+    return await importReqBeamCollection(data as ReqBeamCollection, workspaceId, userId);
   }
 }
 
@@ -308,13 +317,14 @@ export async function importCollection(
  */
 async function importPostmanCollection(
   data: PostmanCollection,
-  workspaceId: number | null
-): Promise<{ collectionId: number; requestCount: number }> {
+  workspaceId: string | null,
+  userId: string
+): Promise<{ collectionId: string; requestCount: number }> {
   const db = getDb();
 
   // Check for duplicate name
   let collectionName = data.info.name;
-  const existing = await db.get<{ id: number }>(
+  const existing = await db.get<{ id: string }>(
     `SELECT id FROM collections WHERE name = ? AND (workspaceId = ? OR (? IS NULL AND workspaceId IS NULL))`,
     collectionName,
     workspaceId,
@@ -329,6 +339,7 @@ async function importPostmanCollection(
   const collectionId = await saveCollection(
     collectionName,
     workspaceId,
+    userId,
     data.info.description
   );
 
@@ -405,18 +416,24 @@ async function importPostmanCollection(
         }
 
         // Save request
+        const requestId = generateId();
+        const now = new Date().toISOString();
         await db.run(
-          `INSERT INTO requests (collectionId, workspaceId, name, method, url, headers, body, bodyType, auth)
-           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+          `INSERT INTO requests (id, collectionId, workspaceId, userId, name, method, url, headers, body, bodyType, auth, createdAt, updatedAt)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+          requestId,
           collectionId,
           workspaceId,
+          userId,
           item.name || `${method} ${url}`,
           method,
           url,
           JSON.stringify(headers),
           body,
           bodyType,
-          request.auth ? JSON.stringify(request.auth) : null
+          request.auth ? JSON.stringify(request.auth) : null,
+          now,
+          now
         );
         requestCount++;
       } else if (item.item) {
@@ -438,13 +455,14 @@ async function importPostmanCollection(
  */
 async function importReqBeamCollection(
   data: ReqBeamCollection,
-  workspaceId: number | null
-): Promise<{ collectionId: number; requestCount: number }> {
+  workspaceId: string | null,
+  userId: string
+): Promise<{ collectionId: string; requestCount: number }> {
   const db = getDb();
 
   // Check for duplicate name
   let collectionName = data.name;
-  const existing = await db.get<{ id: number }>(
+  const existing = await db.get<{ id: string }>(
     `SELECT id FROM collections WHERE name = ? AND (workspaceId = ? OR (? IS NULL AND workspaceId IS NULL))`,
     collectionName,
     workspaceId,
@@ -459,24 +477,31 @@ async function importReqBeamCollection(
   const collectionId = await saveCollection(
     collectionName,
     workspaceId,
+    userId,
     data.description
   );
 
   // Import requests
   let requestCount = 0;
+  const now = new Date().toISOString();
   for (const req of data.requests) {
+    const requestId = generateId();
     await db.run(
-      `INSERT INTO requests (collectionId, workspaceId, name, method, url, headers, body, bodyType, auth)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      `INSERT INTO requests (id, collectionId, workspaceId, userId, name, method, url, headers, body, bodyType, auth, createdAt, updatedAt)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      requestId,
       collectionId,
       workspaceId,
+      userId,
       req.name,
       req.method,
       req.url,
       JSON.stringify(req.headers || []),
       req.body || "",
       "json",
-      req.auth || null
+      req.auth || null,
+      now,
+      now
     );
     requestCount++;
   }
@@ -489,8 +514,9 @@ async function importReqBeamCollection(
  */
 export async function importSwagger(
   filePath: string,
-  workspaceId: number | null
-): Promise<{ collectionId: number; requestCount: number }> {
+  workspaceId: string | null,
+  userId: string
+): Promise<{ collectionId: string; requestCount: number }> {
   const fileContent = fs.readFileSync(filePath, "utf-8");
   const fileName = filePath.toLowerCase();
   const fileType = fileName.endsWith(".yaml") || fileName.endsWith(".yml")
@@ -518,7 +544,7 @@ export async function importSwagger(
 
   // Check for duplicate name
   let finalCollectionName = collectionName;
-  const existing = await db.get<{ id: number }>(
+  const existing = await db.get<{ id: string }>(
     `SELECT id FROM collections WHERE name = ? AND (workspaceId = ? OR (? IS NULL AND workspaceId IS NULL))`,
     finalCollectionName,
     workspaceId,
@@ -533,24 +559,31 @@ export async function importSwagger(
   const collectionId = await saveCollection(
     finalCollectionName,
     workspaceId,
+    userId,
     "Imported from OpenAPI/Swagger specification"
   );
 
   // Import requests
   let requestCount = 0;
+  const now = new Date().toISOString();
   for (const req of requests) {
+    const requestId = generateId();
     await db.run(
-      `INSERT INTO requests (collectionId, workspaceId, name, method, url, headers, body, bodyType, auth)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      `INSERT INTO requests (id, collectionId, workspaceId, userId, name, method, url, headers, body, bodyType, auth, createdAt, updatedAt)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      requestId,
       collectionId,
       workspaceId,
+      userId,
       req.name,
       req.method,
       req.url,
       JSON.stringify(req.headers || []),
       req.body || "",
       req.bodyType || "json",
-      null
+      null,
+      now,
+      now
     );
     requestCount++;
   }

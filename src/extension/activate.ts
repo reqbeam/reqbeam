@@ -17,14 +17,15 @@ import { EnvironmentVariableEditorProvider } from "../editors/environmentVariabl
 export async function activate(context: vscode.ExtensionContext): Promise<void> {
   await initDatabase(context);
 
-  const workspaceService = new WorkspaceService(context);
-  const historyService = new HistoryService(context);
-  const environmentService = new EnvironmentService(context);
-  const collectionService = new CollectionService(workspaceService);
-
-  // Initialize authentication system
+  // Initialize authentication system first
   const authManager = new AuthManager(context);
+  const workspaceService = new WorkspaceService(context, authManager);
+  const historyService = new HistoryService(context, authManager);
+  const environmentService = new EnvironmentService(context, authManager);
   const statusBar = new AuthStatusBar(context, authManager);
+  
+  // Create collectionService with authManager
+  const collectionService = new CollectionService(workspaceService, authManager);
   
   // Register URI handler for OAuth callback
   registerUriHandler(context, authManager, async () => {
@@ -58,9 +59,25 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
   registerCommands(context, state);
   registerImportExportCommands(context, collectionService, workspaceService, authManager);
 
-  // Check authentication on activation and prompt if not logged in
+  // Check authentication on activation and sync user if logged in
   const isLoggedIn = await authManager.isLoggedIn();
-  if (!isLoggedIn) {
+  if (isLoggedIn) {
+    // Sync user to local database if already logged in
+    try {
+      const userInfo = await authManager.getUserInfo();
+      if (userInfo) {
+        const { createOrUpdateUserFromAuth } = await import("../storage/users");
+        await createOrUpdateUserFromAuth(
+          userInfo.userId,
+          userInfo.email,
+          userInfo.name || undefined
+        );
+        console.log("User synced on activation:", userInfo.email);
+      }
+    } catch (error) {
+      console.error("Error syncing user on activation:", error);
+    }
+  } else {
     // Show welcome message after a short delay
     setTimeout(async () => {
       const result = await vscode.window.showInformationMessage(

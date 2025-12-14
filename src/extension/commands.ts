@@ -267,7 +267,7 @@ export function registerCommands(
   disposables.push(
     vscode.commands.registerCommand(
       "reqbeam.setWorkspace",
-      async (workspace: { id: number }) => {
+      async (workspace: { id: string | number }) => {
         await state.workspaceService.setActiveWorkspace(workspace.id);
         state.collectionService.refresh();
         state.environmentService.refresh();
@@ -305,9 +305,11 @@ export function registerCommands(
         prompt: "Collection description (optional)",
         placeHolder: "Optional description",
       });
+      // Convert workspaceId to string if it's a number (for backward compatibility)
+      const workspaceIdStr = activeWorkspaceId != null ? String(activeWorkspaceId) : null;
       await state.collectionService.createCollection(
         name,
-        activeWorkspaceId,
+        workspaceIdStr,
         description || undefined
       );
     })
@@ -702,12 +704,13 @@ export function registerCommands(
   disposables.push(
     vscode.commands.registerCommand(
       "reqbeam.openEnvironmentEditor",
-      async (env: { id: number; name: string }) => {
+      async (env: { id: string | number; name: string }) => {
         if (state.authManager && !(await requireAuth(state.authManager, "editing environment variables"))) {
           return;
         }
-        // Create a virtual document URI for the environment
-        const uri = vscode.Uri.parse(`reqbeam-env://environment/${env.id}`);
+        // Create a virtual document URI for the environment (ID is now a string CUID)
+        const envId = String(env.id);
+        const uri = vscode.Uri.parse(`reqbeam-env://environment/${envId}`);
         await vscode.commands.executeCommand(
           "vscode.openWith",
           uri,
@@ -720,7 +723,7 @@ export function registerCommands(
   disposables.push(
     vscode.commands.registerCommand(
       "reqbeam.addEnvironmentVariable",
-      async (env: { id: number; name: string }) => {
+      async (env: { id: string | number; name: string }) => {
         if (state.authManager && !(await requireAuth(state.authManager, "adding environment variables"))) {
           return;
         }

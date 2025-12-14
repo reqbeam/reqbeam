@@ -1,6 +1,7 @@
 import * as vscode from "vscode";
 import { EnvironmentManager } from "../core/environmentManager";
 import { Environment } from "../types/models";
+import { AuthManager } from "../auth/authManager";
 
 export class EnvironmentService
   implements vscode.TreeDataProvider<EnvironmentItem>, vscode.Disposable
@@ -13,15 +14,17 @@ export class EnvironmentService
   private activeEnvId: string | null = null;
   private readonly context: vscode.ExtensionContext;
   private readonly manager: EnvironmentManager;
+  private authManager?: AuthManager;
 
-  constructor(context: vscode.ExtensionContext) {
+  constructor(context: vscode.ExtensionContext, authManager?: AuthManager) {
     this.context = context;
+    this.authManager = authManager;
     this.manager = new EnvironmentManager();
-    const savedId = context.globalState.get<number | null>(
+    const savedId = context.globalState.get<string | null>(
       "reqbeam.activeEnvironmentId",
       null
     );
-    this.activeEnvId = savedId != null ? String(savedId) : null;
+    this.activeEnvId = savedId;
   }
 
   dispose(): void {
@@ -35,7 +38,7 @@ export class EnvironmentService
   private async persistActiveEnv(): Promise<void> {
     await this.context.globalState.update(
       "reqbeam.activeEnvironmentId",
-      this.activeEnvId != null ? Number(this.activeEnvId) : null
+      this.activeEnvId
     );
   }
 
@@ -43,8 +46,8 @@ export class EnvironmentService
     return this.activeEnvId;
   }
 
-  async setActiveEnvironment(id: number | null): Promise<void> {
-    this.activeEnvId = id != null ? String(id) : null;
+  async setActiveEnvironment(id: string | null): Promise<void> {
+    this.activeEnvId = id;
     await this.persistActiveEnv();
     this.refresh();
   }
@@ -63,7 +66,7 @@ export class EnvironmentService
     }
 
     return {
-      id: Number(env.id),
+      id: env.id,
       name: env.name,
       variables: JSON.stringify(varsMap),
       workspaceId: env.workspaceId ?? null,
@@ -71,7 +74,7 @@ export class EnvironmentService
     };
   }
 
-  async getEnvironments(workspaceId?: number | null): Promise<Environment[]> {
+  async getEnvironments(workspaceId?: string | null): Promise<Environment[]> {
     const envs = await this.manager.getEnvironments(workspaceId);
     const result: Environment[] = [];
 
@@ -83,7 +86,7 @@ export class EnvironmentService
       }
 
       result.push({
-        id: Number(env.id),
+        id: env.id,
         name: env.name,
         variables: JSON.stringify(varsMap),
         workspaceId: env.workspaceId ?? null,
@@ -94,71 +97,153 @@ export class EnvironmentService
     return result;
   }
 
-  async getEnvironmentById(id: number): Promise<Environment | null> {
-    const env = await this.manager.getEnvironment(String(id));
+  async getEnvironmentById(id: string): Promise<Environment | null> {
+    const env = await this.manager.getEnvironment(id);
     if (!env) return null;
 
-    const variables = await this.manager.getVariables(String(id));
+    const variables = await this.manager.getVariables(id);
     const varsMap: Record<string, string> = {};
     for (const v of variables) {
       varsMap[v.key] = v.value;
     }
 
     return {
-      id: Number(env.id),
+      id: env.id,
       name: env.name,
       variables: JSON.stringify(varsMap),
       workspaceId: env.workspaceId ?? null,
-      isActive: this.activeEnvId === String(id),
+      isActive: this.activeEnvId === id,
     };
   }
 
   async createEnvironment(
     name: string,
-    workspaceId?: number | null
+    workspaceId?: string | null
   ): Promise<void> {
+    const { getDb } = await import("../extension/db");
+    const db = getDb();
+    
+    // Get user email from auth token
+    let userEmail: string | null = null;
+    let tokenUserId: string | null = null;
+    let userName: string | undefined = undefined;
+    
+    if (this.authManager) {
+      const userInfo = await this.authManager.getUserInfo();
+      tokenUserId = userInfo?.userId || null;
+      userEmail = userInfo?.email || null;
+      userName = userInfo?.name;
+    }
+    
+    if (!userEmail) {
+      throw new Error("User must be logged in to create environments");
+    }
+
+    // Ensure user exists in local database (sync if needed)
+    if (tokenUserId && userEmail) {
+      try {
+        const { createOrUpdateUserFromAuth } = await import("../storage/users");
+        await createOrUpdateUserFromAuth(tokenUserId, userEmail, userName);
+      } catch (error) {
+        console.error("Error syncing user before creating environment:", error);
+      }
+    }
+
+    // Fetch userId from users table by email (ensures we use the actual database ID)
+    const user = await db.get<{ id: string }>(
+      `SELECT id FROM users WHERE email = ?`,
+      userEmail.toLowerCase().trim()
+    );
+    
+    if (!user || !user.id) {
+      throw new Error(`User with email ${userEmail} does not exist in local database. Please log out and log back in.`);
+    }
+
+    const userId = user.id;
+
     // If workspaceId is not provided, use the active workspace
-    const activeWorkspaceId = workspaceId ?? this.context.globalState.get<number | null>(
+    const activeWorkspaceId = workspaceId ?? this.context.globalState.get<string | null>(
       "reqbeam.activeWorkspaceId",
       null
     );
-    await this.manager.createEnvironment(name, activeWorkspaceId);
+    await this.manager.createEnvironment(name, activeWorkspaceId, userId);
     this.refresh();
   }
 
-  async renameEnvironment(id: number, name: string): Promise<void> {
-    await this.manager.updateEnvironment(String(id), { name });
+  async renameEnvironment(id: string, name: string): Promise<void> {
+    await this.manager.updateEnvironment(id, { name });
     this.refresh();
   }
 
-  async deleteEnvironment(id: number): Promise<void> {
-    await this.manager.deleteEnvironment(String(id));
-    if (this.activeEnvId === String(id)) {
+  async deleteEnvironment(id: string): Promise<void> {
+    await this.manager.deleteEnvironment(id);
+    if (this.activeEnvId === id) {
       this.activeEnvId = null;
       await this.persistActiveEnv();
     }
     this.refresh();
   }
 
-  async duplicateEnvironment(id: number, newName: string): Promise<void> {
-    await this.manager.duplicateEnvironment(String(id), newName);
+  async duplicateEnvironment(id: string, newName: string): Promise<void> {
+    const { getDb } = await import("../extension/db");
+    const db = getDb();
+    
+    // Get user email from auth token
+    let userEmail: string | null = null;
+    let tokenUserId: string | null = null;
+    let userName: string | undefined = undefined;
+    
+    if (this.authManager) {
+      const userInfo = await this.authManager.getUserInfo();
+      tokenUserId = userInfo?.userId || null;
+      userEmail = userInfo?.email || null;
+      userName = userInfo?.name;
+    }
+    
+    if (!userEmail) {
+      throw new Error("User must be logged in to duplicate environments");
+    }
+
+    // Ensure user exists in local database (sync if needed)
+    if (tokenUserId && userEmail) {
+      try {
+        const { createOrUpdateUserFromAuth } = await import("../storage/users");
+        await createOrUpdateUserFromAuth(tokenUserId, userEmail, userName);
+      } catch (error) {
+        console.error("Error syncing user before duplicating environment:", error);
+      }
+    }
+
+    // Fetch userId from users table by email (ensures we use the actual database ID)
+    const user = await db.get<{ id: string }>(
+      `SELECT id FROM users WHERE email = ?`,
+      userEmail.toLowerCase().trim()
+    );
+    
+    if (!user || !user.id) {
+      throw new Error(`User with email ${userEmail} does not exist in local database. Please log out and log back in.`);
+    }
+
+    const userId = user.id;
+
+    await this.manager.duplicateEnvironment(id, newName, userId);
     this.refresh();
   }
 
   async updateEnvironmentVariables(
-    id: number,
+    id: string,
     variables: Record<string, string>
   ): Promise<void> {
     // Delete all existing variables
-    const existing = await this.manager.getVariables(String(id));
+    const existing = await this.manager.getVariables(id);
     for (const v of existing) {
-      await this.manager.removeVariable(v.id);
+      await this.manager.removeVariableByKey(id, v.key);
     }
 
     // Add new variables
     for (const [key, value] of Object.entries(variables)) {
       if (key.trim()) {
-        await this.manager.setVariable(String(id), key.trim(), value);
+        await this.manager.setVariable(id, key.trim(), value);
       }
     }
     this.refresh();
@@ -180,7 +265,7 @@ export class EnvironmentService
     item.command = {
       command: "reqbeam.openEnvironmentEditor",
       title: "ReqBeam: Edit Environment Variables",
-      arguments: [{ id: Number(element.id), name: element.name }],
+      arguments: [{ id: element.id, name: element.name }],
     };
     return item;
   }
@@ -189,7 +274,7 @@ export class EnvironmentService
     if (element) {
       return [];
     }
-    const activeWorkspaceId = this.context.globalState.get<number | null>(
+    const activeWorkspaceId = this.context.globalState.get<string | null>(
       "reqbeam.activeWorkspaceId",
       null
     );

@@ -16,14 +16,14 @@ import { requireAuth } from "../auth/authHelper";
 export function registerImportExportCommands(
   context: vscode.ExtensionContext,
   collectionService: CollectionService,
-  workspaceService: { getActiveWorkspaceId: () => number | null },
+  workspaceService: { getActiveWorkspaceId: () => string | null },
   authManager?: AuthManager
 ): void {
   // Export Collection command
   context.subscriptions.push(
     vscode.commands.registerCommand(
       "reqbeam.collections.export",
-      async (item?: { collectionId?: number }) => {
+      async (item?: { collectionId?: string }) => {
         if (authManager && !(await requireAuth(authManager, "exporting collections"))) {
           return;
         }
@@ -37,7 +37,7 @@ export function registerImportExportCommands(
           }
 
           // Determine if exporting single collection or all
-          let collectionId: number | undefined = item?.collectionId;
+          let collectionId: string | undefined = item?.collectionId;
           let exportAll = false;
 
           if (!collectionId) {
@@ -103,7 +103,7 @@ export function registerImportExportCommands(
 
           // Export collection
           const exportData = await exportCollection(
-            collectionId || 0,
+            collectionId || "",
             exportAll
           );
           fs.writeFileSync(uri.fsPath, exportData, "utf-8");
@@ -170,9 +170,20 @@ export function registerImportExportCommands(
 
         const filePath = uris[0].fsPath;
         const finalWorkspaceId = workspaceService.getActiveWorkspaceId();
+        
+        // Get userId from auth token
+        if (!authManager) {
+          await vscode.window.showErrorMessage("Authentication required for importing collections");
+          return;
+        }
+        const userInfo = await authManager.getUserInfo();
+        if (!userInfo?.userId) {
+          await vscode.window.showErrorMessage("User must be logged in to import collections");
+          return;
+        }
 
         // Import collection
-        const result = await importCollection(filePath, finalWorkspaceId);
+        const result = await importCollection(filePath, finalWorkspaceId, userInfo.userId);
 
         // Refresh collections view
         collectionService.refresh();
@@ -239,9 +250,20 @@ export function registerImportExportCommands(
 
           const filePath = uris[0].fsPath;
           const finalWorkspaceId = workspaceService.getActiveWorkspaceId();
+          
+          // Get userId from auth token
+          if (!authManager) {
+            await vscode.window.showErrorMessage("Authentication required for importing Swagger/OpenAPI");
+            return;
+          }
+          const userInfo = await authManager.getUserInfo();
+          if (!userInfo?.userId) {
+            await vscode.window.showErrorMessage("User must be logged in to import Swagger/OpenAPI");
+            return;
+          }
 
           // Import Swagger
-          const result = await importSwagger(filePath, finalWorkspaceId);
+          const result = await importSwagger(filePath, finalWorkspaceId, userInfo.userId);
 
           // Refresh collections view
           collectionService.refresh();

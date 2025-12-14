@@ -1,9 +1,11 @@
 import * as vscode from "vscode";
 import * as http from "http";
+import * as https from "https";
 import * as path from "path";
 import * as fs from "fs";
+import { URL } from "url";
 import { AuthManager } from "../auth/authManager";
-import { createUser, authenticateUser, generateToken } from "../storage/users";
+import { getAuthEndpoint } from "../config/authConfig";
 
 let loginServer: http.Server | null = null;
 let serverPort: number | null = null;
@@ -11,7 +13,89 @@ let pendingToken: string | null = null;
 let tokenReceivedCallback: ((token: string) => void) | null = null;
 
 /**
- * Handle API requests (login, signup)
+ * Proxy request to auth server using Node.js http/https
+ */
+async function proxyToAuthServer(
+  endpoint: string,
+  body: any
+): Promise<{ success: boolean; token?: string; error?: string; message?: string }> {
+  return new Promise((resolve) => {
+    try {
+      const authUrl = getAuthEndpoint(endpoint as any);
+      const url = new URL(authUrl);
+      const isHttps = url.protocol === "https:";
+      const client = isHttps ? https : http;
+
+      const postData = JSON.stringify(body);
+
+      const options: http.RequestOptions = {
+        hostname: url.hostname,
+        port: url.port || (isHttps ? 443 : 80),
+        path: url.pathname,
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Content-Length": Buffer.byteLength(postData),
+        },
+      };
+
+      const req = client.request(options, (res) => {
+        let data = "";
+
+        res.on("data", (chunk) => {
+          data += chunk.toString();
+        });
+
+        res.on("end", () => {
+          try {
+            const responseData = JSON.parse(data);
+
+            if (res.statusCode && res.statusCode >= 200 && res.statusCode < 300 && responseData.token) {
+              resolve({ success: true, token: responseData.token });
+            } else {
+              resolve({
+                success: false,
+                error: responseData.message || responseData.error || "Authentication failed",
+              });
+            }
+          } catch (parseError) {
+            resolve({
+              success: false,
+              error: "Failed to parse auth server response",
+            });
+          }
+        });
+      });
+
+      req.on("error", (error) => {
+        resolve({
+          success: false,
+          error: `Failed to connect to auth server: ${error.message}`,
+        });
+      });
+
+      req.setTimeout(10000, () => {
+        req.destroy();
+        resolve({
+          success: false,
+          error: "Request to auth server timed out",
+        });
+      });
+
+      req.write(postData);
+      req.end();
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : "Unknown error";
+      resolve({
+        success: false,
+        error: `Failed to connect to auth server: ${errorMessage}`,
+      });
+    }
+  });
+}
+
+/**
+ * Handle API requests (login, signup) - proxy to auth server
  */
 function handleApiRequest(
   req: http.IncomingMessage,
@@ -35,25 +119,22 @@ function handleApiRequest(
           return;
         }
 
-        const user = await authenticateUser(email, password);
+        const result = await proxyToAuthServer("login", { email, password });
         
-        if (!user) {
+        if (result.success && result.token) {
+          // Store token for VS Code to pick up
+          pendingToken = result.token;
+          if (tokenReceivedCallback) {
+            tokenReceivedCallback(result.token);
+            tokenReceivedCallback = null;
+          }
+          
+          res.writeHead(200, { "Content-Type": "application/json" });
+          res.end(JSON.stringify({ success: true, token: result.token }));
+        } else {
           res.writeHead(401, { "Content-Type": "application/json" });
-          res.end(JSON.stringify({ success: false, error: "Invalid email or password" }));
-          return;
+          res.end(JSON.stringify({ success: false, error: result.error || "Invalid email or password" }));
         }
-
-        const token = generateToken(user.id, user.email);
-        
-        // Store token for VS Code to pick up
-        pendingToken = token;
-        if (tokenReceivedCallback) {
-          tokenReceivedCallback(token);
-          tokenReceivedCallback = null;
-        }
-        
-        res.writeHead(200, { "Content-Type": "application/json" });
-        res.end(JSON.stringify({ success: true, token }));
         return;
       }
 
@@ -66,29 +147,56 @@ function handleApiRequest(
           return;
         }
 
-        if (password.length < 8) {
-          res.writeHead(400, { "Content-Type": "application/json" });
-          res.end(JSON.stringify({ success: false, error: "Password must be at least 8 characters long" }));
-          return;
-        }
-
-        try {
-          const user = await createUser(email, name, password);
-          const token = generateToken(user.id, user.email);
-          
+        const result = await proxyToAuthServer("signup", { name, email, password });
+        
+        if (result.success && result.token) {
           // Store token for VS Code to pick up
-          pendingToken = token;
+          pendingToken = result.token;
           if (tokenReceivedCallback) {
-            tokenReceivedCallback(token);
+            tokenReceivedCallback(result.token);
             tokenReceivedCallback = null;
           }
           
           res.writeHead(200, { "Content-Type": "application/json" });
-          res.end(JSON.stringify({ success: true, token }));
-        } catch (error) {
-          const errorMessage = error instanceof Error ? error.message : "Unknown error";
+          res.end(JSON.stringify({ success: true, token: result.token }));
+        } else {
           res.writeHead(400, { "Content-Type": "application/json" });
-          res.end(JSON.stringify({ success: false, error: errorMessage }));
+          res.end(JSON.stringify({ success: false, error: result.error || "Signup failed" }));
+        }
+        return;
+      }
+
+      // Google OAuth endpoints
+      if (url === "/api/google-oauth" && req.method === "POST") {
+        const { idToken, email, name } = JSON.parse(body);
+        
+        if (!email) {
+          res.writeHead(400, { "Content-Type": "application/json" });
+          res.end(JSON.stringify({ success: false, error: "Email is required" }));
+          return;
+        }
+
+        // Decode Google ID token to get user info
+        // For OAuth, we'll use the oauth/login endpoint which handles find-or-create
+        const result = await proxyToAuthServer("oauthLogin", {
+          email,
+          name: name || email.split("@")[0],
+          provider: "google",
+        });
+        
+        if (result.success && result.token) {
+          // Store token for VS Code to pick up
+          pendingToken = result.token;
+          if (tokenReceivedCallback) {
+            tokenReceivedCallback(result.token);
+            tokenReceivedCallback = null;
+          }
+          
+          res.writeHead(200, { "Content-Type": "application/json" });
+          res.end(JSON.stringify({ success: true, token: result.token }));
+        } else {
+          res.writeHead(400, { "Content-Type": "application/json" });
+          res.end(JSON.stringify({ success: false, error: result.error || "Google sign-in failed" }));
         }
         return;
       }
@@ -161,6 +269,10 @@ function startLoginServer(context: vscode.ExtensionContext): Promise<number> {
           
           // Inject API base URL and CSS/JS
           html = html.replace(/{{API_BASE_URL}}/g, serverUrl);
+          
+          // Inject auth server URL for direct API calls (optional, for Google OAuth)
+          const authServerUrl = getAuthEndpoint("health").replace("/health", "");
+          html = html.replace(/{{AUTH_SERVER_URL}}/g, authServerUrl);
           
           // Inject CSS inline
           if (fs.existsSync(loginCssPath)) {

@@ -8,22 +8,22 @@ export type HttpMethod =
   | "OPTIONS";
 
 export interface Workspace {
-  id: number;
+  id: string;
   name: string;
   description?: string;
 }
 
 export interface Collection {
-  id: number;
+  id: string;
   name: string;
-  workspaceId: number | null;
+  workspaceId: string | null;
   description?: string;
 }
 
 export interface RequestModel {
-  id: number;
-  collectionId: number | null;
-  workspaceId: number | null;
+  id: string;
+  collectionId: string | null;
+  workspaceId: string | null;
   name: string;
   method: HttpMethod;
   url: string;
@@ -34,8 +34,8 @@ export interface RequestModel {
 }
 
 export interface RequestParam {
-  id: number;
-  requestId: number;
+  id: string;
+  requestId: string;
   key: string;
   value: string;
   active: boolean;
@@ -44,8 +44,8 @@ export interface RequestParam {
 export type AuthType = "none" | "apikey" | "bearer" | "basic" | "header";
 
 export interface RequestAuth {
-  id: number;
-  requestId: number;
+  id: string;
+  requestId: string;
   type: AuthType;
   key?: string; // For API Key
   value?: string; // For API Key value or Bearer token
@@ -57,27 +57,27 @@ export interface RequestAuth {
 }
 
 export interface Environment {
-  id: number;
+  id: string;
   name: string;
   variables: string; // JSON-encoded { key: value }
-  workspaceId: number | null;
+  workspaceId: string | null;
   isActive?: boolean;
 }
 
 export interface HistoryEntry {
-  id: number;
+  id: string;
   method: string;
   url: string;
   status: number;
   duration: number;
   createdAt: string;
-  workspaceId?: number | null;
+  workspaceId?: string | null;
 }
 
 export interface SendRequestPayload {
-  id?: number;
-  collectionId?: number | null;
-  workspaceId?: number | null;
+  id?: string;
+  collectionId?: string | null;
+  workspaceId?: string | null;
   name?: string;
   method: HttpMethod;
   url: string;

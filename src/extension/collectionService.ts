@@ -2,28 +2,32 @@ import * as vscode from "vscode";
 import { getDb } from "./db";
 import { Collection, RequestModel } from "../types/models";
 import { WorkspaceService } from "./workspaceService";
+import { generateId } from "../utils/cuid";
+import { AuthManager } from "../auth/authManager";
 
 export interface CollectionTreeItem extends vscode.TreeItem {
   contextValue: "workspace" | "collection" | "request";
-  workspaceId?: number;
-  collectionId?: number;
-  requestId?: number;
+  workspaceId?: string;
+  collectionId?: string;
+  requestId?: string;
 }
 
 export class CollectionService implements vscode.TreeDataProvider<CollectionTreeItem> {
   private _onDidChangeTreeData = new vscode.EventEmitter<void>();
   readonly onDidChangeTreeData = this._onDidChangeTreeData.event;
   private workspaceService: WorkspaceService;
+  private authManager?: AuthManager;
 
-  constructor(workspaceService: WorkspaceService) {
+  constructor(workspaceService: WorkspaceService, authManager?: AuthManager) {
     this.workspaceService = workspaceService;
+    this.authManager = authManager;
   }
 
   refresh(): void {
     this._onDidChangeTreeData.fire();
   }
 
-  async getCollections(workspaceId?: number | null): Promise<Collection[]> {
+  async getCollections(workspaceId?: string | null): Promise<Collection[]> {
     const db = getDb();
     if (workspaceId != null) {
       const rows = await db.all<Collection[]>(
@@ -38,7 +42,7 @@ export class CollectionService implements vscode.TreeDataProvider<CollectionTree
     return rows;
   }
 
-  async getRequestsForCollection(collectionId: number): Promise<RequestModel[]> {
+  async getRequestsForCollection(collectionId: string): Promise<RequestModel[]> {
     const db = getDb();
     const rows = await db.all<RequestModel[]>(
       `SELECT id, collectionId, workspaceId, name, method, url, headers, body, bodyType, auth
@@ -50,7 +54,7 @@ export class CollectionService implements vscode.TreeDataProvider<CollectionTree
     return rows;
   }
 
-  async getRequestsForWorkspace(workspaceId: number): Promise<RequestModel[]> {
+  async getRequestsForWorkspace(workspaceId: string): Promise<RequestModel[]> {
     const db = getDb();
     const rows = await db.all<RequestModel[]>(
       `SELECT id, collectionId, workspaceId, name, method, url, headers, body, bodyType, auth
@@ -64,27 +68,118 @@ export class CollectionService implements vscode.TreeDataProvider<CollectionTree
 
   async createCollection(
     name: string,
-    workspaceId?: number | null,
+    workspaceId?: string | number | null,
     description?: string
-  ): Promise<number> {
+  ): Promise<string> {
     const db = getDb();
-    const result = await db.run(
-      `INSERT INTO collections (name, workspaceId, description) VALUES (?, ?, ?)`,
-      name,
-      workspaceId ?? null,
-      description || null
+    
+    // Get user info from auth token
+    let userEmail: string | null = null;
+    let tokenUserId: string | null = null;
+    let userName: string | undefined = undefined;
+    
+    if (this.authManager) {
+      const userInfo = await this.authManager.getUserInfo();
+      tokenUserId = userInfo?.userId || null;
+      userEmail = userInfo?.email || null;
+      userName = userInfo?.name;
+    }
+    
+    if (!userEmail) {
+      throw new Error("User must be logged in to create collections");
+    }
+
+    // Ensure user exists in local database (sync if needed)
+    // This prevents foreign key constraint errors
+    if (tokenUserId && userEmail) {
+      try {
+        const { createOrUpdateUserFromAuth } = await import("../storage/users");
+        await createOrUpdateUserFromAuth(tokenUserId, userEmail, userName);
+      } catch (error) {
+        console.error("Error syncing user before creating collection:", error);
+      }
+    }
+
+    // Fetch userId from users table by email (ensures we use the actual database ID)
+    const user = await db.get<{ id: string }>(
+      `SELECT id FROM users WHERE email = ?`,
+      userEmail.toLowerCase().trim()
     );
-    const id = result.lastID ?? 0;
+    
+    if (!user || !user.id) {
+      throw new Error(`User with email ${userEmail} does not exist in local database. Please log out and log back in.`);
+    }
+
+    const userId = user.id;
+
+    // Generate CUID for ID
+    const id = generateId();
+    const now = new Date().toISOString();
+    
+    // Convert workspaceId to string if it's a number (for backward compatibility during migration)
+    const workspaceIdStr = workspaceId ? String(workspaceId) : null;
+    
+    await db.run(
+      `INSERT INTO collections (id, name, userId, workspaceId, description, createdAt, updatedAt) VALUES (?, ?, ?, ?, ?, ?, ?)`,
+      id,
+      name,
+      userId,
+      workspaceIdStr,
+      description || null,
+      now,
+      now
+    );
+    
     this.refresh();
     return id;
   }
 
-  async saveRequest(model: Omit<RequestModel, "id"> & { id?: number }): Promise<number> {
+  async saveRequest(model: Omit<RequestModel, "id"> & { id?: string }): Promise<string> {
     const db = getDb();
+    
+    // Get user email from auth token
+    let userEmail: string | null = null;
+    let tokenUserId: string | null = null;
+    let userName: string | undefined = undefined;
+    
+    if (this.authManager) {
+      const userInfo = await this.authManager.getUserInfo();
+      tokenUserId = userInfo?.userId || null;
+      userEmail = userInfo?.email || null;
+      userName = userInfo?.name;
+    }
+    
+    if (!userEmail) {
+      throw new Error("User must be logged in to save requests");
+    }
+
+    // Ensure user exists in local database (sync if needed)
+    if (tokenUserId && userEmail) {
+      try {
+        const { createOrUpdateUserFromAuth } = await import("../storage/users");
+        await createOrUpdateUserFromAuth(tokenUserId, userEmail, userName);
+      } catch (error) {
+        console.error("Error syncing user before saving request:", error);
+      }
+    }
+
+    // Fetch userId from users table by email (ensures we use the actual database ID)
+    const user = await db.get<{ id: string }>(
+      `SELECT id FROM users WHERE email = ?`,
+      userEmail.toLowerCase().trim()
+    );
+    
+    if (!user || !user.id) {
+      throw new Error(`User with email ${userEmail} does not exist in local database. Please log out and log back in.`);
+    }
+
+    const userId = user.id;
+
     if (model.id) {
+      const now = new Date().toISOString();
       await db.run(
         `UPDATE requests
-         SET collectionId = ?, workspaceId = ?, name = ?, method = ?, url = ?, headers = ?, body = ?, bodyType = ?, auth = ?
+         SET collectionId = ?, workspaceId = ?, name = ?, method = ?, url = ?, headers = ?, body = ?, bodyType = ?, auth = ?, updatedAt = ?
          WHERE id = ?`,
         model.collectionId ?? null,
         model.workspaceId ?? null,
@@ -95,31 +190,38 @@ export class CollectionService implements vscode.TreeDataProvider<CollectionTree
         model.body,
         model.bodyType || null,
         model.auth || null,
+        now,
         model.id
       );
       this.refresh();
       return model.id;
     }
 
-    const result = await db.run(
-      `INSERT INTO requests (collectionId, workspaceId, name, method, url, headers, body, bodyType, auth)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+    // Create new request
+    const id = generateId();
+    const now = new Date().toISOString();
+    await db.run(
+      `INSERT INTO requests (id, collectionId, workspaceId, userId, name, method, url, headers, body, bodyType, auth, createdAt, updatedAt)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      id,
       model.collectionId ?? null,
       model.workspaceId ?? null,
+      userId,
       model.name,
       model.method,
       model.url,
       model.headers,
       model.body,
       model.bodyType || null,
-      model.auth || null
+      model.auth || null,
+      now,
+      now
     );
-    const id = result.lastID ?? 0;
     this.refresh();
     return id;
   }
 
-  async getRequestById(id: number): Promise<RequestModel | null> {
+  async getRequestById(id: string): Promise<RequestModel | null> {
     const db = getDb();
     const row = await db.get<RequestModel>(
       `SELECT id, collectionId, workspaceId, name, method, url, headers, body, bodyType, auth
@@ -130,19 +232,20 @@ export class CollectionService implements vscode.TreeDataProvider<CollectionTree
     return row ?? null;
   }
 
-  async renameRequest(id: number, name: string): Promise<void> {
+  async renameRequest(id: string, name: string): Promise<void> {
     const db = getDb();
-    await db.run(`UPDATE requests SET name = ? WHERE id = ?`, name, id);
+    const now = new Date().toISOString();
+    await db.run(`UPDATE requests SET name = ?, updatedAt = ? WHERE id = ?`, name, now, id);
     this.refresh();
   }
 
-  async deleteRequest(id: number): Promise<void> {
+  async deleteRequest(id: string): Promise<void> {
     const db = getDb();
     await db.run(`DELETE FROM requests WHERE id = ?`, id);
     this.refresh();
   }
 
-  async getCollectionById(id: number): Promise<Collection | null> {
+  async getCollectionById(id: string): Promise<Collection | null> {
     const db = getDb();
     const row = await db.get<Collection>(
       `SELECT id, name, workspaceId, description FROM collections WHERE id = ?`,
@@ -151,13 +254,14 @@ export class CollectionService implements vscode.TreeDataProvider<CollectionTree
     return row ?? null;
   }
 
-  async renameCollection(id: number, name: string): Promise<void> {
+  async renameCollection(id: string, name: string): Promise<void> {
     const db = getDb();
-    await db.run(`UPDATE collections SET name = ? WHERE id = ?`, name, id);
+    const now = new Date().toISOString();
+    await db.run(`UPDATE collections SET name = ?, updatedAt = ? WHERE id = ?`, name, now, id);
     this.refresh();
   }
 
-  async deleteCollection(id: number): Promise<void> {
+  async deleteCollection(id: string): Promise<void> {
     const db = getDb();
     // First delete all requests in this collection
     await db.run(`DELETE FROM requests WHERE collectionId = ?`, id);
@@ -190,8 +294,9 @@ export class CollectionService implements vscode.TreeDataProvider<CollectionTree
       }
 
       // Show collections and requests for active workspace
-      const collections = await this.getCollections(activeWorkspaceId);
-      const requests = await this.getRequestsForWorkspace(activeWorkspaceId);
+      const workspaceIdStr = activeWorkspaceId != null ? String(activeWorkspaceId) : null;
+      const collections = await this.getCollections(workspaceIdStr);
+      const requests = workspaceIdStr ? await this.getRequestsForWorkspace(workspaceIdStr) : [];
       
       const items: CollectionTreeItem[] = [];
       
@@ -231,8 +336,9 @@ export class CollectionService implements vscode.TreeDataProvider<CollectionTree
     }
 
     if (element.contextValue === "workspace" && element.workspaceId != null) {
-      const collections = await this.getCollections(element.workspaceId);
-      const requests = await this.getRequestsForWorkspace(element.workspaceId);
+      const workspaceIdStr = String(element.workspaceId);
+      const collections = await this.getCollections(workspaceIdStr);
+      const requests = await this.getRequestsForWorkspace(workspaceIdStr);
       
       const items: CollectionTreeItem[] = [];
       
@@ -270,7 +376,8 @@ export class CollectionService implements vscode.TreeDataProvider<CollectionTree
     }
 
     if (element.contextValue === "collection" && element.collectionId != null) {
-      const requests = await this.getRequestsForCollection(element.collectionId);
+      const collectionIdStr = String(element.collectionId);
+      const requests = await this.getRequestsForCollection(collectionIdStr);
       return requests.map((r) => {
         const item = new vscode.TreeItem(
           r.name || `${r.method} ${r.url}`,

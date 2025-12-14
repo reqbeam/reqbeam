@@ -57,6 +57,138 @@
     loginToggle.addEventListener('click', switchToLogin);
     signupToggle.addEventListener('click', switchToSignUp);
 
+    // Google OAuth configuration
+    // Note: You'll need to replace this with your actual Google OAuth Client ID
+    // Get it from: https://console.cloud.google.com/apis/credentials
+    // For localhost testing, add http://localhost and http://localhost:PORT to authorized origins
+    const GOOGLE_CLIENT_ID = 'YOUR_GOOGLE_CLIENT_ID_HERE'; // Replace with your actual Client ID
+    
+    // Initialize Google Sign-In when the script loads
+    let googleInitialized = false;
+    const googleButton = document.getElementById('googleButton');
+    
+    function initializeGoogleSignIn() {
+        if (googleInitialized) return;
+        
+        // Check if Google Client ID is configured
+        if (GOOGLE_CLIENT_ID === 'YOUR_GOOGLE_CLIENT_ID_HERE') {
+            if (googleButton) {
+                googleButton.style.display = 'none';
+            }
+            console.warn('Google OAuth Client ID not configured. Please set GOOGLE_CLIENT_ID in login.js');
+            return;
+        }
+        
+        // Wait for Google API to load
+        if (typeof google === 'undefined' || !google.accounts) {
+            setTimeout(initializeGoogleSignIn, 100);
+            return;
+        }
+
+        try {
+            google.accounts.id.initialize({
+                client_id: GOOGLE_CLIENT_ID,
+                callback: handleGoogleSignIn,
+                auto_select: false,
+                cancel_on_tap_outside: true
+            });
+
+            // Render the button
+            if (googleButton) {
+                google.accounts.id.renderButton(
+                    googleButton,
+                    {
+                        type: 'standard',
+                        theme: 'outline',
+                        size: 'large',
+                        text: 'signin_with',
+                        width: '100%'
+                    }
+                );
+            }
+
+            googleInitialized = true;
+        } catch (error) {
+            console.error('Error initializing Google Sign-In:', error);
+            if (googleButton) {
+                googleButton.style.display = 'none';
+            }
+        }
+    }
+
+    async function handleGoogleSignIn(response) {
+        try {
+            // Decode the JWT token (simplified - in production, verify signature)
+            const tokenParts = response.credential.split('.');
+            const payload = JSON.parse(atob(tokenParts[1]));
+            
+            const email = payload.email;
+            const name = payload.name || payload.given_name || email.split('@')[0];
+            const idToken = response.credential;
+
+            if (!email) {
+                showMessage('Failed to get email from Google account', 'error');
+                return;
+            }
+
+            if (googleButton) {
+                googleButton.style.pointerEvents = 'none';
+                googleButton.style.opacity = '0.6';
+            }
+
+            // Send to backend (which proxies to auth server)
+            const responseData = await fetch(`${API_BASE_URL}/api/google-oauth`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    idToken,
+                    email,
+                    name
+                }),
+            });
+
+            const data = await responseData.json();
+
+            if (responseData.ok && data.success && data.token) {
+                showMessage('Login successful! VS Code will detect the login automatically.', 'success');
+                
+                // The token is already stored on the server, VS Code will poll for it
+                setTimeout(() => {
+                    const container = document.querySelector('.login-container');
+                    const infoDiv = document.createElement('div');
+                    infoDiv.style.marginTop = '20px';
+                    infoDiv.style.padding = '15px';
+                    infoDiv.style.backgroundColor = '#e8f5e9';
+                    infoDiv.style.borderRadius = '8px';
+                    infoDiv.style.textAlign = 'center';
+                    infoDiv.style.color = '#2e7d32';
+                    infoDiv.innerHTML = '<p style="margin: 0; font-size: 14px;">✓ Login successful!<br>VS Code should detect the login automatically.<br>You can close this window.</p>';
+                    container.appendChild(infoDiv);
+                }, 500);
+            } else {
+                showMessage(data.error || 'Google sign-in failed. Please try again.', 'error');
+                if (googleButton) {
+                    googleButton.style.pointerEvents = 'auto';
+                    googleButton.style.opacity = '1';
+                }
+            }
+        } catch (error) {
+            console.error('Google sign-in error:', error);
+            showMessage('Google sign-in error. Please try again.', 'error');
+            if (googleButton) {
+                googleButton.style.pointerEvents = 'auto';
+                googleButton.style.opacity = '1';
+            }
+        }
+    }
+
+    // Initialize Google Sign-In when page loads
+    window.addEventListener('load', () => {
+        setTimeout(initializeGoogleSignIn, 500);
+    });
+
     // Handle form submission (login or sign up)
     authForm.addEventListener('submit', async (e) => {
         e.preventDefault();
