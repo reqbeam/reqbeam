@@ -1,5 +1,13 @@
 // Export Prisma client
-export { prisma, initializePrisma } from './client';
+export { 
+  prisma, 
+  initializePrisma,
+  getVSCodeGlobalStoragePath,
+  getVSCodeExtensionDbPath,
+  getVSCodeExtensionDbUrl,
+  vscodeExtensionDbExists,
+  initializeVSCodeExtensionPrisma
+} from './client';
 
 // Export types
 export * from './types';

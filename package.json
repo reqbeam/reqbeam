@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "next build",
+    "build": "node --max-old-space-size=4096 node_modules/next/dist/bin/next build",
     "start": "next start",
     "lint": "next lint",
     "setup": "node scripts/setup.js",
@@ -12,7 +12,8 @@
     "db:generate": "node scripts/generate-prisma.js",
     "db:push": "cd reqbeam-db && npm run db:push",
     "db:migrate": "cd reqbeam-db && npm run db:migrate",
-    "db:studio": "cd reqbeam-db && npm run db:studio"
+    "db:studio": "cd reqbeam-db && npm run db:studio",
+    "db:vscode-url": "node scripts/get-vscode-db-url.js"
   },
   "dependencies": {
     "@reqbeam/db": "file:./reqbeam-db",

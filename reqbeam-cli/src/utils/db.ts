@@ -1,15 +1,22 @@
 import { PrismaClient } from '@prisma/client';
-import { initializePrisma } from '@reqbeam/db';
+import { 
+  initializePrisma, 
+  initializeVSCodeExtensionPrisma,
+  getVSCodeExtensionDbPath,
+  vscodeExtensionDbExists
+} from '@reqbeam/db';
 import { AuthManager } from './auth.js';
 import chalk from 'chalk';
 
 /**
  * Database connection manager for CLI
  * Handles database connection using DATABASE_URL from auth config or environment
+ * Also supports connecting to VS Code extension database
  */
 export class DatabaseManager {
   private static instance: DatabaseManager;
   private prisma: PrismaClient | null = null;
+  private vscodeExtensionPrisma: PrismaClient | null = null;
 
   private constructor() {}
 
@@ -54,6 +61,38 @@ export class DatabaseManager {
   }
 
   /**
+   * Get Prisma client instance connected to VS Code extension database
+   * @param extensionId - The extension ID (default: 'reqbeam.reqbeam')
+   * @param dbFileName - The database file name (default: 'reqbeam.db')
+   * @returns Prisma client instance connected to VS Code extension database
+   */
+  public getVSCodeExtensionPrisma(
+    extensionId: string = 'reqbeam.reqbeam',
+    dbFileName: string = 'reqbeam.db'
+  ): PrismaClient {
+    if (this.vscodeExtensionPrisma) {
+      return this.vscodeExtensionPrisma;
+    }
+
+    try {
+      const dbPath = getVSCodeExtensionDbPath(extensionId, dbFileName);
+      
+      if (!vscodeExtensionDbExists(extensionId, dbFileName)) {
+        console.warn(
+          chalk.yellow(`VS Code extension database not found at: ${dbPath}\n` +
+          'The database will be created when the extension is first used.')
+        );
+      }
+
+      this.vscodeExtensionPrisma = initializeVSCodeExtensionPrisma(extensionId, dbFileName);
+      return this.vscodeExtensionPrisma;
+    } catch (error: any) {
+      console.error(chalk.red('Error connecting to VS Code extension database:'), error.message);
+      throw new Error('Failed to connect to VS Code extension database.');
+    }
+  }
+
+  /**
    * Get current authenticated user ID
    */
   public async getCurrentUserId(): Promise<string> {
@@ -74,6 +113,10 @@ export class DatabaseManager {
     if (this.prisma) {
       await this.prisma.$disconnect();
       this.prisma = null;
+    }
+    if (this.vscodeExtensionPrisma) {
+      await this.vscodeExtensionPrisma.$disconnect();
+      this.vscodeExtensionPrisma = null;
     }
   }
 }
