@@ -1,5 +1,6 @@
 import * as vscode from "vscode";
 import { AuthManager } from "../auth/authManager";
+import { stopLoginServer } from "./login";
 
 /**
  * Register logout command
@@ -27,6 +28,9 @@ export function registerLogoutCommand(
       
       // Update status bar
       vscode.commands.executeCommand("reqbeam.auth.statusUpdate");
+
+      // Ensure local login server (port 5000) is stopped after logout
+      stopLoginServer();
     }
   });
 

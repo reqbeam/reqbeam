@@ -11,9 +11,17 @@
     const submitButton = document.getElementById('submitButton');
     const loginToggle = document.getElementById('loginToggle');
     const signupToggle = document.getElementById('signupToggle');
+    const headerTitle = document.getElementById('headerTitle');
     const headerSubtext = document.getElementById('headerSubtext');
+    const modeLink = document.getElementById('modeLink');
     const nameGroup = document.getElementById('nameGroup');
     const confirmPasswordGroup = document.getElementById('confirmPasswordGroup');
+    const passwordRequirements = document.getElementById('passwordRequirements');
+    const reqLength = document.getElementById('req-length');
+    const reqUpper = document.getElementById('req-upper');
+    const reqLower = document.getElementById('req-lower');
+    const reqNumber = document.getElementById('req-number');
+    const reqSpecial = document.getElementById('req-special');
     const nameInput = document.getElementById('name');
     const emailInput = document.getElementById('email');
     const passwordInput = document.getElementById('password');
@@ -27,41 +35,141 @@
         }, 5000);
     }
 
+    function setRequirementState(itemEl, isValid) {
+        if (!itemEl) return;
+        const icon = itemEl.querySelector('.req-icon');
+        if (isValid) {
+            itemEl.classList.add('valid');
+            if (icon) icon.textContent = '✓';
+        } else {
+            itemEl.classList.remove('valid');
+            if (icon) icon.textContent = '○';
+        }
+    }
+
+    function validatePassword(password) {
+        const errors = [];
+
+        if (password.length < 8) {
+            errors.push('Password must be at least 8 characters long');
+        }
+        if (password.length > 128) {
+            errors.push('Password must be less than 128 characters');
+        }
+        if (!/[A-Z]/.test(password)) {
+            errors.push('Password must contain at least one uppercase letter');
+        }
+        if (!/[a-z]/.test(password)) {
+            errors.push('Password must contain at least one lowercase letter');
+        }
+        if (!/[0-9]/.test(password)) {
+            errors.push('Password must contain at least one number');
+        }
+        if (!/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password)) {
+            errors.push('Password must contain at least one special character (!@#$%^&*...)');
+        }
+        if (password.toLowerCase().includes('password')) {
+            errors.push('Password cannot contain the word "password"');
+        }
+        if (/(.)\1{3,}/.test(password)) {
+            errors.push('Password cannot contain the same character repeated 4 times or more');
+        }
+
+        return {
+            isValid: errors.length === 0,
+            errors,
+        };
+    }
+
+    function updatePasswordRequirements(password) {
+        if (!passwordRequirements || passwordRequirements.style.display === 'none') {
+            return;
+        }
+        const lenOk = password.length >= 8;
+        const upperOk = /[A-Z]/.test(password);
+        const lowerOk = /[a-z]/.test(password);
+        const numberOk = /[0-9]/.test(password);
+        const specialOk = /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password);
+
+        setRequirementState(reqLength, lenOk);
+        setRequirementState(reqUpper, upperOk);
+        setRequirementState(reqLower, lowerOk);
+        setRequirementState(reqNumber, numberOk);
+        setRequirementState(reqSpecial, specialOk);
+    }
+
     function switchToLogin() {
         isSignUpMode = false;
         loginToggle.classList.add('active');
         signupToggle.classList.remove('active');
-        headerSubtext.textContent = 'Sign in to continue';
+        if (headerTitle) {
+            headerTitle.textContent = 'Sign in to your account';
+        }
+        if (headerSubtext && modeLink) {
+            headerSubtext.innerHTML = 'Or ';
+            headerSubtext.appendChild(modeLink);
+            modeLink.textContent = 'create a new account';
+        }
         submitButton.textContent = 'Sign In';
         nameGroup.style.display = 'none';
         confirmPasswordGroup.style.display = 'none';
+        if (passwordRequirements) {
+            passwordRequirements.style.display = 'none';
+        }
         nameInput.removeAttribute('required');
         confirmPasswordInput.removeAttribute('required');
         authForm.reset();
+        updatePasswordRequirements('');
     }
 
     function switchToSignUp() {
         isSignUpMode = true;
         signupToggle.classList.add('active');
         loginToggle.classList.remove('active');
-        headerSubtext.textContent = 'Create your account';
+        if (headerTitle) {
+            headerTitle.textContent = 'Create your account';
+        }
+        if (headerSubtext && modeLink) {
+            headerSubtext.innerHTML = 'Or ';
+            headerSubtext.appendChild(modeLink);
+            modeLink.textContent = 'sign in to your existing account';
+        }
         submitButton.textContent = 'Sign Up';
         nameGroup.style.display = 'block';
         confirmPasswordGroup.style.display = 'block';
         nameInput.setAttribute('required', 'required');
         confirmPasswordInput.setAttribute('required', 'required');
+        if (passwordRequirements) {
+            passwordRequirements.style.display = 'block';
+        }
         authForm.reset();
+        updatePasswordRequirements('');
     }
 
     // Toggle between login and sign up
     loginToggle.addEventListener('click', switchToLogin);
     signupToggle.addEventListener('click', switchToSignUp);
+    if (modeLink) {
+        modeLink.addEventListener('click', (e) => {
+            e.preventDefault();
+            if (isSignUpMode) {
+                switchToLogin();
+            } else {
+                switchToSignUp();
+            }
+        });
+    }
+
+    // Live password requirement updates (signup mode)
+    passwordInput.addEventListener('input', () => {
+        updatePasswordRequirements(passwordInput.value || '');
+    });
 
     // Google OAuth configuration
     // Note: You'll need to replace this with your actual Google OAuth Client ID
     // Get it from: https://console.cloud.google.com/apis/credentials
     // For localhost testing, add http://localhost and http://localhost:PORT to authorized origins
-    const GOOGLE_CLIENT_ID = 'YOUR_GOOGLE_CLIENT_ID_HERE'; // Replace with your actual Client ID
+    const GOOGLE_CLIENT_ID = '900779586767-28d4m48cbsoei4vjchl730b6as732kev.apps.googleusercontent.com'; // Replace with your actual Client ID
     
     // Initialize Google Sign-In when the script loads
     let googleInitialized = false;
@@ -212,8 +320,10 @@
                 showMessage('Passwords do not match', 'error');
                 return;
             }
-            if (password.length < 8) {
-                showMessage('Password must be at least 8 characters long', 'error');
+
+            const passwordResult = validatePassword(password);
+            if (!passwordResult.isValid) {
+                showMessage(passwordResult.errors[0] || 'Password does not meet requirements', 'error');
                 return;
             }
         }

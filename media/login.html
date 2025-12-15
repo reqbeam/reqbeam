@@ -9,8 +9,10 @@
 <body>
     <div class="login-container">
         <div class="login-header">
-            <h1>Welcome to ReqBeam</h1>
-            <p id="headerSubtext">Sign in to continue</p>
+            <h1 id="headerTitle">Sign in to your account</h1>
+            <p id="headerSubtext" class="header-subtext">
+                Or <a id="modeLink" href="#">create a new account</a>
+            </p>
         </div>
 
         <div class="mode-toggle">
@@ -33,7 +35,18 @@
 
             <div class="form-group">
                 <label for="password">Password</label>
-                <input type="password" id="password" name="password" required autocomplete="current-password" placeholder="••••••••">
+                <input type="password" id="password" name="password" required autocomplete="current-password" placeholder="Password">
+            </div>
+
+            <div class="password-requirements" id="passwordRequirements" style="display: none;">
+                <p class="password-requirements-title">Password requirements:</p>
+                <ul>
+                    <li id="req-length"><span class="req-icon">○</span><span>At least 8 characters</span></li>
+                    <li id="req-upper"><span class="req-icon">○</span><span>One uppercase letter (A-Z)</span></li>
+                    <li id="req-lower"><span class="req-icon">○</span><span>One lowercase letter (a-z)</span></li>
+                    <li id="req-number"><span class="req-icon">○</span><span>One number (0-9)</span></li>
+                    <li id="req-special"><span class="req-icon">○</span><span>One special character (!@#$%...)</span></li>
+                </ul>
             </div>
 
             <div class="form-group" id="confirmPasswordGroup" style="display: none;">

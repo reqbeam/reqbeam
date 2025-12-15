@@ -233,7 +233,8 @@ function handleApiRequest(
  */
 function startLoginServer(context: vscode.ExtensionContext): Promise<number> {
   return new Promise((resolve, reject) => {
-    // Find available port
+    // Always use fixed port 5000 for the login page
+    const FIXED_PORT = 5000;
     const server = http.createServer((req, res) => {
       const url = req.url || "/";
       
@@ -249,7 +250,7 @@ function startLoginServer(context: vscode.ExtensionContext): Promise<number> {
       }
 
       // Get current port (will be set after server starts)
-      const currentPort = serverPort || 0;
+      const currentPort = serverPort || FIXED_PORT;
       const serverUrl = `http://localhost:${currentPort}`;
 
       // Handle API routes
@@ -332,8 +333,8 @@ function startLoginServer(context: vscode.ExtensionContext): Promise<number> {
       res.end("Not Found");
     });
 
-    // Find available port
-    server.listen(0, "127.0.0.1", () => {
+    // Start server on fixed port
+    server.listen(FIXED_PORT, "127.0.0.1", () => {
       const address = server.address();
       if (address && typeof address === "object") {
         const port = address.port;
@@ -440,6 +441,9 @@ export function registerLoginCommand(
     }
 
     try {
+      // Ensure any previous login server instance is stopped before starting a new one
+      stopLoginServer();
+
       // Clear any pending token
       pendingToken = null;
       

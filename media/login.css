@@ -6,7 +6,8 @@
 
 body {
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    /* Match web app auth pages: dark background and centered column */
+    background-color: #18181b; /* neutral-900 */
     display: flex;
     justify-content: center;
     align-items: center;
@@ -15,12 +16,12 @@ body {
 }
 
 .login-container {
-    background: white;
-    border-radius: 16px;
-    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    background: transparent;
+    border-radius: 0;
+    border: none;
     width: 100%;
-    max-width: 400px;
-    padding: 40px;
+    max-width: 520px;
+    padding: 24px 24px 40px;
 }
 
 .login-header {
@@ -29,24 +30,34 @@ body {
 }
 
 .login-header h1 {
-    color: #333;
-    font-size: 28px;
-    font-weight: 600;
+    color: #f9fafb; /* gray-50 */
+    font-size: 32px;
+    font-weight: 800;
     margin-bottom: 8px;
 }
 
 .login-header p {
-    color: #666;
+    color: #9ca3af; /* gray-400 */
     font-size: 14px;
 }
 
-.form-group {
-    margin-bottom: 20px;
+.header-subtext a {
+    color: #2563eb; /* blue-600 */
+    text-decoration: none;
+    font-weight: 500;
 }
 
-.form-group label {
+.header-subtext a:hover {
+    text-decoration: underline;
+}
+
+.form-group {
+    margin-bottom: 8px;
+}
+
+ .form-group label {
     display: block;
-    color: #333;
+    color: #e5e7eb; /* gray-200 */
     font-size: 14px;
     font-weight: 500;
     margin-bottom: 8px;
@@ -55,34 +66,40 @@ body {
 .form-group input {
     width: 100%;
     padding: 12px 16px;
-    border: 2px solid #e0e0e0;
-    border-radius: 8px;
+    border: 1px solid #374151; /* gray-700 */
+    border-radius: 10px;
     font-size: 14px;
     transition: border-color 0.2s;
     outline: none;
+    background-color: #020617; /* slate-950 */
+    color: #e5e7eb;
 }
 
 .form-group input:focus {
-    border-color: #667eea;
+    border-color: #2563eb; /* primary blue */
+    box-shadow: 0 0 0 1px rgba(37, 99, 235, 0.4);
 }
 
 .login-button {
     width: 100%;
-    padding: 14px;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    color: white;
+    padding: 12px 16px;
+    background: #2563eb; /* blue-600 */
+    color: #ffffff;
     border: none;
-    border-radius: 8px;
+    border-radius: .375rem;
     font-size: 16px;
     font-weight: 600;
     cursor: pointer;
-    transition: transform 0.2s, box-shadow 0.2s;
-    margin-bottom: 20px;
+    transition: transform 0.15s ease, box-shadow 0.15s ease, filter 0.15s ease;
+    margin-top: 4px;
+    margin-bottom: 16px;
+    box-shadow: 0 10px 30px rgba(37, 99, 235, 0.45);
 }
 
 .login-button:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
+    transform: translateY(-1px);
+    filter: brightness(1.03);
+    box-shadow: 0 14px 36px rgba(37, 99, 235, 0.6);
 }
 
 .login-button:active {
@@ -99,9 +116,12 @@ body {
     display: flex;
     align-items: center;
     text-align: center;
-    margin: 24px 0;
-    color: #999;
-    font-size: 14px;
+    margin: 16px 0 20px;
+    color: #6b7280; /* gray-500 */
+    font-size: 12px;
+    font-weight: 500;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
 }
 
 .divider::before,
@@ -121,12 +141,12 @@ body {
 
 .google-button {
     width: 100%;
-    padding: 14px;
-    background: white;
-    color: #333;
-    border: 2px solid #e0e0e0;
-    border-radius: 8px;
-    font-size: 16px;
+    padding: 12px 16px;
+    background: #020617;
+    color: #e5e7eb;
+    border: 1px solid #374151;
+    border-radius: .375rem;
+    font-size: 14px;
     font-weight: 600;
     cursor: pointer;
     transition: all 0.2s;
@@ -137,10 +157,10 @@ body {
 }
 
 .google-button:hover {
-    border-color: #db4437;
-    background: #fafafa;
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    border-color: #4b5563;
+    background: #020617;
+    transform: translateY(-1px);
+    box-shadow: 0 8px 18px rgba(15, 23, 42, 0.35);
 }
 
 .google-button:active {
@@ -162,29 +182,29 @@ body {
 
 .message {
     padding: 12px;
-    border-radius: 8px;
-    margin-bottom: 20px;
-    font-size: 14px;
-    text-align: center;
+    border-radius: .375rem;
+    margin-bottom: 16px;
+    font-size: 13px;
+    text-align: left;
     display: none;
 }
 
 .message.error {
-    background: #fee;
-    color: #c33;
-    border: 1px solid #fcc;
+    background: #fef2f2; /* red-50 */
+    color: #b91c1c;      /* red-700 */
+    border: 1px solid #fecaca; /* red-200 */
 }
 
 .message.success {
-    background: #efe;
-    color: #3c3;
-    border: 1px solid #cfc;
+    background: #ecfdf3; /* green-50 */
+    color: #166534;      /* green-700 */
+    border: 1px solid #bbf7d0; /* green-200 */
 }
 
 .message.info {
-    background: #eef;
-    color: #33c;
-    border: 1px solid #ccf;
+    background: #eff6ff; /* blue-50 */
+    color: #1d4ed8;      /* blue-700 */
+    border: 1px solid #bfdbfe; /* blue-200 */
 }
 
 .message.show {
@@ -192,12 +212,7 @@ body {
 }
 
 .mode-toggle {
-    display: flex;
-    gap: 8px;
-    margin-bottom: 24px;
-    background: #f5f5f5;
-    padding: 4px;
-    border-radius: 8px;
+    display: none; /* replaced by header link, keep logic but hide buttons */
 }
 
 .toggle-button {
@@ -222,5 +237,47 @@ body {
     background: white;
     color: #667eea;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* Password requirements block (signup mode) */
+.password-requirements {
+    margin-top: -8px;
+    margin-bottom: 8px;
+    font-size: 13px;
+    color: #6b7280; /* gray-500 */
+}
+
+.password-requirements-title {
+    font-weight: 500;
+    color: #9ca3af; /* gray-400 */
+    margin-bottom: 4px;
+}
+
+.password-requirements ul {
+    list-style: none;
+    padding-left: 0;
+    margin: 0;
+}
+
+.password-requirements li {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 3px;
+}
+
+.password-requirements .req-icon {
+    width: 14px;
+    text-align: center;
+    font-size: 11px;
+    color: #6b7280;
+}
+
+.password-requirements li.valid {
+    color: #22c55e; /* green-500 */
+}
+
+.password-requirements li.valid .req-icon {
+    color: #22c55e;
 }
 
