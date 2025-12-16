@@ -17,8 +17,8 @@ export interface RequestBuilderProps {
   requestName: string;
   params: RequestParam[];
   auth: RequestAuth | null;
-  environments: Array<{ id: number; name: string; variables: Record<string, string> }>;
-  activeEnvId: number | null;
+  environments: Array<{ id: string; name: string; variables: Record<string, string> }>;
+  activeEnvId: string | null;
   onMethodChange: (m: HttpMethod) => void;
   onUrlChange: (u: string) => void;
   onHeadersChange: (h: HeaderRow[]) => void;
@@ -28,7 +28,7 @@ export interface RequestBuilderProps {
   onRequestNameChange: (name: string) => void;
   onSend: () => void;
   onSave: () => void;
-  onEnvironmentChange: (envId: number | null) => void;
+  onEnvironmentChange: (envId: string | null) => void;
   statusText: string;
   vscode: { postMessage: (msg: unknown) => void };
 }
@@ -172,7 +172,7 @@ export const RequestBuilder: React.FC<RequestBuilderProps> = ({
           value={activeEnvId ?? ""}
           onChange={(e) => {
             const value = e.target.value;
-            onEnvironmentChange(value ? Number(value) : null);
+            onEnvironmentChange(value || null);
           }}
           style={{
             flex: 1,

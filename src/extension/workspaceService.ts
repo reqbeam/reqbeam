@@ -66,8 +66,28 @@ export class WorkspaceService
 
   async getWorkspaces(): Promise<Workspace[]> {
     const db = getDb();
+    
+    // Get current user ID
+    let userId: string | null = null;
+    if (this.authManager) {
+      const userInfo = await this.authManager.getUserInfo();
+      if (userInfo?.email) {
+        const user = await db.get<{ id: string }>(
+          `SELECT id FROM users WHERE email = ?`,
+          userInfo.email.toLowerCase().trim()
+        );
+        userId = user?.id || null;
+      }
+    }
+    
+    // If no user is logged in, return empty array
+    if (!userId) {
+      return [];
+    }
+    
     const rows = await db.all<Workspace[]>(
-      `SELECT id, name, description FROM workspaces ORDER BY id ASC`
+      `SELECT id, name, description FROM workspaces WHERE ownerId = ? ORDER BY id ASC`,
+      userId
     );
     return rows;
   }

@@ -31,12 +31,12 @@ export const App: React.FC<AppProps> = ({ vscode }) => {
   );
   const [isSaveDialogOpen, setIsSaveDialogOpen] = React.useState(false);
   const [selectedCollectionId, setSelectedCollectionId] = React.useState<
-    number | null
+    string | null
   >(null);
   const [environments, setEnvironments] = React.useState<
-    Array<{ id: number; name: string; variables: Record<string, string> }>
+    Array<{ id: string; name: string; variables: Record<string, string> }>
   >([]);
-  const [activeEnvId, setActiveEnvId] = React.useState<number | null>(null);
+  const [activeEnvId, setActiveEnvId] = React.useState<string | null>(null);
   const [params, setParams] = React.useState<RequestParam[]>([]);
   const [auth, setAuth] = React.useState<RequestAuth | null>(null);
 
@@ -58,14 +58,14 @@ export const App: React.FC<AppProps> = ({ vscode }) => {
             id?: number;
             name?: string;
             method: HttpMethod;
-            url: string;
+            url?: string;
             headers: string;
             body: string;
           };
           setRequestId(r.id);
           setRequestName(r.name || "");
           setMethod(r.method);
-          setUrl(r.url);
+          setUrl(r.url || ""); // Ensure URL is always a string, default to empty if missing
           try {
             const parsed = JSON.parse(r.headers || "[]");
             setHeaders(parsed);
@@ -184,8 +184,8 @@ export const App: React.FC<AppProps> = ({ vscode }) => {
         }
         case "environments": {
           const payload = msg.payload as {
-            environments: Array<{ id: number; name: string; variables: string | Record<string, string> }>;
-            activeId: number | null;
+            environments: Array<{ id: string | number; name: string; variables: string | Record<string, string> }>;
+            activeId: string | number | null;
           };
           console.log("Received environments:", payload.environments.length, payload.environments);
           // Parse variables if they're JSON strings
@@ -206,19 +206,21 @@ export const App: React.FC<AppProps> = ({ vscode }) => {
             }
             return {
               ...env,
+              id: String(env.id), // Ensure ID is always a string
               variables,
             };
           });
           console.log("Final parsed environments:", parsedEnvironments);
           console.log("Setting activeEnvId to:", payload.activeId, "type:", typeof payload.activeId);
           setEnvironments(parsedEnvironments);
-          setActiveEnvId(payload.activeId);
+          // Convert to string if it's a number (for backward compatibility)
+          setActiveEnvId(payload.activeId === null ? null : String(payload.activeId));
           // Also try to find active by isActive flag as fallback
           if (payload.activeId === null || payload.activeId === undefined) {
             const activeByFlag = parsedEnvironments.find(e => e.isActive);
             if (activeByFlag) {
               console.log("Found active environment by isActive flag:", activeByFlag.id);
-              setActiveEnvId(activeByFlag.id);
+              setActiveEnvId(String(activeByFlag.id));
             }
           }
           break;
@@ -266,7 +268,7 @@ export const App: React.FC<AppProps> = ({ vscode }) => {
       name: finalName,
       collectionId: selectedCollectionId ?? null,
       method,
-      url,
+      url: url || "", // Ensure URL is always a string, never undefined
       headers,
       body,
     };
@@ -431,9 +433,7 @@ export const App: React.FC<AppProps> = ({ vscode }) => {
                   value={selectedCollectionId ?? ""}
                   onChange={(e) => {
                     const value = e.target.value;
-                    setSelectedCollectionId(
-                      value ? Number(value) : null
-                    );
+                    setSelectedCollectionId(value || null);
                   }}
                 >
                   <option value="">(Unassigned)</option>

@@ -29,39 +29,100 @@ export class CollectionService implements vscode.TreeDataProvider<CollectionTree
 
   async getCollections(workspaceId?: string | null): Promise<Collection[]> {
     const db = getDb();
+    
+    // Get current user ID
+    let userId: string | null = null;
+    if (this.authManager) {
+      const userInfo = await this.authManager.getUserInfo();
+      if (userInfo?.email) {
+        const user = await db.get<{ id: string }>(
+          `SELECT id FROM users WHERE email = ?`,
+          userInfo.email.toLowerCase().trim()
+        );
+        userId = user?.id || null;
+      }
+    }
+    
+    // If no user is logged in, return empty array
+    if (!userId) {
+      return [];
+    }
+    
     if (workspaceId != null) {
       const rows = await db.all<Collection[]>(
-        `SELECT id, name, workspaceId, description FROM collections WHERE workspaceId = ? ORDER BY id ASC`,
-        workspaceId
+        `SELECT id, name, workspaceId, description FROM collections WHERE workspaceId = ? AND userId = ? ORDER BY id ASC`,
+        workspaceId,
+        userId
       );
       return rows;
     }
     const rows = await db.all<Collection[]>(
-      `SELECT id, name, workspaceId, description FROM collections ORDER BY id ASC`
+      `SELECT id, name, workspaceId, description FROM collections WHERE userId = ? ORDER BY id ASC`,
+      userId
     );
     return rows;
   }
 
   async getRequestsForCollection(collectionId: string): Promise<RequestModel[]> {
     const db = getDb();
+    
+    // Get current user ID
+    let userId: string | null = null;
+    if (this.authManager) {
+      const userInfo = await this.authManager.getUserInfo();
+      if (userInfo?.email) {
+        const user = await db.get<{ id: string }>(
+          `SELECT id FROM users WHERE email = ?`,
+          userInfo.email.toLowerCase().trim()
+        );
+        userId = user?.id || null;
+      }
+    }
+    
+    // If no user is logged in, return empty array
+    if (!userId) {
+      return [];
+    }
+    
     const rows = await db.all<RequestModel[]>(
       `SELECT id, collectionId, workspaceId, name, method, url, headers, body, bodyType, auth
        FROM requests
-       WHERE collectionId = ?
+       WHERE collectionId = ? AND userId = ?
        ORDER BY id DESC`,
-      collectionId
+      collectionId,
+      userId
     );
     return rows;
   }
 
   async getRequestsForWorkspace(workspaceId: string): Promise<RequestModel[]> {
     const db = getDb();
+    
+    // Get current user ID
+    let userId: string | null = null;
+    if (this.authManager) {
+      const userInfo = await this.authManager.getUserInfo();
+      if (userInfo?.email) {
+        const user = await db.get<{ id: string }>(
+          `SELECT id FROM users WHERE email = ?`,
+          userInfo.email.toLowerCase().trim()
+        );
+        userId = user?.id || null;
+      }
+    }
+    
+    // If no user is logged in, return empty array
+    if (!userId) {
+      return [];
+    }
+    
     const rows = await db.all<RequestModel[]>(
       `SELECT id, collectionId, workspaceId, name, method, url, headers, body, bodyType, auth
        FROM requests
-       WHERE workspaceId = ? AND collectionId IS NULL
+       WHERE workspaceId = ? AND collectionId IS NULL AND userId = ?
        ORDER BY id DESC`,
-      workspaceId
+      workspaceId,
+      userId
     );
     return rows;
   }
@@ -185,7 +246,7 @@ export class CollectionService implements vscode.TreeDataProvider<CollectionTree
         model.workspaceId ?? null,
         model.name,
         model.method,
-        model.url,
+        model.url || "", // Ensure URL is always a string
         model.headers,
         model.body,
         model.bodyType || null,
@@ -209,7 +270,7 @@ export class CollectionService implements vscode.TreeDataProvider<CollectionTree
       userId,
       model.name,
       model.method,
-      model.url,
+      model.url || "", // Ensure URL is always a string
       model.headers,
       model.body,
       model.bodyType || null,

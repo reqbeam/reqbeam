@@ -110,8 +110,10 @@ export function registerCommands(
   disposables.push(
     vscode.commands.registerCommand(
       "reqbeam.setEnvironment",
-      async (env: { id: number }) => {
-        await state.environmentService.setActiveEnvironment(env.id);
+      async (env: { id: string | number }) => {
+        // Convert to string if it's a number (for backward compatibility)
+        const envId = typeof env.id === "number" ? String(env.id) : env.id;
+        await state.environmentService.setActiveEnvironment(envId);
         // Broadcast to all open panels
         for (const panelInfo of state.panels.values()) {
           await sendEnvironmentsToWebview(panelInfo.panel, state);
@@ -166,7 +168,7 @@ export function registerCommands(
   disposables.push(
     vscode.commands.registerCommand(
       "reqbeam.renameEnvironment",
-      async (env: { id: number; name: string }) => {
+      async (env: { id: string | number; name: string }) => {
         if (state.authManager && !(await requireAuth(state.authManager, "renaming environments"))) {
           return;
         }
@@ -177,7 +179,9 @@ export function registerCommands(
         if (!name) {
           return;
         }
-        await state.environmentService.renameEnvironment(env.id, name);
+        // Convert to string if it's a number (for backward compatibility)
+        const envId = String(env.id);
+        await state.environmentService.renameEnvironment(envId, name);
         // Broadcast to all open panels
         for (const panelInfo of state.panels.values()) {
           await sendEnvironmentsToWebview(panelInfo.panel, state);
@@ -189,7 +193,7 @@ export function registerCommands(
   disposables.push(
     vscode.commands.registerCommand(
       "reqbeam.deleteEnvironment",
-      async (env: { id: number; name: string }) => {
+      async (env: { id: string | number; name: string }) => {
         if (state.authManager && !(await requireAuth(state.authManager, "deleting environments"))) {
           return;
         }
@@ -201,7 +205,9 @@ export function registerCommands(
         if (confirm !== "Delete") {
           return;
         }
-        await state.environmentService.deleteEnvironment(env.id);
+        // Convert to string if it's a number (for backward compatibility)
+        const envId = String(env.id);
+        await state.environmentService.deleteEnvironment(envId);
         // Broadcast to all open panels
         for (const panelInfo of state.panels.values()) {
           await sendEnvironmentsToWebview(panelInfo.panel, state);
@@ -213,7 +219,7 @@ export function registerCommands(
   disposables.push(
     vscode.commands.registerCommand(
       "reqbeam.duplicateEnvironment",
-      async (env: { id: number; name: string }) => {
+      async (env: { id: string | number; name: string }) => {
         if (state.authManager && !(await requireAuth(state.authManager, "duplicating environments"))) {
           return;
         }
@@ -225,7 +231,9 @@ export function registerCommands(
           return;
         }
         try {
-          await state.environmentService.duplicateEnvironment(env.id, newName);
+          // Convert to string if it's a number (for backward compatibility)
+          const envId = String(env.id);
+          await state.environmentService.duplicateEnvironment(envId, newName);
           vscode.window.showInformationMessage(`Environment "${newName}" created successfully`);
           // Broadcast to all open panels
           for (const panelInfo of state.panels.values()) {
@@ -771,6 +779,24 @@ export function registerCommands(
     )
   );
 
+  // Refresh all command - refreshes all services to show only current user's data
+  disposables.push(
+    vscode.commands.registerCommand("reqbeam.refreshAll", async () => {
+      // Refresh all tree views
+      state.workspaceService.refresh();
+      state.collectionService.refresh();
+      state.environmentService.refresh();
+      state.historyService.refresh();
+      
+      // Refresh all webview panels
+      for (const panelInfo of state.panels.values()) {
+        await sendCollectionsToWebview(panelInfo.panel, state);
+        await sendEnvironmentsToWebview(panelInfo.panel, state);
+        await sendHistoryToWebview(panelInfo.panel, state);
+      }
+    })
+  );
+
   disposables.forEach((d) => context.subscriptions.push(d));
 }
 
@@ -849,20 +875,27 @@ export function createOrRevealWebview(
         }
         const request = msg.payload as SendRequestPayload & {
           id?: number;
-          collectionId?: number | null;
-          workspaceId?: number | null;
+          collectionId?: string | number | null;
+          workspaceId?: string | number | null;
           name?: string;
         };
         const activeWorkspaceId =
           state.workspaceService.getActiveWorkspaceId();
         const headersJson = JSON.stringify(request.headers ?? []);
+        
+        // Convert collectionId and workspaceId to strings (database uses string CUIDs)
+        const collectionId = request.collectionId ? String(request.collectionId) : null;
+        const workspaceId = request.workspaceId 
+          ? String(request.workspaceId) 
+          : (activeWorkspaceId ? String(activeWorkspaceId) : null);
+        
         const id = await state.collectionService.saveRequest({
           id: request.id,
-          collectionId: request.collectionId ?? null,
-          workspaceId: request.workspaceId ?? activeWorkspaceId ?? null,
+          collectionId: collectionId,
+          workspaceId: workspaceId,
           name: request.name ?? "",
           method: request.method,
-          url: request.url,
+          url: request.url ?? "", // Ensure URL is always a string, never undefined
           headers: headersJson,
           body: request.body ?? "",
           bodyType: request.bodyType,
@@ -963,8 +996,10 @@ export function createOrRevealWebview(
         break;
       }
       case "setEnvironment": {
-        const envId = msg.payload as number | null;
-        await state.environmentService.setActiveEnvironment(envId);
+        const envId = msg.payload as string | number | null;
+        // Convert to string if it's a number (for backward compatibility)
+        const envIdStr = envId === null ? null : String(envId);
+        await state.environmentService.setActiveEnvironment(envIdStr);
         await sendEnvironmentsToWebview(panel, state);
         break;
       }
@@ -1111,9 +1146,8 @@ async function sendEnvironmentsToWebview(
   const envs = await state.environmentService.getEnvironments(
     activeWorkspaceId
   );
-  const activeIdStr = state.environmentService.getActiveEnvironmentId();
-  // Convert string ID to number for consistency
-  const activeId = activeIdStr ? Number(activeIdStr) : null;
+  const activeId = state.environmentService.getActiveEnvironmentId();
+  // Keep as string (CUID) - no conversion needed
   panel.webview.postMessage({
     type: "environments",
     payload: { environments: envs, activeId },

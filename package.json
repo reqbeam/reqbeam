@@ -212,9 +212,9 @@
       "properties": {
         "reqbeam.authServerUrl": {
           "type": "string",
-          "default": "http://localhost:4000",
+          "default": "https://api.reqbeam.dev",
           "description": "URL of the authentication server",
-          "markdownDescription": "URL of the authentication server. Defaults to `http://localhost:4000`. Change this if your auth server is running on a different URL."
+          "markdownDescription": "URL of the authentication server. Defaults to `https://api.reqbeam.dev`. Change this if your auth server is running on a different URL."
         }
       }
     },

@@ -459,6 +459,8 @@ export function registerLoginCommand(
         } else {
           await vscode.commands.executeCommand("reqbeam.auth.statusUpdate");
         }
+        // Refresh all services to show only current user's data
+        await vscode.commands.executeCommand("reqbeam.refreshAll");
       };
       
       // Start polling as backup

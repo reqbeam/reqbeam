@@ -75,7 +75,23 @@ export class EnvironmentService
   }
 
   async getEnvironments(workspaceId?: string | null): Promise<Environment[]> {
-    const envs = await this.manager.getEnvironments(workspaceId);
+    // Get current user ID
+    const { getDb } = await import("../extension/db");
+    const db = getDb();
+    let userId: string | null = null;
+    
+    if (this.authManager) {
+      const userInfo = await this.authManager.getUserInfo();
+      if (userInfo?.email) {
+        const user = await db.get<{ id: string }>(
+          `SELECT id FROM users WHERE email = ?`,
+          userInfo.email.toLowerCase().trim()
+        );
+        userId = user?.id || null;
+      }
+    }
+    
+    const envs = await this.manager.getEnvironments(workspaceId, userId);
     const result: Environment[] = [];
 
     for (const env of envs) {
@@ -274,11 +290,28 @@ export class EnvironmentService
     if (element) {
       return [];
     }
+    
+    // Get current user ID
+    const { getDb } = await import("../extension/db");
+    const db = getDb();
+    let userId: string | null = null;
+    
+    if (this.authManager) {
+      const userInfo = await this.authManager.getUserInfo();
+      if (userInfo?.email) {
+        const user = await db.get<{ id: string }>(
+          `SELECT id FROM users WHERE email = ?`,
+          userInfo.email.toLowerCase().trim()
+        );
+        userId = user?.id || null;
+      }
+    }
+    
     const activeWorkspaceId = this.context.globalState.get<string | null>(
       "reqbeam.activeWorkspaceId",
       null
     );
-    const envs = await this.manager.getEnvironments(activeWorkspaceId);
+    const envs = await this.manager.getEnvironments(activeWorkspaceId, userId);
     return envs.map((e) => ({
       id: e.id,
       name: e.name,

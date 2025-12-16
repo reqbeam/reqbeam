@@ -18,8 +18,8 @@ export function getAuthServerBaseUrl(): string {
     return process.env.AUTH_SERVER_URL;
   }
   
-  // Default to localhost:4000
-  return "http://localhost:4000";
+  // Default to production auth server
+  return "https://api.reqbeam.dev";
 }
 
 export const AUTH_SERVER_ENDPOINTS = {

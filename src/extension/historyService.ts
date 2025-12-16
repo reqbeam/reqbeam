@@ -82,14 +82,34 @@ export class HistoryService implements vscode.TreeDataProvider<HistoryEntry> {
 
   async getRecent(limit = 50, workspaceId?: string | null): Promise<HistoryEntry[]> {
     const db = getDb();
+    
+    // Get current user ID
+    let userId: string | null = null;
+    if (this.authManager) {
+      const userInfo = await this.authManager.getUserInfo();
+      if (userInfo?.email) {
+        const user = await db.get<{ id: string }>(
+          `SELECT id FROM users WHERE email = ?`,
+          userInfo.email.toLowerCase().trim()
+        );
+        userId = user?.id || null;
+      }
+    }
+    
+    // If no user is logged in, return empty array
+    if (!userId) {
+      return [];
+    }
+    
     if (workspaceId != null) {
       const rows = await db.all<HistoryEntry[]>(
         `SELECT id, method, url, statusCode as status, duration, createdAt, workspaceId
          FROM api_history
-         WHERE workspaceId = ?
+         WHERE workspaceId = ? AND userId = ?
          ORDER BY datetime(createdAt) DESC
          LIMIT ?`,
         workspaceId,
+        userId,
         limit
       );
       return rows;
@@ -97,8 +117,10 @@ export class HistoryService implements vscode.TreeDataProvider<HistoryEntry> {
     const rows = await db.all<HistoryEntry[]>(
       `SELECT id, method, url, statusCode as status, duration, createdAt, workspaceId
        FROM api_history
+       WHERE userId = ?
        ORDER BY datetime(createdAt) DESC
        LIMIT ?`,
+      userId,
       limit
     );
     return rows;

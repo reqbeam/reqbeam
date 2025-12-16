@@ -24,7 +24,7 @@ interface HistoryItem {
 }
 
 interface Environment {
-  id: number;
+  id: string;
   name: string;
   variables: Record<string, string>;
 }
@@ -43,7 +43,7 @@ export const CollectionSidebar: React.FC<CollectionSidebarProps> = ({
   const [collections, setCollections] = React.useState<Collection[]>([]);
   const [history, setHistory] = React.useState<HistoryItem[]>([]);
   const [environments, setEnvironments] = React.useState<Environment[]>([]);
-  const [activeEnvId, setActiveEnvId] = React.useState<number | null>(null);
+  const [activeEnvId, setActiveEnvId] = React.useState<string | null>(null);
   const [envVars, setEnvVars] = React.useState<Record<string, string>>({});
   const [expandedCollections, setExpandedCollections] = React.useState<Set<number>>(new Set());
 
@@ -92,10 +92,11 @@ export const CollectionSidebar: React.FC<CollectionSidebarProps> = ({
         case "environments": {
           const payload = msg.payload as {
             environments: Environment[];
-            activeId: number | null;
+            activeId: string | number | null;
           };
           setEnvironments(payload.environments);
-          setActiveEnvId(payload.activeId);
+          // Convert to string if it's a number (for backward compatibility)
+          setActiveEnvId(payload.activeId === null ? null : String(payload.activeId));
           if (payload.activeId != null) {
             const active = payload.environments.find(
               (e) => e.id === payload.activeId
@@ -138,7 +139,7 @@ export const CollectionSidebar: React.FC<CollectionSidebarProps> = ({
     });
   };
 
-  const onSetEnvironment = (id: number | null) => {
+  const onSetEnvironment = (id: string | null) => {
     vscode.postMessage({ type: "setEnvironment", payload: id });
     const env = environments.find((e) => e.id === id);
     setEnvVars(env?.variables ?? {});

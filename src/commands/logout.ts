@@ -27,10 +27,13 @@ export function registerLogoutCommand(
       vscode.window.showInformationMessage("Logged out successfully");
       
       // Update status bar
-      vscode.commands.executeCommand("reqbeam.auth.statusUpdate");
+      await vscode.commands.executeCommand("reqbeam.auth.statusUpdate");
 
       // Ensure local login server (port 5000) is stopped after logout
       stopLoginServer();
+      
+      // Refresh all services to clear user data from UI
+      await vscode.commands.executeCommand("reqbeam.refreshAll");
     }
   });
 

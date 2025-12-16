@@ -21,19 +21,27 @@ export interface EnvironmentVariable {
 
 export class EnvironmentManager {
   /**
-   * Get all environments, optionally filtered by workspace
+   * Get all environments, optionally filtered by workspace and userId
    */
-  async getEnvironments(workspaceId?: string | null): Promise<Environment[]> {
+  async getEnvironments(workspaceId?: string | null, userId?: string | null): Promise<Environment[]> {
     const db = getDb();
+    
+    // If no userId provided, return empty array (user must be logged in)
+    if (!userId) {
+      return [];
+    }
+    
     if (workspaceId != null) {
       const rows = await db.all<Environment[]>(
-        `SELECT id, name, workspaceId, userId, variables, isActive, createdAt, updatedAt FROM environments WHERE workspaceId = ? ORDER BY name ASC`,
-        workspaceId
+        `SELECT id, name, workspaceId, userId, variables, isActive, createdAt, updatedAt FROM environments WHERE workspaceId = ? AND userId = ? ORDER BY name ASC`,
+        workspaceId,
+        userId
       );
       return rows;
     }
     const rows = await db.all<Environment[]>(
-      `SELECT id, name, workspaceId, userId, variables, isActive, createdAt, updatedAt FROM environments ORDER BY name ASC`
+      `SELECT id, name, workspaceId, userId, variables, isActive, createdAt, updatedAt FROM environments WHERE userId = ? ORDER BY name ASC`,
+      userId
     );
     return rows;
   }
