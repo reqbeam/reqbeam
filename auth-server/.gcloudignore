@@ -1,0 +1,44 @@
+# This file specifies files that are *not* uploaded to Google Cloud
+# using gcloud. It follows the same syntax as .gitignore
+
+.gcloudignore
+.git
+.gitignore
+
+node_modules
+npm-debug.log
+
+# Environment files (keep .env.prd for deployment)
+.env
+.env.local
+.env.development
+.env.test
+!.env.prd
+
+# Build output (will be built in Cloud Build)
+dist/
+
+# Documentation
+README.md
+SETUP.md
+docs/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+logs/
+
+# Test files
+coverage/
+.nyc_output/
+

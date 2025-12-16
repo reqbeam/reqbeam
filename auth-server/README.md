@@ -2,6 +2,18 @@
 
 Authentication server running on port 4000 for the OSS application.
 
+## 🚀 Quick Deploy to Google Cloud Run
+
+```bash
+# 1. Setup production environment
+./setup-env.sh
+
+# 2. Deploy to Google Cloud Run
+./deploy.sh
+```
+
+📖 See [DEPLOYMENT.md](DEPLOYMENT.md) for complete deployment guide.
+
 ## Features
 
 - User signup with password validation

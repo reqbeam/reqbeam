@@ -1,0 +1,57 @@
+# Google Cloud Build configuration
+# This builds and deploys your app to Cloud Run automatically
+
+steps:
+  # Build the container image
+  - name: 'gcr.io/cloud-builders/docker'
+    args: 
+      - 'build'
+      - '-t'
+      - 'gcr.io/$PROJECT_ID/auth-server:$COMMIT_SHA'
+      - '-t'
+      - 'gcr.io/$PROJECT_ID/auth-server:latest'
+      - '.'
+    
+  # Push the container image to Container Registry
+  - name: 'gcr.io/cloud-builders/docker'
+    args: 
+      - 'push'
+      - 'gcr.io/$PROJECT_ID/auth-server:$COMMIT_SHA'
+
+  # Deploy to Cloud Run
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    entrypoint: gcloud
+    args:
+      - 'run'
+      - 'deploy'
+      - 'auth-server'
+      - '--image'
+      - 'gcr.io/$PROJECT_ID/auth-server:$COMMIT_SHA'
+      - '--region'
+      - 'us-central1'
+      - '--platform'
+      - 'managed'
+      - '--allow-unauthenticated'
+      - '--min-instances'
+      - '0'
+      - '--max-instances'
+      - '10'
+      - '--memory'
+      - '512Mi'
+      - '--cpu'
+      - '1'
+      - '--timeout'
+      - '60'
+      - '--execution-environment'
+      - 'gen2'
+      - '--cpu-throttling'
+      - '--cpu-boost'
+
+images:
+  - 'gcr.io/$PROJECT_ID/auth-server:$COMMIT_SHA'
+  - 'gcr.io/$PROJECT_ID/auth-server:latest'
+
+options:
+  machineType: 'N1_HIGHCPU_8'
+  logging: CLOUD_LOGGING_ONLY
+
