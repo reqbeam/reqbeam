@@ -21,7 +21,10 @@ We take the security of Reqbeam seriously. If you discover a security vulnerabil
 
 ### Do
 
-1. **Email us directly** at [security@reqbeam.com] (replace with your actual security email)
+1. **Report via GitHub Security Advisories** (preferred):
+   - Go to [GitHub Security Advisories](https://github.com/reqbeam/reqbeam/security/advisories)
+   - Click "Report a vulnerability"
+   - Fill out the security advisory form
    - Include a detailed description of the vulnerability
    - Provide steps to reproduce the issue
    - Include any potential impact assessment
@@ -121,7 +124,7 @@ Security updates will be:
 
 For security-related questions or concerns:
 
-- **Security Email**: [security@reqbeam.com] (replace with your actual email)
+- **Security Email**: Please use GitHub Security Advisories (see below) or create a private security issue
 - **GitHub Security Advisories**: [GitHub Security](https://github.com/reqbeam/reqbeam/security/advisories)
 
 Thank you for helping keep Reqbeam secure!

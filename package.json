@@ -1,7 +1,24 @@
 {
   "name": "reqbeam",
   "version": "0.1.0",
+  "description": "A modern, full-featured API testing and development platform",
   "private": true,
+  "author": "Reqbeam Contributors",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/reqbeam/reqbeam.git"
+  },
+  "bugs": {
+    "url": "https://github.com/reqbeam/reqbeam/issues"
+  },
+  "keywords": [
+    "api-client",
+    "rest-api",
+    "testing",
+    "nextjs",
+    "typescript"
+  ],
   "scripts": {
     "dev": "next dev",
     "build": "next build",
