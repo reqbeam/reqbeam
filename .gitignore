@@ -1,11 +1,38 @@
+# Dependencies
 node_modules
-auth-server/.env
-/.env
+
+# Environment files - NEVER commit these!
+.env
+.env.local
+.env*.local
 .env.development.local
 .env.test.local
 .env.production.local
+auth-server/.env
+reqbeam-db/.env
+**/.env
+**/.env.local
+**/.env*.local
+
+# Build outputs
 .next
 dist/
+auth-server/dist/
+reqbeam-cli/dist/
+
+# Database files
+*.db
+*.db-journal
+*.db-shm
+*.db-wal
 prisma/prisma/
-logs
 data/prisma
+reqbeam-db/data/
+reqbeam-db/prisma/prisma/
+
+# Logs
+logs
+*.log
+
+# OS files
+.DS_Store

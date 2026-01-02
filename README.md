@@ -8,6 +8,31 @@ A modern, full-featured API testing and development platform built with **Next.j
 ![Prisma](https://img.shields.io/badge/Prisma-5.22-2D3748?style=flat-square&logo=prisma)
 ![License](https://img.shields.io/badge/license-MIT-green?style=flat-square)
 
+![Reqbeam Hero](./docs/images/hero_mockup.png)
+
+---
+
+## ⚡ Why Reqbeam?
+
+We built Reqbeam because we believe API testing should be **fast, beautiful, and open**.
+
+-   🚫 **No Forced Cloud Sync**: Your data stays on your machine unless you choose otherwise.
+-   🚀 **Lightweight**: Starts instantly, runs locally. No 500MB Electron download.
+-   🎨 **Modern UI**: A dark-mode first interface that's a joy to use.
+-   🔓 **100% Open Source**: MIT Licensed. Hack it, extend it, own it.
+
+---
+
+## 🆚 Usage Comparison
+
+| Feature | Reqbeam | Postman | Thunder Client |
+| :--- | :---: | :---: | :---: |
+| **Open Source** | ✅ Yes | ❌ No | ❌ No |
+| **Offline First** | ✅ Yes | ❌ No (Cloud Forced) | ⚠️ Partial |
+| **No Login Required** | ✅ Yes | ❌ No | ✅ Yes |
+| **Lightweight** | ✅ Yes | ❌ Heavy | ✅ Yes |
+| **Data Privacy** | ✅ 100% Local | ⚠️ Cloud Sync | ⚠️ Mixed |
+
 ---
 
 ## Table of Contents
@@ -77,68 +102,85 @@ A modern, full-featured API testing and development platform built with **Next.j
 
 ---
 
-## Installation
+## 🚀 Getting Started
 
-### Prerequisites
+You can run Reqbeam locally on your machine or deploy it using Docker.
 
-- **Node.js** v18.0+ ([Download](https://nodejs.org/))
-- **npm**, **yarn**, or **pnpm**
-- **PostgreSQL** v14+ (production) or **SQLite** (development)
-- **Git** ([Download](https://git-scm.com/))
+### Option 1: Quick Start (Recommended for Developers)
 
-### Quick Install
+The fastest way to get started and explore the code.
 
-```bash
-# Clone and install
-git clone https://github.com/reqbeam/reqbeam.git
-cd reqbeam
-npm install
+1.  **Clone the repository**
+    ```bash
+    git clone https://github.com/reqbeam/reqbeam.git
+    cd reqbeam
+    ```
 
-# Set up environment
-cp env.example .env
-# Edit .env with your configuration
+2.  **Install dependencies and setup**
+    ```bash
+    npm install
+    npm run setup:all
+    ```
+    *This script sets up your environment variables (in `.env.local`) and initializes the database.*
 
-# Set up database
-npm run db:generate
-npm run db:push
+3.  **Start the development server**
+    ```bash
+    npm run dev
+    ```
 
-# Start development server
-npm run dev
-```
+4.  **Open in Browser**
+    Visit [http://localhost:3000](http://localhost:3000) to create your account and start testing APIs!
 
-Open [http://localhost:3000](http://localhost:3000) in your browser.
+### Option 2: Run with Docker (Easiest Deployment)
 
-### Alternative: Docker
+Ideal if you just want to run the application without installing Node.js or databases locally.
 
 ```bash
 git clone https://github.com/reqbeam/reqbeam.git
 cd reqbeam
 docker-compose up -d
 ```
-
-### Automated Setup
-
-```bash
-chmod +x setup.sh
-./setup.sh
-# or
-npm run setup:all
-```
-
-For detailed installation instructions, see the [Installation Guide](https://reqbeam.github.io/reqbeam/installation).
+The app will be available at [http://localhost:3000](http://localhost:3000).
 
 ---
 
-## Quick Start
+## 🛠️ Installation Details
 
-1. **Install** - Follow the [Installation](#-installation) steps above
-2. **Configure** - Set up your `.env` file (see [env.example](./env.example))
-3. **Start** - Run `npm run dev` and open http://localhost:3000
-4. **Sign Up** - Create an account and start testing APIs
+If you prefer manual setup or run into issues with the quick start, here are the detailed prerequisites and steps.
 
-For step-by-step instructions, see the [Quick Start Guide](https://reqbeam.github.io/reqbeam/quick-start).
+### Prerequisites
 
----
+- **Node.js** v18.0+ ([Download](https://nodejs.org/))
+- **npm**, **yarn**, or **pnpm**
+- **Git** ([Download](https://git-scm.com/))
+- **PostgreSQL** (Production) or **SQLite** (Dev/Default)
+
+### Manual Setup Steps
+
+1.  **Clone & Install**
+    ```bash
+    git clone https://github.com/reqbeam/reqbeam.git
+    cd reqbeam
+    npm install
+    ```
+
+2.  **Environment Configuration**
+    ```bash
+    cp env.example .env.local
+    # Edit .env.local with your database credentials if using PostgreSQL
+    # Default is setup for SQLite, so no changes needed for quick start!
+    ```
+
+3.  **Database Setup**
+    ```bash
+    npm run db:generate
+    npm run db:push
+    ```
+
+4.  **Run**
+    ```bash
+    npm run dev
+    ```
 
 ## Usage Examples
 
