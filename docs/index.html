@@ -3,532 +3,242 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Reqbeam - API Testing Platform</title>
-    <meta name="description" content="Reqbeam is a modern, full-featured API testing and development platform built with Next.js 15, TypeScript, Prisma, and Tailwind CSS.">
-    <meta name="theme-color" content="#268BD2">
+    <title>Reqbeam - API Testing Tool</title>
+    <meta name="description" content="Reqbeam is an open-source API testing tool with a clean interface for developers.">
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
-        
-        :root {
-            /* Color Schemes */
-            --background: #0A0A0A;
-            --foreground: #E6E6E6;
-            --muted: #8C8C8C;
-            
-            /* Primary Colors */
-            --primary: #268BD2;
-            --primary-mute: #1E6BA8;
-            --primary-light: #5AA6E0;
-            
-            /* Secondary Colors */
-            --secondary: #CB4B16;
-            
-            /* UI Elements */
-            --border: #262626;
-            --border-strong: #404040;
-            --card: #141414;
-            --card-border: #262626;
-            
-            /* Shadows */
-            --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
-            --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-            --shadow-md: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
-            --shadow-lg: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
-            
-            /* Typography & Spacing */
-            --radius: 0.75rem;
-            --transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-            
-            /* Typography */
-            --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
-        }
-        
+        /* Reset and base styles */
         * {
+            margin: 0;
+            padding: 0;
             box-sizing: border-box;
         }
         
         body {
-            font-family: var(--font-sans);
-            background-color: var(--background);
-            color: var(--foreground);
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
             line-height: 1.6;
-            margin: 0;
-            padding: 0;
-            min-height: 100vh;
-        }
-        
-        a {
-            color: var(--primary);
-            text-decoration: none;
-            transition: var(--transition);
-        }
-        
-        a:hover {
-            color: var(--primary-light);
-        }
-        
-        header {
-            padding: 3rem 1rem;
-            text-align: center;
-            background: linear-gradient(to bottom, rgba(10, 10, 10, 0), rgba(10, 10, 10, 0.7));
-            position: relative;
-            z-index: 10;
-        }
-        
-        .container {
+            color: #333;
+            background: #fff;
             max-width: 80ch;
             margin: 0 auto;
-            padding: 0 1rem;
-        }
-        
-        .hero {
-            text-align: center;
-            padding: 4rem 0;
-        }
-        
-        .hero h1 {
-            font-size: 3.5rem;
-            font-weight: 700;
-            margin-bottom: 1rem;
-            background: linear-gradient(90deg, #268BD2, #CB4B16);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-        }
-        
-        .hero p {
-            font-size: 1.2rem;
-            color: var(--muted);
-            margin-bottom: 2rem;
-            max-width: 50ch;
-            margin-left: auto;
-            margin-right: auto;
-        }
-        
-        .badges {
-            display: flex;
-            justify-content: center;
-            gap: 1rem;
-            flex-wrap: wrap;
-            margin-bottom: 2rem;
-        }
-        
-        .badge {
-            display: inline-flex;
-            align-items: center;
-            padding: 0.25rem 0.75rem;
-            background: var(--card);
-            border: 1px solid var(--card-border);
-            border-radius: 9999px;
-            font-size: 0.875rem;
-            font-weight: 500;
-            color: var(--muted);
-            gap: 0.5rem;
-        }
-        
-        .badge svg {
-            width: 1rem;
-            height: 1rem;
-        }
-        
-        .cta {
-            display: flex;
-            gap: 1rem;
-            justify-content: center;
-            flex-wrap: wrap;
-            margin-bottom: 4rem;
-        }
-        
-        .btn {
-            padding: 0.75rem 1.5rem;
-            border-radius: var(--radius);
-            font-weight: 500;
-            transition: var(--transition);
-            border: 1px solid transparent;
-            cursor: pointer;
-            display: inline-flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-        
-        .btn-primary {
-            background: var(--primary);
-            color: white;
-            border-color: var(--primary-mute);
-        }
-        
-        .btn-primary:hover {
-            background: var(--primary-light);
-            transform: translateY(-2px);
-            box-shadow: var(--shadow-md);
-        }
-        
-        .btn-outline {
-            background: transparent;
-            color: var(--primary);
-            border-color: var(--border-strong);
-        }
-        
-        .btn-outline:hover {
-            background: rgba(38, 139, 210, 0.1);
-            border-color: var(--primary);
-            transform: translateY(-2px);
-            box-shadow: var(--shadow-sm);
-        }
-        
-        nav {
-            border-top: 1px solid var(--border);
-            border-bottom: 1px solid var(--border);
-            background: var(--card);
-            position: sticky;
-            top: 0;
-            z-index: 20;
-        }
-        
-        .nav-container {
-            display: flex;
-            justify-content: center;
-            gap: 2rem;
             padding: 1rem;
-            overflow-x: auto;
         }
         
-        .nav-link {
-            color: var(--muted);
-            font-weight: 500;
-            padding: 0.5rem 0;
-            position: relative;
-            white-space: nowrap;
+        /* Typography */
+        h1, h2, h3 {
+            margin: 1.5rem 0 1rem 0;
+            line-height: 1.2;
         }
         
-        .nav-link:hover, .nav-link.active {
-            color: var(--foreground);
-        }
-        
-        .nav-link.active::after {
-            content: '';
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            width: 100%;
-            height: 2px;
-            background: var(--primary);
-        }
-        
-        main {
-            padding: 4rem 0;
-        }
-        
-        section {
-            margin-bottom: 4rem;
+        h1 {
+            font-size: 2.5rem;
+            color: #268BD2;
         }
         
         h2 {
             font-size: 2rem;
-            font-weight: 600;
-            margin-bottom: 1.5rem;
-            position: relative;
-            display: inline-block;
-        }
-        
-        h2::after {
-            content: '';
-            position: absolute;
-            bottom: -0.5rem;
-            left: 0;
-            width: 3rem;
-            height: 3px;
-            background: var(--primary);
+            color: #268BD2;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 0.5rem;
         }
         
         h3 {
             font-size: 1.25rem;
-            font-weight: 600;
-            margin: 1.5rem 0 1rem 0;
-            color: var(--primary);
+            margin: 1.5rem 0 0.75rem 0;
+            color: #268BD2;
         }
         
-        p {
+        p, ul, ol, pre {
             margin-bottom: 1rem;
         }
         
-        ul {
+        /* Links */
+        a {
+            color: #268BD2;
+            text-decoration: none;
+        }
+        
+        a:hover {
+            text-decoration: underline;
+        }
+        
+        /* Lists */
+        ul, ol {
             padding-left: 1.5rem;
-            margin: 1rem 0;
         }
         
         li {
             margin: 0.5rem 0;
-            position: relative;
         }
         
-        .feature-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(30ch, 1fr));
-            gap: 2rem;
-            margin: 2rem 0;
-        }
-        
-        .feature-card {
-            background: var(--card);
-            border: 1px solid var(--card-border);
-            border-radius: var(--radius);
-            padding: 1.5rem;
-            transition: var(--transition);
-        }
-        
-        .feature-card:hover {
-            transform: translateY(-4px);
-            box-shadow: var(--shadow-lg);
-            border-color: var(--primary);
-        }
-        
-        .feature-card h3 {
-            margin-top: 0;
-            display: flex;
-            align-items: center;
-            gap: 0.75rem;
-        }
-        
+        /* Code */
         pre {
-            background: var(--card);
-            border: 1px solid var(--card-border);
-            border-radius: var(--radius);
+            background: #f4f4f4;
             padding: 1rem;
+            border-radius: 0.5rem;
             overflow-x: auto;
-            margin: 1rem 0;
-            font-family: 'JetBrains Mono', 'Fira Code', monospace;
+            font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
             font-size: 0.9rem;
         }
         
         code {
-            background: var(--card);
-            border: 1px solid var(--card-border);
-            border-radius: 0.375rem;
+            background: #f4f4f4;
             padding: 0.2em 0.4em;
-            font-family: 'JetBrains Mono', 'Fira Code', monospace;
+            border-radius: 0.25rem;
+            font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
             font-size: 0.9em;
         }
         
-        footer {
-            border-top: 1px solid var(--border);
-            padding: 3rem 1rem;
+        /* Buttons */
+        .btn {
+            display: inline-block;
+            padding: 0.75rem 1.5rem;
+            background: #268BD2;
+            color: white;
+            text-decoration: none;
+            border-radius: 0.5rem;
+            font-weight: 500;
+            margin: 1rem 0;
+            border: none;
+            cursor: pointer;
+        }
+        
+        .btn:hover {
+            background: #1E6BA8;
+        }
+        
+        /* Header */
+        header {
             text-align: center;
-            color: var(--muted);
+            padding: 3rem 0 2rem 0;
+            border-bottom: 1px solid #eee;
+        }
+        
+        /* Navigation */
+        nav {
+            padding: 1rem 0;
+            border-bottom: 1px solid #eee;
+            margin-bottom: 2rem;
             font-size: 0.9rem;
         }
         
-        .footer-links {
-            display: flex;
-            justify-content: center;
-            gap: 2rem;
-            margin-bottom: 1rem;
-            flex-wrap: wrap;
+        nav a {
+            margin-right: 1.5rem;
         }
         
-        .footer-links a {
-            color: var(--muted);
+        /* Main content */
+        main {
+            padding: 2rem 0;
         }
         
-        .footer-links a:hover {
-            color: var(--foreground);
+        /* Footer */
+        footer {
+            margin-top: 4rem;
+            padding: 2rem 0;
+            border-top: 1px solid #eee;
+            text-align: center;
+            color: #666;
+            font-size: 0.9rem;
         }
         
+        /* Responsiveness */
         @media (max-width: 768px) {
-            .hero h1 {
-                font-size: 2.5rem;
+            body {
+                padding: 0.5rem;
             }
             
-            .nav-container {
-                gap: 1rem;
+            h1 {
+                font-size: 2rem;
             }
             
-            .feature-grid {
-                grid-template-columns: 1fr;
-            }
-            
-            .cta {
-                flex-direction: column;
-                align-items: center;
-            }
-            
-            .btn {
-                width: 100%;
-                max-width: 20rem;
+            h2 {
+                font-size: 1.75rem;
             }
         }
     </style>
 </head>
 <body>
-    <header class="hero">
-        <div class="container">
-            <h1>Reqbeam</h1>
-            <p>A modern, full-featured API testing and development platform built with Next.js 15, TypeScript, Prisma, and Tailwind CSS.</p>
-            
-            <div class="badges">
-                <span class="badge">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h6v6"></path><path d="M10 14L21 3"></path><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path></svg>
-                    Next.js 15
-                </span>
-                <span class="badge">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9.42h12"></path><path d="M6.5 3.5a3.37 3.37 0 1 1 3.37 3.37 8 8 0 0 1 4.26 4.26 3.37 3.37 0 1 1 3.37-3.37"></path><path d="M12 10s2 1.5 2 4c0 1.5-.58 2.84-1.5 3.5"></path><path d="M12 10s-2 1.5-2 4c0 1.5.58 2.84 1.5 3.5"></path></svg>
-                    TypeScript
-                </span>
-                <span class="badge">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8l7.89 4.26a2 2 0 0 0 2.22 0L21 8M5 19h14a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2z"></path></svg>
-                    Tailwind CSS
-                </span>
-                <span class="badge">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3v12a3 3 0 0 0 3 3h7a3 3 0 0 0 3-3V5a3 3 0 0 0-3-3H9a3 3 0 0 0-3 3z"></path><path d="M17 22v-7"></path></svg>
-                    Prisma ORM
-                </span>
-            </div>
-            
-            <div class="cta">
-                <a href="https://github.com/reqbeam/reqbeam" class="btn btn-primary">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a10 10 0 0 1 10 10 10 10 0 0 1-8.1 3.5A1 1 0 0 1 13 16a1 1 0 0 1-.7-1.6A7.81 7.81 0 0 0 17 9.7 1 1 0 0 0 17 8a1 1 0 0 0-1.2-.8A8 8 0 0 1 4.2 17.8 1 1 0 0 0 4 19a1 1 0 0 0 .8.8A10 10 0 0 0 12 2z"></path></svg>
-                    Star on GitHub
-                </a>
-                <a href="#installation" class="btn btn-outline">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 10l4.55 2.55a2 2 0 0 1 0 3.505L7 22l-2.2-1.007a3 3 0 0 1-1.8-2.67V7.677a3 3 0 0 1 1.8-2.67L7 4"></path><polyline points="12 12 15 9 12 6"></polyline><path d="M6.5 18a2.5 2.5 0 0 0 0-5 2.5 2.5 0 0 0 0 5"></path></svg>
-                    Quick Start
-                </a>
-            </div>
-        </div>
+    <header>
+        <h1>Reqbeam</h1>
+        <p>A simple, open-source API testing tool for developers.</p>
+        <p>
+            <a href="https://github.com/reqbeam/reqbeam" class="btn">View on GitHub</a>
+        </p>
     </header>
     
     <nav>
-        <div class="container">
-            <div class="nav-container">
-                <a href="#features" class="nav-link active">Features</a>
-                <a href="#installation" class="nav-link">Installation</a>
-                <a href="#usage" class="nav-link">Usage</a>
-                <a href="#use-cases" class="nav-link">Use Cases</a>
-                <a href="#architecture" class="nav-link">Architecture</a>
-                <a href="#contributing" class="nav-link">Contributing</a>
-            </div>
-        </div>
+        <a href="#features">Features</a>
+        <a href="#installation">Installation</a>
+        <a href="#usage">Usage</a>
+        <a href="#architecture">Architecture</a>
+        <a href="#contributing">Contributing</a>
     </nav>
     
-    <main class="container">
+    <main>
         <section id="features">
-            <h2>Why Reqbeam?</h2>
-            
-            <p>We built Reqbeam because we believe API testing should be fast, beautiful, and open.</p>
-            
-            <div class="feature-grid">
-                <div class="feature-card">
-                    <h3>
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width: 1.5rem; height: 1.5rem; color: var(--primary);">
-                            <path d="M9 12l2 2 4-4"></path><circle cx="12" cy="12" r="10"></circle>
-                        </svg>
-                        No Forced Cloud Sync
-                    </h3>
-                    <p>Your data stays on your machine unless you choose otherwise.</p>
-                </div>
-                
-                <div class="feature-card">
-                    <h3>
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width: 1.5rem; height: 1.5rem; color: var(--primary);">
-                            <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
-                        </svg>
-                        Lightweight
-                    </h3>
-                    <p>Starts instantly, runs locally. No 500MB Electron download.</p>
-                </div>
-                
-                <div class="feature-card">
-                    <h3>
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width: 1.5rem; height: 1.5rem; color: var(--primary);">
-                            <path d="M12 19l7-7 3 3-7 7-3-3z"></path><path d="M18 13l-1.5-7.5L2 2l3.5 14.5L13 18l5-5z"></path><path d="M2 2l7.58 14.54"></path>
-                        </svg>
-                        Modern UI
-                    </h3>
-                    <p>A dark-mode first interface that's a joy to use.</p>
-                </div>
-                
-                <div class="feature-card">
-                    <h3>
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width: 1.5rem; height: 1.5rem; color: var(--primary);">
-                            <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
-                        </svg>
-                        100% Open Source
-                    </h3>
-                    <p>MIT Licensed. Hack it, extend it, own it.</p>
-                </div>
-            </div>
+            <h2>Features</h2>
             
             <h3>Core Features</h3>
             <ul>
-                <li><strong>HTTP Request Builder</strong> - Full support for GET, POST, PUT, DELETE, PATCH, HEAD, OPTIONS</li>
-                <li><strong>Query Parameters Management</strong> - Add, edit, enable/disable params with automatic URL sync</li>
-                <li><strong>Headers Management</strong> - Custom headers with key-value pairs</li>
-                <li><strong>Request Body</strong> - Support for JSON, form-data, and x-www-form-urlencoded</li>
-                <li><strong>Authorization System</strong> - Multiple auth types: No Auth, API Key, Bearer Token, Basic Auth, OAuth 2.0 (PKCE)</li>
-                <li><strong>Response Viewer</strong> - Beautiful syntax-highlighted JSON responses with formatting</li>
-                <li><strong>Request History</strong> - Track all your API requests with timestamps and response data</li>
-                <li><strong>Collections</strong> - Organize requests into collections for better management</li>
-                <li><strong>Environments</strong> - Manage multiple environments (dev, staging, prod) with variables</li>
-                <li><strong>Workspaces</strong> - Multi-workspace support for team collaboration</li>
-                <li><strong>Tab Management</strong> - Work on multiple requests simultaneously</li>
-                <li><strong>Mock Servers</strong> - Create mock endpoints for testing and development</li>
-                <li><strong>Import/Export</strong> - Import from OpenAPI/Swagger, export collections</li>
+                <li>HTTP request builder with all methods (GET, POST, PUT, DELETE, PATCH, HEAD, OPTIONS)</li>
+                <li>Query parameters and headers management</li>
+                <li>Request body support for JSON, form-data, and x-www-form-urlencoded</li>
+                <li>Multiple authentication types (No Auth, API Key, Bearer Token, Basic Auth, OAuth 2.0)</li>
+                <li>Syntax-highlighted JSON responses</li>
+                <li>Request history tracking</li>
+                <li>Collections for organizing requests</li>
+                <li>Environment variables for different API endpoints</li>
+                <li>Workspaces for team collaboration</li>
+                <li>Tab management for multiple requests</li>
+                <li>Mock servers for testing</li>
+                <li>Import/Export collections</li>
             </ul>
             
             <h3>Authentication & Security</h3>
             <ul>
-                <li><strong>User Registration & Login</strong> - Secure authentication with NextAuth.js</li>
-                <li><strong>Google OAuth</strong> - Sign in with Google (PKCE flow)</li>
-                <li><strong>Session Management</strong> - Persistent user sessions</li>
-                <li><strong>Protected Routes</strong> - Secure API endpoints</li>
-                <li><strong>JWT Tokens</strong> - Secure token-based authentication for CLI</li>
+                <li>User registration and login with NextAuth.js</li>
+                <li>Google OAuth integration</li>
+                <li>Persistent user sessions</li>
+                <li>Protected API routes</li>
+                <li>JWT tokens for CLI authentication</li>
             </ul>
             
             <h3>CLI Features</h3>
             <ul>
-                <li><strong>Command-Line Interface</strong> - Full-featured CLI tool for automation</li>
-                <li><strong>Cloud Sync</strong> - Real-time synchronization with web UI</li>
-                <li><strong>Collection Execution</strong> - Run entire collections from terminal</li>
-                <li><strong>Test Automation</strong> - Automated testing with scheduling</li>
-                <li><strong>Logging & Monitoring</strong> - Comprehensive execution logs</li>
-                <li><strong>History Replay</strong> - Replay past executions</li>
+                <li>Command-line interface for automation</li>
+                <li>Real-time synchronization with web UI</li>
+                <li>Run collections from terminal</li>
+                <li>Automated testing with scheduling</li>
+                <li>Comprehensive execution logs</li>
+                <li>Replay past executions</li>
             </ul>
         </section>
         
         <section id="installation">
             <h2>Installation</h2>
             
-            <h3>Quick Start (Recommended for Developers)</h3>
-            <p>The fastest way to get started and explore the code.</p>
-            <pre><code># Clone the repository
-git clone https://github.com/reqbeam/reqbeam.git
+            <h3>Quick Start</h3>
+            <p>Get up and running quickly:</p>
+            <pre><code>git clone https://github.com/reqbeam/reqbeam.git
 cd reqbeam
-
-# Install dependencies and setup
 npm install
 npm run setup:all
-
-# Start the development server
 npm run dev</code></pre>
 
-            <p>Visit <a href="http://localhost:3000">http://localhost:3000</a> to create your account and start testing APIs!</p>
-            
-            <h3>Run with Docker (Easiest Deployment)</h3>
-            <p>Ideal if you just want to run the application without installing Node.js or databases locally.</p>
-            <pre><code># Clone and run with Docker Compose
-git clone https://github.com/reqbeam/reqbeam.git
+            <h3>Docker Setup</h3>
+            <p>Run with Docker Compose:</p>
+            <pre><code>git clone https://github.com/reqbeam/reqbeam.git
 cd reqbeam
 docker-compose up -d</code></pre>
-
-            <p>The app will be available at <a href="http://localhost:3000">http://localhost:3000</a>.</p>
         </section>
         
         <section id="usage">
             <h2>Usage Examples</h2>
             
             <h3>CLI Usage</h3>
-            <pre><code># Authenticate and set up
+            <pre><code># Authenticate
 rb auth login
+
+# Create workspace and environment
 rb workspace create my-project
 rb env add development -i
 
@@ -542,30 +252,9 @@ rb collection add "User API" "Get Users"
 rb run collection "User API" --parallel</code></pre>
         </section>
         
-        <section id="use-cases">
-            <h2>Use Cases</h2>
-            
-            <h3>API Development & Testing</h3>
-            <ul>
-                <li>Test REST APIs during development</li>
-                <li>Debug API endpoints with detailed request/response inspection</li>
-                <li>Validate API responses with syntax highlighting</li>
-                <li>Test different environments (dev, staging, production)</li>
-            </ul>
-            
-            <h3>CI/CD Integration</h3>
-            <ul>
-                <li>Automate API testing with CLI in CI pipelines</li>
-                <li>Run collections as part of deployment process</li>
-                <li>Schedule automated tests with cron jobs</li>
-                <li>Export test results for reporting</li>
-            </ul>
-        </section>
-        
         <section id="architecture">
             <h2>Architecture</h2>
             
-            <h3>Project Structure</h3>
             <pre><code>reqbeam/
 ├── reqbeam-db/          # Shared database package
 │   ├── prisma/         # Prisma schema and migrations
@@ -587,30 +276,15 @@ rb run collection "User API" --parallel</code></pre>
         
         <section id="contributing">
             <h2>Contributing</h2>
-            <p>We welcome contributions! Please see our <a href="https://github.com/reqbeam/reqbeam/blob/main/CONTRIBUTING.md">Contributing Guide</a> for details on:</p>
-            <ul>
-                <li>How to report bugs</li>
-                <li>How to suggest features</li>
-                <li>Development setup</li>
-                <li>Coding standards</li>
-                <li>Pull request process</li>
-            </ul>
+            <p>We welcome contributions! Please see the <a href="https://github.com/reqbeam/reqbeam/blob/main/CONTRIBUTING.md">Contributing Guide</a> for details.</p>
             
             <h3>License</h3>
-            <p>This project is licensed under the <strong>MIT License</strong> - see the <a href="https://github.com/reqbeam/reqbeam/blob/main/LICENSE">LICENSE</a> file for details.</p>
+            <p>MIT License - see the <a href="https://github.com/reqbeam/reqbeam/blob/main/LICENSE">LICENSE</a> file for details.</p>
         </section>
     </main>
     
     <footer>
-        <div class="container">
-            <div class="footer-links">
-                <a href="https://github.com/reqbeam/reqbeam">GitHub Repository</a>
-                <a href="https://github.com/reqbeam/reqbeam/issues">Report Issues</a>
-                <a href="https://github.com/reqbeam/reqbeam/discussions">Ask Questions</a>
-                <a href="https://twitter.com/_shivammaurya__" target="_blank">@_shivammaurya__</a>
-            </div>
-            <p>© 2026 Reqbeam. Open Source API Testing Platform.</p>
-        </div>
+        <p>© 2026 Reqbeam. Created by <a href="https://twitter.com/_shivammaurya__" target="_blank">@_shivammaurya__</a></p>
     </footer>
 </body>
 </html>
