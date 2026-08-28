@@ -20,7 +20,6 @@ concurrency:
 jobs:
   deploy:
     environment:
-      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     runs-on: ubuntu-latest
@@ -33,10 +32,6 @@ jobs:
         with:
           ruby-version: '3.1'
           bundler-cache: true
-          
-      - name: Install dependencies
-        run: |
-          cd docs && bundle install
       
       - name: Setup Pages
         id: pages
@@ -45,7 +40,6 @@ jobs:
       - name: Build with Jekyll
         run: |
           ls -la docs/
-          cd docs
           bundle install
           bundle exec jekyll build --baseurl "${{ steps.pages.outputs.base_path }}"
         env:
