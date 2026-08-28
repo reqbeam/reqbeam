@@ -406,6 +406,12 @@ rb auth login
 cat ~/.reqbeam/auth.json
 ```
 
+## Related Projects
+
+- **DevSpeed** - A developer-machine benchmarking CLI that measures how fast your computer actually is for software development. DevSpeed provides a Speedtest.net / Geekbench-like experience specifically for developers, measuring real-world development tasks like filesystem operations, Git performance, and dependency installation.
+
+  [GitHub Repository](https://github.com/shivampwm2020/DevSpeed)
+
 ---
 
 ## Contributing
