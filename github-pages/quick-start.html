@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quick Start Guide - Reqbeam Documentation</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        nav {
+            background: #f4f4f4;
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 5px;
+        }
+        nav a {
+            margin-right: 15px;
+            text-decoration: none;
+            color: #0066cc;
+        }
+        nav a:hover {
+            text-decoration: underline;
+        }
+        h1 {
+            color: #2c3e50;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 10px;
+        }
+        h2 {
+            color: #34495e;
+            margin-top: 30px;
+        }
+        code {
+            background: #f4f4f4;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+        }
+        pre {
+            background: #f4f4f4;
+            padding: 15px;
+            border-radius: 5px;
+            overflow-x: auto;
+        }
+        pre code {
+            background: none;
+            padding: 0;
+        }
+        a {
+            color: #0066cc;
+        }
+        a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <nav>
+        <a href="/">Home</a>
+        <a href="/installation">Installation</a>
+        <a href="/quick-start">Quick Start</a>
+        <a href="/web-interface">Web Interface</a>
+        <a href="/cli">CLI</a>
+        <a href="/api-reference">API Reference</a>
+    </nav>
+    
+    <main>
+        <h1 id="quick-start-guide">Quick Start Guide</h1>
+
+<p>Get up and running with Reqbeam in 5 minutes.</p>
+
+<h2 id="step-1-installation">Step 1: Installation</h2>
+
+<p>If you haven’t installed Reqbeam yet, follow the <a href="installation">Installation Guide</a>.</p>
+
+<h2 id="step-2-start-the-application">Step 2: Start the Application</h2>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>npm run dev
+</code></pre></div></div>
+
+<p>The application will start on http://localhost:3000</p>
+
+<h2 id="step-3-create-an-account">Step 3: Create an Account</h2>
+
+<ol>
+  <li>Open http://localhost:3000 in your browser</li>
+  <li>Click “Sign Up” or “Sign In”</li>
+  <li>Create an account with your email and password</li>
+  <li>Or sign in with Google OAuth (if configured)</li>
+</ol>
+
+<h2 id="step-4-create-a-workspace">Step 4: Create a Workspace</h2>
+
+<ol>
+  <li>After logging in, you’ll be prompted to create a workspace</li>
+  <li>Enter a workspace name (e.g., “My API Project”)</li>
+  <li>Optionally add a description</li>
+  <li>Click “Create Workspace”</li>
+</ol>
+
+<h2 id="step-5-create-your-first-request">Step 5: Create Your First Request</h2>
+
+<ol>
+  <li>Click the “New Request” button</li>
+  <li>Select HTTP method (e.g., GET)</li>
+  <li>Enter an API URL (e.g., <code class="language-plaintext highlighter-rouge">https://api.github.com/users/octocat</code>)</li>
+  <li>Click “Send”</li>
+  <li>View the response in the response viewer</li>
+</ol>
+
+<h2 id="step-6-save-to-collection">Step 6: Save to Collection</h2>
+
+<ol>
+  <li>After sending a request, click “Save”</li>
+  <li>Choose or create a collection</li>
+  <li>Give your request a name</li>
+  <li>Click “Save”</li>
+</ol>
+
+<h2 id="using-environment-variables">Using Environment Variables</h2>
+
+<ol>
+  <li>Go to Environments section</li>
+  <li>Click “Add Environment”</li>
+  <li>Enter environment name (e.g., “Development”)</li>
+  <li>Add variables (e.g., <code class="language-plaintext highlighter-rouge">API_URL=https://api.example.com</code>)</li>
+  <li>Use variables in requests: <code class="language-plaintext highlighter-rouge">/users</code></li>
+</ol>
+
+<h2 id="using-the-cli">Using the CLI</h2>
+
+<ol>
+  <li>Install CLI (see <a href="installation">Installation Guide</a>)</li>
+  <li>Authenticate: <code class="language-plaintext highlighter-rouge">rb auth login</code></li>
+  <li>Create a workspace: <code class="language-plaintext highlighter-rouge">rb workspace create my-project</code></li>
+  <li>Add environment: <code class="language-plaintext highlighter-rouge">rb env add development -i</code></li>
+  <li>Create request: <code class="language-plaintext highlighter-rouge">rb request create -n "Get Users" -m GET -u "/users"</code></li>
+  <li>Run request: <code class="language-plaintext highlighter-rouge">rb run request "Get Users"</code></li>
+</ol>
+
+<h2 id="next-steps">Next Steps</h2>
+
+<ul>
+  <li>Read the <a href="workspace-feature">Workspace Feature Documentation</a></li>
+  <li>Learn about <a href="authorization">Authorization System</a></li>
+  <li>Explore <a href="cli-docs/auth">CLI Documentation</a></li>
+  <li>Check out <a href="keyboard-shortcuts">Keyboard Shortcuts</a></li>
+</ul>
+
+
+    </main>
+    
+    <footer style="margin-top: 50px; padding-top: 20px; border-top: 1px solid #ddd; color: #666; font-size: 0.9em;">
+        <p>Reqbeam Documentation - <a href="https://github.com/reqbeam/reqbeam">GitHub Repository</a></p>
+    </footer>
+</body>
+</html>
+

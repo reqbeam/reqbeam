@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CLI Tool Documentation - Reqbeam Documentation</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        nav {
+            background: #f4f4f4;
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 5px;
+        }
+        nav a {
+            margin-right: 15px;
+            text-decoration: none;
+            color: #0066cc;
+        }
+        nav a:hover {
+            text-decoration: underline;
+        }
+        h1 {
+            color: #2c3e50;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 10px;
+        }
+        h2 {
+            color: #34495e;
+            margin-top: 30px;
+        }
+        code {
+            background: #f4f4f4;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+        }
+        pre {
+            background: #f4f4f4;
+            padding: 15px;
+            border-radius: 5px;
+            overflow-x: auto;
+        }
+        pre code {
+            background: none;
+            padding: 0;
+        }
+        a {
+            color: #0066cc;
+        }
+        a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <nav>
+        <a href="/">Home</a>
+        <a href="/installation">Installation</a>
+        <a href="/quick-start">Quick Start</a>
+        <a href="/web-interface">Web Interface</a>
+        <a href="/cli">CLI</a>
+        <a href="/api-reference">API Reference</a>
+    </nav>
+    
+    <main>
+        <h1 id="cli-tool-documentation">CLI Tool Documentation</h1>
+
+<p>Complete guide to using the Reqbeam command-line interface.</p>
+
+<h2 id="overview">Overview</h2>
+
+<p>The Reqbeam CLI provides a powerful command-line interface for automating API testing and integrating with CI/CD pipelines. It synchronizes with the web interface in real-time.</p>
+
+<h2 id="installation">Installation</h2>
+
+<p>See the <a href="installation">Installation Guide</a> for CLI installation instructions.</p>
+
+<h2 id="authentication">Authentication</h2>
+
+<p>All CLI commands require authentication. See the <a href="cli-docs/auth">CLI Authentication</a> guide for details.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c"># Login</span>
+rb auth login
+
+<span class="c"># Check status</span>
+rb auth status
+
+<span class="c"># Logout</span>
+rb auth <span class="nb">logout</span>
+</code></pre></div></div>
+
+<h2 id="workspace-management">Workspace Management</h2>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c"># List workspaces</span>
+rb workspace list
+
+<span class="c"># Create workspace</span>
+rb workspace create &lt;name&gt;
+
+<span class="c"># Switch workspace</span>
+rb workspace switch &lt;name&gt;
+
+<span class="c"># Delete workspace</span>
+rb workspace delete &lt;name&gt;
+</code></pre></div></div>
+
+<h2 id="environment-management">Environment Management</h2>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c"># List environments</span>
+rb <span class="nb">env </span>list
+
+<span class="c"># Add environment</span>
+rb <span class="nb">env </span>add &lt;name&gt; <span class="nt">-i</span>
+
+<span class="c"># Switch environment</span>
+rb <span class="nb">env </span>switch &lt;name&gt;
+
+<span class="c"># Remove environment</span>
+rb <span class="nb">env </span>remove &lt;name&gt;
+</code></pre></div></div>
+
+<p>See the <a href="cli-docs/environment">CLI Environment Management</a> guide for details.</p>
+
+<h2 id="request-management">Request Management</h2>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c"># Create request</span>
+rb request create <span class="nt">-n</span> <span class="s2">"Get Users"</span> <span class="nt">-m</span> GET <span class="nt">-u</span> <span class="s2">"https://api.example.com/users"</span>
+
+<span class="c"># List requests</span>
+rb request list
+
+<span class="c"># Update request</span>
+rb request update <span class="s2">"Get Users"</span> <span class="nt">-u</span> <span class="s2">"https://api.example.com/v2/users"</span>
+
+<span class="c"># Delete request</span>
+rb request delete <span class="s2">"Get Users"</span>
+</code></pre></div></div>
+
+<h2 id="collection-management">Collection Management</h2>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c"># Create collection</span>
+rb collection create <span class="s2">"User API"</span>
+
+<span class="c"># Add request to collection</span>
+rb collection add <span class="s2">"User API"</span> <span class="s2">"Get Users"</span>
+
+<span class="c"># List collections</span>
+rb collection list
+
+<span class="c"># Export collection</span>
+rb collection <span class="nb">export</span> <span class="s2">"User API"</span> ./export.json
+</code></pre></div></div>
+
+<h2 id="execution">Execution</h2>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c"># Run single request</span>
+rb run request <span class="s2">"Get Users"</span>
+
+<span class="c"># Run collection</span>
+rb run collection <span class="s2">"User API"</span>
+
+<span class="c"># Run in parallel</span>
+rb run collection <span class="s2">"User API"</span> <span class="nt">--parallel</span>
+
+<span class="c"># Run with specific environment</span>
+rb run collection <span class="s2">"User API"</span> <span class="nt">-e</span> production
+</code></pre></div></div>
+
+<h2 id="history">History</h2>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c"># List execution history</span>
+rb run history-list
+
+<span class="c"># Replay from history</span>
+rb run <span class="nb">history</span> &lt;history_id&gt;
+</code></pre></div></div>
+
+<p>See the <a href="cli-docs/history">CLI History</a> guide for details.</p>
+
+<h2 id="testing">Testing</h2>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c"># Run tests</span>
+rb <span class="nb">test </span>run
+
+<span class="c"># Generate test files</span>
+rb <span class="nb">test </span>generate
+
+<span class="c"># Schedule tests</span>
+rb <span class="nb">test </span>schedule <span class="s2">"0 * * * *"</span> <span class="nt">--name</span> <span class="s2">"Hourly Tests"</span>
+</code></pre></div></div>
+
+<h2 id="logging">Logging</h2>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c"># List logs</span>
+rb logs list
+
+<span class="c"># View log details</span>
+rb logs view &lt;log_id&gt;
+
+<span class="c"># Export logs</span>
+rb logs <span class="nb">export</span> ./logs.json <span class="nt">--format</span> json
+</code></pre></div></div>
+
+<h2 id="synchronization">Synchronization</h2>
+
+<p>The CLI automatically synchronizes with the web interface. See the <a href="cli-docs/sync">CLI Sync</a> guide for details.</p>
+
+<h2 id="examples">Examples</h2>
+
+<p>See the <a href="cli-docs/examples">CLI Examples</a> guide for real-world usage examples.</p>
+
+<h2 id="command-reference">Command Reference</h2>
+
+<p>For complete command reference, see <a href="cli-docs/commands-verification">CLI Commands Verification</a>.</p>
+
+<h2 id="related-documentation">Related Documentation</h2>
+
+<ul>
+  <li><a href="cli-docs/auth">CLI Authentication</a></li>
+  <li><a href="cli-docs/environment">CLI Environment Management</a></li>
+  <li><a href="cli-docs/examples">CLI Examples</a></li>
+  <li><a href="cli-docs/history">CLI History</a></li>
+  <li><a href="cli-docs/sync">CLI Sync</a></li>
+</ul>
+
+
+    </main>
+    
+    <footer style="margin-top: 50px; padding-top: 20px; border-top: 1px solid #ddd; color: #666; font-size: 0.9em;">
+        <p>Reqbeam Documentation - <a href="https://github.com/reqbeam/reqbeam">GitHub Repository</a></p>
+    </footer>
+</body>
+</html>
+
