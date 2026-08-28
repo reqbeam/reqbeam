@@ -3,124 +3,116 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Reqbeam | API Testing CLI</title>
-    <meta name="description" content="Reqbeam command-line interface for API testing and development.">
+    <title>rb help | reqbeam</title>
+    <meta name="description" content="Reqbeam CLI documentation - type rb help for details">
     <style>
-        /* Reset */
-        * {
+        body {
+            background: #000;
+            color: #0F0;
+            font-family: 'Courier New', monospace;
+            font-size: 16px;
+            line-height: 1.4;
             margin: 0;
-            padding: 0;
+            padding: 1rem;
+            overflow-x: hidden;
+        }
+        
+        .screen {
+            max-width: 100%;
+            height: 100vh;
+            overflow-y: auto;
+            padding: 1rem;
             box-sizing: border-box;
         }
         
-        /* CLI Theme - Inspired by terminal interfaces */
-        :root {
-            --background: #1E1E1E;
-            --text: #D4D4D4;
-            --comment: #608B4E;
-            --keyword: #C586C0;
-            --string: #CE9178;
-            --function: #DCDCAA;
-            --operator: #D4D4D4;
-            --number: #B5CEA8;
-            --path: #4EC9B0;
-            --prompt: #569CD6;
-            --border: #3C3C3C;
-            --selection: rgba(39, 143, 226, 0.4);
-            --cursor: #D4D4D4;
-        }
-        
-        body {
-            font-family: 'Courier New', 'Courier', monospace;
-            background-color: var(--background);
-            color: var(--text);
-            line-height: 1.6;
-            font-size: 14px;
-            padding: 2rem;
-            max-width: 100%;
-            min-height: 100vh;
-            counter-reset: line;
-        }
-        
-        /* Terminal window style */
-        .terminal {
-            background-color: var(--background);
-            border: 1px solid var(--border);
-            border-radius: 4px;
-            overflow: hidden;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+        .ascii-art {
+            white-space: pre;
+            font-size: 0.8em;
+            line-height: 1;
             margin: 1rem 0;
+            color: #00F;
         }
         
-        .terminal-header {
-            background-color: #3C3C3C;
-            padding: 0.5rem 0.75rem;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-        
-        .terminal-dot {
-            width: 12px;
-            height: 12px;
-            border-radius: 50%;
-        }
-        
-        .dot-red { background-color: #FF5F56; }
-        .dot-yellow { background-color: #FEBC2E; }
-        .dot-green { background-color: #27C93F; }
-        
-        .terminal-title {
-            color: var(--text);
-            font-size: 12px;
-            flex-grow: 1;
-            text-align: center;
-        }
-        
-        .terminal-body {
-            padding: 1rem;
-            position: relative;
-        }
-        
-        /* Prompt and command styling */
         .prompt-line {
             display: flex;
-            margin-bottom: 0.5rem;
+            margin: 0.5rem 0;
         }
         
-        .prompt {
-            color: var(--prompt);
-            flex-shrink: 0;
-            margin-right: 0.5rem;
+        .user {
+            color: #0FF;
+            font-weight: bold;
+        }
+        
+        .host {
+            color: #0F0;
+        }
+        
+        .path {
+            color: #F80;
+        }
+        
+        .prompt-symbol {
+            color: #F00;
+            margin: 0 0.5rem 0 0.5rem;
         }
         
         .command {
-            color: var(--text);
+            color: #FFF;
         }
         
-        /* Output styling */
+        .comment {
+            color: #888;
+            font-style: italic;
+        }
+        
+        .keyword {
+            color: #00F;
+            font-weight: bold;
+        }
+        
+        .flag {
+            color: #F88;
+        }
+        
+        .value {
+            color: #8F8;
+        }
+        
         .output {
-            margin-bottom: 0.5rem;
-            color: var(--text);
+            margin: 0.5rem 0;
+            padding-left: 2.5rem;
         }
         
-        /* Syntax highlighting for different elements */
-        .path { color: var(--path); }
-        .flag { color: var(--keyword); }
-        .value { color: var(--string); }
-        .comment { color: var(--comment); }
-        .command-name { color: var(--function); }
-        .number { color: var(--number); }
-        .operator { color: var(--operator); }
+        .header {
+            color: #F00;
+            font-weight: bold;
+            margin: 1.5rem 0 0.5rem 0;
+        }
         
-        /* Interactive cursor */
+        .subheader {
+            color: #00F;
+            font-weight: bold;
+            margin: 1rem 0 0.5rem 0;
+        }
+        
+        .list-item {
+            margin: 0.3rem 0;
+            padding-left: 0.5rem;
+        }
+        
+        .code-block {
+            margin: 1rem 0;
+            padding: 0.5rem;
+            background: #111;
+            border-left: 3px solid #0F0;
+        }
+        
         .cursor {
             display: inline-block;
-            width: 8px;
-            height: 1em;
-            background-color: var(--cursor);
+            width: 10px;
+            height: 1.2em;
+            background: #0F0;
             animation: blink 1s step-end infinite;
-            vertical-align: middle;
         }
         
         @keyframes blink {
@@ -128,289 +120,190 @@
             50% { opacity: 0; }
         }
         
-        /* Links */
         a {
-            color: var(--path);
-            text-decoration: none;
-            border-bottom: 1px dotted var(--path);
-            padding-bottom: 1px;
+            color: #0FF;
+            text-decoration: underline;
         }
         
         a:hover {
-            border-bottom-style: solid;
+            color: #FFF;
         }
         
-        /* Headers */
-        h1, h2, h3 {
-            margin: 1.5rem 0 1rem 0;
-            line-height: 1.2;
+        /* Simulate typing animation */
+        @keyframes typing {
+            from { width: 0 }
+            to { width: 100% }
         }
         
-        h1 {
-            font-size: 1.8rem;
-            color: var(--function);
-            border-bottom: 1px solid var(--border);
-            padding-bottom: 0.5rem;
-            display: inline-block;
-        }
-        
-        h2 {
-            font-size: 1.5rem;
-            color: var(--keyword);
-            margin-top: 2rem;
-        }
-        
-        h3 {
-            font-size: 1.2rem;
-            color: var(--function);
-            margin: 1.5rem 0 0.75rem 0;
-        }
-        
-        /* Lists */
-        ul, ol {
-            padding-left: 1.5rem;
-            margin: 1rem 0;
-        }
-        
-        li {
-            margin: 0.5rem 0;
-        }
-        
-        /* Selection styling */
-        ::selection {
-            background-color: var(--selection);
-            color: var(--text);
+        @keyframes blink-caret {
+            from, to { border-color: transparent }
+            50% { border-color: orange }
         }
         
         /* Responsive design */
         @media (max-width: 768px) {
             body {
-                padding: 1rem;
-            }
-            
-            .terminal-body {
+                font-size: 14px;
                 padding: 0.5rem;
             }
-            
-            h1 {
-                font-size: 1.5rem;
-            }
-            
-            h2 {
-                font-size: 1.3rem;
-            }
-        }
-        
-        /* Hidden content until needed */
-        .hidden {
-            display: none;
         }
     </style>
 </head>
 <body>
-    <div class="terminal">
-        <div class="terminal-header">
-            <div class="terminal-dot dot-red"></div>
-            <div class="terminal-dot dot-yellow"></div>
-            <div class="terminal-dot dot-green"></div>
-            <div class="terminal-title">reqbeam-docs</div>
+    <div class="screen">
+        <div class="ascii-art">
+~~~
+:::::   :::    ::::::::::: ::::::::  :::    :::          ::::::::   ::::::::  :::::::::: :::        :::::::: 
+   :+:   :+:       :+:    :+:    :+: :+:    :+:         :+:    :+: :+:    :+: :+:        :+:       :+:    :+
+  +:+ +:+ +:+      +:+    +:+    +:+ +:+    +:+         +:+        +:+    +:+ +:+        +:+       +:+       
+ +#+  +:+  +#+     +#+    +#+    +:+ +#+    +:+         +#+        +#+    +:+ +#++#++#   +#+       +#+        
++#+   +   +#+     +#+    +#+    +#+ +#+    +#+         +#+        +#+    +#+ +#+        +#+       +#+        
+###       ###     ###    ########.   ##########          ########   ########  ########## ########## ######## 
+~~~
         </div>
-        <div class="terminal-body">
-            <div class="prompt-line">
-                <span class="prompt">$</span>
-                <span class="command">reqbeam --help</span>
+
+        <p class="comment"># Reqbeam v0.8.2 - API Testing Platform</p>
+        <p class="comment"># Type 'rb help' for command reference</p>
+        <p class="comment"># Documentation generated: 2026-08-28 08:45:32</p>
+        <p>&nbsp;</p>
+
+        <div class="prompt-line">
+            <span class="user">user</span><span class="host">@</span><span class="host">localhost</span><span class="prompt-symbol">$</span>
+            <span class="command">rb help</span>
+        </div>
+        <div class="output">
+            <span class="header">REQBEAM COMMAND REFERENCE</span>
+            <div class="code-block">
+                <p><span class="keyword">USAGE</span>: rb [command] [flags]</p>
+                <p><span class="keyword">VERSION</span>: 0.8.2</p>
+                <p><span class="keyword">AUTHOR</span>: @_shivammaurya__</p>
             </div>
-            <div class="output">
-                <span class="command-name">reqbeam</span> — Open source API testing tool
-                <br><br>
-                <span class="comment">Usage:</span> reqbeam [command] [flags]
-                <br><br>
-                <span class="comment">Commands:</span>
-                <br>
-                &nbsp;&nbsp;auth<span class="comment">: </span>Authenticate with the server
-                <br>
-                &nbsp;&nbsp;workspace<span class="comment">: </span>Manage workspaces
-                <br>
-                &nbsp;&nbsp;project<span class="comment">: </span>Manage projects (deprecated, use workspace)
-                <br>
-                &nbsp;&nbsp;env<span class="comment">: </span>Manage environment variables
-                <br>
-                &nbsp;&nbsp;request<span class="comment">: </span>Manage API requests
-                <br>
-                &nbsp;&nbsp;collection<span class="comment">: </span>Manage request collections
-                <br>
-                &nbsp;&nbsp;run<span class="comment">: </span>Execute requests or collections
-                <br>
-                &nbsp;&nbsp;test<span class="comment">: </span>Run automated tests
-                <br>
-                &nbsp;&nbsp;logs<span class="comment">: </span>View execution logs
-                <br>
-                &nbsp;&nbsp;help<span class="comment">: </span>Show this help message
-                <br><br>
-                <span class="comment">Global Flags:</span>
-                <br>
-                &nbsp;&nbsp;<span class="flag">-h</span>, <span class="flag">--help</span><span class="comment">: </span>Print help information
-                <br>
-                &nbsp;&nbsp;<span class="flag">-v</span>, <span class="flag">--version</span><span class="comment">: </span>Print version information
-                <br><br>
-                <span class="comment">Documentation: </span><a href="https://github.com/reqbeam/reqbeam">https://github.com/reqbeam/reqbeam</a>
+
+            <span class="subheader">AVAILABLE COMMANDS:</span>
+            <p class="list-item"><span class="keyword">auth</span>       Authentication management (login, logout, status)</p>
+            <p class="list-item"><span class="keyword">workspace</span>  Workspace operations (list, create, switch, delete)</p>
+            <p class="list-item"><span class="keyword">env</span>        Environment variables management</p>
+            <p class="list-item"><span class="keyword">request</span>    API request operations</p>
+            <p class="list-item"><span class="keyword">collection</span> Request collection management</p>
+            <p class="list-item"><span class="keyword">run</span>        Execute requests or collections</p>
+            <p class="list-item"><span class="keyword">test</span>       Run automated tests</p>
+            <p class="list-item"><span class="keyword">logs</span>       View execution logs</p>
+            <p class="list-item"><span class="keyword">help</span>       Show this help message</p>
+
+            <span class="subheader">GLOBAL FLAGS:</span>
+            <p class="list-item"><span class="flag">-h</span>, <span class="flag">--help</span>     Show help for command</p>
+            <p class="list-item"><span class="flag">-v</span>, <span class="flag">--version</span>  Print version information</p>
+            <p class="list-item"><span class="flag">--verbose</span>    Enable verbose output</p>
+            <p class="list-item"><span class="flag">--config</span>     Specify config file path</p>
+            <p>&nbsp;</p>
+
+            <span class="subheader">DOCUMENTATION:</span>
+            <p class="list-item">See <a href="https://github.com/reqbeam/reqbeam">https://github.com/reqbeam/reqbeam</a> for full documentation</p>
+            <p class="list-item">Report issues at <a href="https://github.com/reqbeam/reqbeam/issues">https://github.com/reqbeam/reqbeam/issues</a></p>
+        </div>
+
+        <div class="prompt-line">
+            <span class="user">user</span><span class="host">@</span><span class="host">localhost</span><span class="prompt-symbol">$</span>
+            <span class="command">rb help installation</span>
+        </div>
+        <div class="output">
+            <span class="header">INSTALLATION GUIDE</span>
+            <div class="code-block">
+                <p><span class="keyword">METHOD 1: QUICK START</span></p>
+                <p><span class="prompt-symbol">$</span> <span class="command">git clone <span class="value">https://github.com/reqbeam/reqbeam.git</span></span></p>
+                <p><span class="prompt-symbol">$</span> <span class="command">cd <span class="value">reqbeam</span></span></p>
+                <p><span class="prompt-symbol">$</span> <span class="command">npm install</span></p>
+                <p><span class="prompt-symbol">$</span> <span class="command">npm run setup:all</span></p>
+                <p><span class="prompt-symbol">$</span> <span class="command">npm run dev</span></p>
             </div>
+
+            <div class="code-block">
+                <p><span class="keyword">METHOD 2: DOCKER</span></p>
+                <p><span class="prompt-symbol">$</span> <span class="command">docker-compose up -d</span></p>
+            </div>
+
+            <p class="comment"># Server will be available at http://localhost:3000</p>
+            <p class="comment"># CLI tool available globally after installation</p>
+        </div>
+
+        <div class="prompt-line">
+            <span class="user">user</span><span class="host">@</span><span class="host">localhost</span><span class="prompt-symbol">$</span>
+            <span class="command">rb help usage</span>
+        </div>
+        <div class="output">
+            <span class="header">USAGE EXAMPLES</span>
+            <div class="code-block">
+                <p><span class="keyword">AUTHENTICATION</span></p>
+                <p><span class="prompt-symbol">$</span> <span class="command">rb auth login</span></p>
+                <p><span class="prompt-symbol">$</span> <span class="command">rb workspace create <span class="value">my-project</span></span></p>
+                <p><span class="prompt-symbol">$</span> <span class="command">rb env add <span class="value">development</span> -i</span></p>
+            </div>
+
+            <div class="code-block">
+                <p><span class="keyword">REQUEST MANAGEMENT</span></p>
+                <p><span class="prompt-symbol">$</span> <span class="command">rb request create -n <span class="value">"Get Users"</span> -m <span class="value">GET</span> -u <span class="value">"{{API_URL}}/users"</span></span></p>
+                <p><span class="prompt-symbol">$</span> <span class="command">rb run request <span class="value">"Get Users"</span></span></p>
+            </div>
+
+            <div class="code-block">
+                <p><span class="keyword">COLLECTIONS</span></p>
+                <p><span class="prompt-symbol">$</span> <span class="command">rb collection create <span class="value">"User API"</span></span></p>
+                <p><span class="prompt-symbol">$</span> <span class="command">rb collection add <span class="value">"User API"</span> <span class="value">"Get Users"</span></span></p>
+                <p><span class="prompt-symbol">$</span> <span class="command">rb run collection <span class="value">"User API"</span> --parallel</span></p>
+            </div>
+
+            <p class="comment"># Use --verbose flag for detailed output</p>
+            <p class="comment"># Use --help after any command for specific options</p>
+        </div>
+
+        <div class="prompt-line">
+            <span class="user">user</span><span class="host">@</span><span class="host">localhost</span><span class="prompt-symbol">$</span>
+            <span class="command">rb help architecture</span>
+        </div>
+        <div class="output">
+            <span class="header">PROJECT ARCHITECTURE</span>
+            <div class="code-block">
+                <p><span class="path">reqbeam/</span></p>
+                <p><span class="path">├── reqbeam-db/</span><span class="comment">          # Shared database package</span></p>
+                <p><span class="path">│   ├── prisma/</span><span class="comment">         # Prisma schema and migrations</span></p>
+                <p><span class="path">│   └── src/</span><span class="comment">            # Database services</span></p>
+                <p><span class="path">├── reqbeam-cli/</span><span class="comment">        # CLI tool</span></p>
+                <p><span class="path">│   ├── src/</span><span class="comment">            # CLI source code</span></p>
+                <p><span class="path">│   └── bin/</span><span class="comment">            # CLI executables</span></p>
+                <p><span class="path">├── auth-server/</span><span class="comment">        # Optional authentication server</span></p>
+                <p><span class="path">│   └── src/</span><span class="comment">            # Auth server code</span></p>
+                <p><span class="path">├── src/</span><span class="comment">                # Next.js web application</span></p>
+                <p><span class="path">│   ├── app/</span><span class="comment">            # Next.js app router</span></p>
+                <p><span class="path">│   ├── components/</span><span class="comment">     # React components</span></p>
+                <p><span class="path">│   ├── lib/</span><span class="comment">            # Utilities and services</span></p>
+                <p><span class="path">│   └── store/</span><span class="comment">          # State management</span></p>
+                <p><span class="path">├── prisma/</span><span class="comment">             # Database files (SQLite)</span></p>
+                <p><span class="path">├── public/</span><span class="comment">             # Static assets</span></p>
+                <p><span class="path">└── docker-compose.yml  </span><span class="comment"># Docker configuration</span></p>
+            </div>
+        </div>
+
+        <div class="prompt-line">
+            <span class="user">user</span><span class="host">@</span><span class="host">localhost</span><span class="prompt-symbol">$</span>
+            <span class="command">rb help contributing</span>
+        </div>
+        <div class="output">
+            <span class="header">CONTRIBUTING</span>
+            <p class="list-item"><span class="keyword">1.</span> Fork the repository on GitHub</p>
+            <p class="list-item"><span class="keyword">2.</span> Create your feature branch (git checkout -b feature/fooBar)</p>
+            <p class="list-item"><span class="keyword">3.</span> Commit your changes (git commit -am 'Add some fooBar')</p>
+            <p class="list-item"><span class="keyword">4.</span> Push to the branch (git push origin feature/fooBar)</p>
+            <p class="list-item"><span class="keyword">5.</span> Create a new Pull Request</p>
+            <p>&nbsp;</p>
+            <p><span class="keyword">LICENSE:</span> MIT - see LICENSE file for details</p>
+            <p><span class="keyword">CONTACT:</span> @_shivammaurya__ on X</p>
+        </div>
+
+        <div class="prompt-line">
+            <span class="user">user</span><span class="host">@</span><span class="host">localhost</span><span class="prompt-symbol">$</span>
+            <span class="command">rb</span>
+            <span class="cursor"></span>
         </div>
     </div>
-
-    <div class="terminal">
-        <div class="terminal-header">
-            <div class="terminal-dot dot-red"></div>
-            <div class="terminal-dot dot-yellow"></div>
-            <div class="terminal-dot dot-green"></div>
-            <div class="terminal-title">installation</div>
-        </div>
-        <div class="terminal-body">
-            <div class="prompt-line">
-                <span class="prompt">$</span>
-                <span class="command"># Quick Start</span>
-            </div>
-            <div class="output">
-                # Clone the repository
-                <span class="prompt">$</span> <span class="command">git clone <span class="path">https://github.com/reqbeam/reqbeam.git</span></span>
-                <span class="prompt">$</span> <span class="command">cd <span class="path">reqbeam</span></span>
-                <br>
-                # Install dependencies
-                <span class="prompt">$</span> <span class="command">npm install</span>
-                <span class="prompt">$</span> <span class="command">npm run setup:all</span>
-                <br>
-                # Start the development server
-                <span class="prompt">$</span> <span class="command">npm run dev</span>
-            </div>
-            <div class="prompt-line">
-                <span class="prompt">$</span>
-                <span class="command"># Docker Setup</span>
-            </div>
-            <div class="output">
-                # Run with Docker Compose
-                <span class="prompt">$</span> <span class="command">docker-compose up -d</span>
-            </div>
-        </div>
-    </div>
-
-    <div class="terminal">
-        <div class="terminal-header">
-            <div class="terminal-dot dot-red"></div>
-            <div class="terminal-dot dot-yellow"></div>
-            <div class="terminal-dot dot-green"></div>
-            <div class="terminal-title">usage-examples</div>
-        </div>
-        <div class="terminal-body">
-            <div class="prompt-line">
-                <span class="prompt">$</span>
-                <span class="command"># CLI Usage Examples</span>
-            </div>
-            <div class="output">
-                # Authenticate and set up
-                <span class="prompt">$</span> <span class="command">rb auth login</span>
-                <span class="prompt">$</span> <span class="command">rb workspace create <span class="value">my-project</span></span>
-                <span class="prompt">$</span> <span class="command">rb env add <span class="value">development</span> -i</span>
-                <br>
-                # Create and run requests
-                <span class="prompt">$</span> <span class="command">rb request create -n <span class="value">"Get Users"</span> -m <span class="value">GET</span> -u <span class="value">"{{API_URL}}/users"</span></span>
-                <span class="prompt">$</span> <span class="command">rb run request <span class="value">"Get Users"</span></span>
-                <br>
-                # Manage collections
-                <span class="prompt">$</span> <span class="command">rb collection create <span class="value">"User API"</span></span>
-                <span class="prompt">$</span> <span class="command">rb collection add <span class="value">"User API"</span> <span class="value">"Get Users"</span></span>
-                <span class="prompt">$</span> <span class="command">rb run collection <span class="value">"User API"</span> --parallel</span>
-            </div>
-        </div>
-    </div>
-
-    <div class="terminal">
-        <div class="terminal-header">
-            <div class="terminal-dot dot-red"></div>
-            <div class="terminal-dot dot-yellow"></div>
-            <div class="terminal-dot dot-green"></div>
-            <div class="terminal-title">architecture</div>
-        </div>
-        <div class="terminal-body">
-            <div class="prompt-line">
-                <span class="prompt">$</span>
-                <span class="command"># Project Structure</span>
-            </div>
-            <div class="output">
-                <span class="path">reqbeam/</span>
-                <br>
-                &nbsp;&nbsp;├── <span class="path">reqbeam-db/</span><span class="comment">          # Shared database package</span>
-                <br>
-                &nbsp;&nbsp;│   ├── <span class="path">prisma/</span><span class="comment">         # Prisma schema and migrations</span>
-                <br>
-                &nbsp;&nbsp;│   └── <span class="path">src/</span><span class="comment">            # Database services</span>
-                <br>
-                &nbsp;&nbsp;├── <span class="path">reqbeam-cli/</span><span class="comment">        # CLI tool</span>
-                <br>
-                &nbsp;&nbsp;│   ├── <span class="path">src/</span><span class="comment">            # CLI source code</span>
-                <br>
-                &nbsp;&nbsp;│   └── <span class="path">bin/</span><span class="comment">            # CLI executables</span>
-                <br>
-                &nbsp;&nbsp;├── <span class="path">auth-server/</span><span class="comment">        # Optional authentication server</span>
-                <br>
-                &nbsp;&nbsp;│   └── <span class="path">src/</span><span class="comment">            # Auth server code</span>
-                <br>
-                &nbsp;&nbsp;├── <span class="path">src/</span><span class="comment">                # Next.js web application</span>
-                <br>
-                &nbsp;&nbsp;│   ├── <span class="path">app/</span><span class="comment">            # Next.js app router</span>
-                <br>
-                &nbsp;&nbsp;│   ├── <span class="path">components/</span><span class="comment">     # React components</span>
-                <br>
-                &nbsp;&nbsp;│   ├── <span class="path">lib/</span><span class="comment">            # Utilities and services</span>
-                <br>
-                &nbsp;&nbsp;│   └── <span class="path">store/</span><span class="comment">          # State management</span>
-                <br>
-                &nbsp;&nbsp;├── <span class="path">prisma/</span><span class="comment">             # Database files (SQLite)</span>
-                <br>
-                &nbsp;&nbsp;├── <span class="path">public/</span><span class="comment">             # Static assets</span>
-                <br>
-                &nbsp;&nbsp;└── <span class="path">docker-compose.yml</span><span class="comment">  # Docker configuration</span>
-            </div>
-        </div>
-    </div>
-
-    <div class="terminal">
-        <div class="terminal-header">
-            <div class="terminal-dot dot-red"></div>
-            <div class="terminal-dot dot-yellow"></div>
-            <div class="terminal-dot dot-green"></div>
-            <div class="terminal-title">contributing</div>
-        </div>
-        <div class="terminal-body">
-            <div class="prompt-line">
-                <span class="prompt">$</span>
-                <span class="command"># Contributing to Reqbeam</span>
-            </div>
-            <div class="output">
-                <span class="comment">We welcome contributions to Reqbeam.</span>
-                <br><br>
-                # Report issues
-                <span class="prompt">$</span> <span class="command">git clone <span class="path">https://github.com/reqbeam/reqbeam.git</span></span>
-                <span class="prompt">$</span> <span class="command">cd <span class="path">reqbeam</span></span>
-                <span class="prompt">$</span> <span class="command"># Create an issue on GitHub</span>
-                <br>
-                # Contribute code
-                <span class="prompt">$</span> <span class="command"># Fork the repository</span>
-                <span class="prompt">$</span> <span class="command"># Create a pull request</span>
-                <br>
-                <span class="comment">For details, see the CONTRIBUTING.md guide.</span>
-                <br><br>
-                <span class="comment">License: <span class="value">MIT</span> - see LICENSE file for details.</span>
-            </div>
-            <div class="prompt-line">
-                <span class="prompt" style="opacity: 0.5;">reqbeam</span>
-                <span class="command" style="opacity: 0.7;">$ </span>
-                <span class="cursor"></span>
-            </div>
-        </div>
-    </div>
-
-    <footer style="text-align: center; margin-top: 2rem; color: var(--comment); font-size: 12px;">
-        <p>Documentation generated by <a href="https://twitter.com/_shivammaurya__" style="color: var(--path);">@_shivammaurya__</a></p>
-    </footer>
 </body>
 </html>
